@@ -102,6 +102,41 @@ function xmldb_crucible_upgrade($oldversion) {
         // Crucible savepoint reached.
         upgrade_mod_savepoint(true, 2020011500, 'crucible');
     }
+
+
+    if ($oldversion < 2020040300) {
+
+        // Define field clock to be added to crucible.
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('clock', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'vmapp');
+
+        // Conditionally launch add field clock.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field tasks to be added to crucible_attempts.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('tasks', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'attemptnum');
+
+        // Conditionally launch add field tasks.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field score to be added to crucible_attempts.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('score', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'tasks');
+
+        // Conditionally launch add field score.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020040300, 'crucible');
+    }
+
     return true;
 }
 

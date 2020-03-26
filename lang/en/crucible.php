@@ -48,18 +48,22 @@ $string['alloyapiurl'] = 'Alloy API Base URL';
 $string['vmapp'] = 'Display';
 $string['vmappurl'] = 'VM App Base URL';
 $string['playerappurl'] = 'Player Base URL';
+$string['steamfitterapiurl'] = 'SteamFitter API URL';
 $string['issuerid'] = 'OAUTH2 Issuer';
 $string['autocomplete'] = 'Lab Selection Method';
 $string['definition'] = 'Alloy Lab';
 $string['selectname'] = 'Search for a lab by name';
+$string['showfailed'] = 'Show Failed';
 
 $string['configissuerid'] = 'This is the integer value for the issuer.';
 $string['configvmapp'] = 'This determines whether the VM app is emebedd or whether a link to player is displayed';
 $string['configvmappurl'] = 'Base URL for VM app instance without trailing "/".';
 $string['configplayerappurl'] = 'Base URL for Player instance without trailing "/".';
+$string['configsteamfitterapiurl'] = 'SteamFitter API Base URL address without trailing "/".';
 $string['configalloyapiurl'] = 'Alloy API Base URL address without trailing "/".';
 $string['configdefinition'] = 'Alloy definition ID for the lab to be launched.';
 $string['configautocomplete'] = 'Display list of labs in a dropdown or a searchable text box.';
+$string['configshowfailed'] = 'Show failed implementations in the history table.';
 
 // activity settings
 
@@ -75,5 +79,17 @@ $string['id'] = 'Alloy Implementation ID';
 $string['status'] = 'Status';
 $string['launchdate'] = 'Launch Date';
 $string['enddate'] = 'End Date';
-$string['tablecaption'] = 'History';
+$string['historycaption'] = 'History';
 $string['playerlinktext'] = 'Click here to open player in a new tab';
+$string['clock'] = 'Clock';
+$string['configclock'] = 'Style for clock.';
+$string['clock_help'] = 'Display no clock, a countup timer, or a countdown timer.';
+
+
+// tasks
+$string['taskcaption'] = 'Tasks';
+$string['taskid'] = "Task ID";
+$string['taskdesc'] = "Task Description";
+$string['taskname'] = "Task Name";
+$string['taskresult'] = "Task Result";
+

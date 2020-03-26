@@ -302,6 +302,129 @@ function get_implementation($systemauth, $id) {
     return;
 }
 
+function get_scenariotasks($systemauth, $id) {
+
+    if ($systemauth == null) {
+        echo 'error with systemauth<br>';
+        return;
+    }
+
+    if ($id == null) {
+        echo 'error with id<br>';
+        return;
+    }
+
+    // web request
+    $url = get_config('crucible', 'steamfitterapiurl') . "/scenarios/" . $id . "/dispatchtasks";
+    //echo "GET $url<br>";
+
+    $response = $systemauth->get($url);
+    if (!$response) {
+        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
+        //throw new \Exception($response);
+        return;
+    }
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+    if (!$r) {
+        echo "could not decode json<br>";
+        return;
+    }
+
+    if ($systemauth->info['http_code']  === 200) {
+        return $r;
+    } else {
+        echo "response code ". $systemauth->info['http_code'] . "<br>";
+        //throw new \Exception($response);
+    }
+    return;
+}
+
+function get_sessiontasks($systemauth, $id) {
+
+    if ($systemauth == null) {
+        echo 'error with systemauth<br>';
+        return;
+    }
+
+    if ($id == null) {
+        echo 'error with id<br>';
+        return;
+    }
+
+    // web request
+    $url = get_config('crucible', 'steamfitterapiurl') . "/sessions/" . $id . "/dispatchtasks";
+    //echo "GET $url<br>";
+
+    $response = $systemauth->get($url);
+    if (!$response) {
+        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
+        //throw new \Exception($response);
+        return;
+    }
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+    if (!$r) {
+        echo "could not decode json<br>";
+        return;
+    }
+
+    if ($systemauth->info['http_code']  === 200) {
+        return $r;
+    } else {
+        echo "response code ". $systemauth->info['http_code'] . "<br>";
+        //throw new \Exception($response);
+    }
+    return;
+}
+
+function get_taskresults($systemauth, $id) {
+
+    if ($systemauth == null) {
+        echo 'error with systemauth<br>';
+        return;
+    }
+
+    if ($id == null) {
+        echo 'error with id<br>';
+        return;
+    }
+
+    // web request
+    $url = get_config('crucible', 'steamfitterapiurl') . "/sessions/" . $id . "/dispatchtaskresults";
+    //echo "GET $url<br>";
+
+    $response = $systemauth->get($url);
+    if (!$response) {
+        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
+        //throw new \Exception($response);
+        return;
+    }
+    if ($systemauth->info['http_code']  !== 200) {
+        echo "response code ". $systemauth->info['http_code'] . "<br>";
+        //throw new \Exception($response);
+    }
+
+    //echo "response:<br><pre>$response</pre>";
+    if ($response === "[]") {
+        return;
+    }
+
+    $r = json_decode($response);
+    if (!$r) {
+        echo "could not decode json<br>";
+        return;
+    }
+
+    if ($systemauth->info['http_code']  === 200) {
+        return $r;
+    } else {
+        echo "response code ". $systemauth->info['http_code'] . "<br>";
+        //throw new \Exception($response);
+    }
+    return;
+}
+
 
 // GET /definitions/{definitionId}/implementations/mine -- Gets the user's Implementations for the indicated Definition
 function list_implementations($systemauth, $id) {

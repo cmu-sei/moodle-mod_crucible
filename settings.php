@@ -56,13 +56,19 @@ if ($ADMIN->fulltree) {
         get_string('issuerid', 'crucible'), get_string('configissuerid', 'crucible'), 0, $options));
 
     $settings->add(new admin_setting_configtext('crucible/alloyapiurl',
-        get_string('alloyapiurl', 'crucible'), get_string('configalloyapiurl', 'crucible'), PARAM_URL));
+        get_string('alloyapiurl', 'crucible'), get_string('configalloyapiurl', 'crucible'), "", PARAM_URL, 60));
 
     $settings->add(new admin_setting_configtext('crucible/playerappurl',
-        get_string('playerappurl', 'crucible'), get_string('configplayerappurl', 'crucible'), PARAM_URL));
+        get_string('playerappurl', 'crucible'), get_string('configplayerappurl', 'crucible'), "", PARAM_URL, 60));
 
     $settings->add(new admin_setting_configtext('crucible/vmappurl',
-        get_string('vmappurl', 'crucible'), get_string('configvmappurl', 'crucible'), PARAM_URL));
+        get_string('vmappurl', 'crucible'), get_string('configvmappurl', 'crucible'), "", PARAM_URL, 60));
+
+    $settings->add(new admin_setting_configtext('crucible/steamfitterapiurl',
+        get_string('steamfitterapiurl', 'crucible'), get_string('steamfitterapiurl', 'crucible'), "", PARAM_URL, 60));
+
+    $settings->add(new admin_setting_configcheckbox('crucible/showfailed',
+        get_string('showfailed', 'crucible'), get_string('configshowfailed', 'crucible'), 0, '1'));
 
 }
 

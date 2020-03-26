@@ -86,6 +86,12 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->setDefault('vmapp', $config->vmapp);
         $mform->addHelpButton('vmapp', 'vmapp', 'crucible');
 
+        $options = array('', 'Countdown', 'Timer');
+        $mform->addElement('select', 'clock', get_string('clock', 'crucible'), $options);
+        $mform->setDefault('clock', '');
+        $mform->addHelpButton('clock', 'clock', 'crucible');
+
+
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
 

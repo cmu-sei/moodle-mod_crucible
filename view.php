@@ -46,9 +46,9 @@ $c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as 
 if ($id) {
     $cm         = get_coursemodule_from_id('crucible', $id, 0, false, MUST_EXIST);
     $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-    $crucible    = $DB->get_record('crucible', array('id' => $cm->instance), '*', MUST_EXIST);
+    $crucible   = $DB->get_record('crucible', array('id' => $cm->instance), '*', MUST_EXIST);
 } else if ($c) {
-    $crucible    = $DB->get_record('crucible', array('id' => $c), '*', MUST_EXIST);
+    $crucible   = $DB->get_record('crucible', array('id' => $c), '*', MUST_EXIST);
     $course     = $DB->get_record('course', array('id' => $crucible->course), '*', MUST_EXIST);
     $cm         = get_coursemodule_from_instance('crucible', $crucible->id, $course->id, false, MUST_EXIST);
 } else {
@@ -77,6 +77,7 @@ $PAGE->set_heading($course->fullname);
 // get lab info
 $definition = $crucible->definition;
 $lab = get_definition($definition);
+$scenarioid = $lab->scenarioId;
 
 // Update the database.
 $crucible->name = $lab->name;
@@ -121,9 +122,25 @@ else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
 if ($launched) {
     $implementation = $launched->id;
     $exerciseid = $launched->exerciseId;
+    $sessionid = $launched->sessionId;
+
+    // TODO remove this check once the steamfitter is updated
+    if (strpos($launched->launchDate, "Z")) {
+        $starttime = strtotime($launched->launchDate);
+    } else {
+        $starttime = strtotime($launched->launchDate . 'Z');
+    }
+    if (strpos($launched->expirationDate, "Z")) {
+        $endtime = strtotime($launched->expirationDate);
+    } else {
+        $endtime = strtotime($launched->expirationDate . 'Z');
+    }
 } else {
     $implementation = null;
     $exerciseid = null;
+    $sessionid = null;
+    $startime = null;
+    $endtime = null;
 }
 
 // todo can this go in the check above?
@@ -139,12 +156,24 @@ $alloy_api_url = get_config('crucible', 'alloyapiurl');
 $vm_app_url = get_config('crucible', 'vmappurl');
 $player_app_url = get_config('crucible', 'playerappurl');
 $vmapp = $crucible->vmapp;
-
+$showfailed = get_config('crucible', 'showfailed');
 
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 $renderer->display_detail($crucible);
 $renderer->display_form($url, $definition);
+
+if ($launched) {
+
+    // TODO add mod setting to pick format
+    if ($crucible->clock == 1) {
+        $renderer->display_clock($starttime, $endtime);
+        $PAGE->requires->js_call_amd('mod_crucible/clock', 'countdown', array('endtime' => $endtime));
+    } else if ($crucible->clock == 2) {
+        $renderer->display_clock($starttime, $endtime);
+        $PAGE->requires->js_call_amd('mod_crucible/clock', 'countup', array('starttime' => $starttime));
+    }
+}
 
 if ($vmapp == 1) {
     $renderer->display_embed_page($crucible);
@@ -152,56 +181,41 @@ if ($vmapp == 1) {
     $renderer->display_link_page($player_app_url, $exerciseid);
 }
 
-$refresh_token = null;
+// TODO have a completely different view page for active labs
+if ($sessionid) {
+    $tasks = get_sessiontasks($systemauth, $sessionid);
+    $taskresults = get_taskresults($systemauth, $sessionid);
 
+    // taskresults will be null if there are no results
+    foreach ($taskresults as $result) {
+        // find task in tasks and update the result
+        foreach ($tasks as $task) {
+            if ($task->id == $result->dispatchTaskId) {
+                // TODO there may be more than one dispatchTaskResult
+                // for tasks that can be executed multiple times
+                $task->result = $result;
+            }
+        }
+    }
+    $renderer->display_tasks($tasks);
+} else if ($scenarioid) {
+    // this is when we do not have an active session
+    $tasks = get_scenariotasks($systemauth, $scenarioid);
 
-echo '<script type="text/javascript">';
-echo 'var access_token = "' . $access_token . '";';
-echo 'var refresh_token = "' . $refresh_token . '";';
-echo 'var id = "' . $implementation . '";';
-echo 'var definition = "' . $definition . '";';
-echo 'var alloy_api_url = "' . $alloy_api_url . '";';
-echo 'var vm_app_url = "' . $vm_app_url . '";';
-echo 'var player_app_url = "' . $player_app_url . '";';
-echo 'var exerciseid = "' . $exerciseid . '";';
-echo 'var status = "' . $status . '";';
-echo 'var token_url = "' . $token_url . '";';
-echo 'var scopes = "' . $scopes . '";';
-echo 'var clientsecret = "' . $clientsecret . '";';
-echo 'var clientid = "' . $clientid . '";';
-echo "</script>";
-$PAGE->requires->js_call_amd('mod_crucible/crucibleview', 'init');
+    $renderer->display_tasks($tasks);
+}
 
-/*
-$PAGE->requires->js_call_amd('mod_crucible/crucibleview', 'init', [
-'id' => $implementation,
-'definition' => $definition,
-'exerciseid' => $exerciseid,
+$PAGE->requires->js_call_amd('mod_crucible/view', 'init', [
 'access_token' => $access_token,
-'refresh_token' => $refresh_token,
+'state' => $status,
+'id' => $implementation,
+'exerciseid' => $exerciseid,
 'alloy_api_url' => $alloy_api_url,
 'vm_app_url' => $vm_app_url,
 'player_app_url' => $player_app_url,
-'token_url' => $token_url,
-'scopes' => $scopes,
-'clientsecret' => $clientsecret,
-'clientid' => $clientid,
-'labstatus' => $status
 ]);
-*/
-/*
-$PAGE->requires->js_call_amd('mod_crucible/check', 'init', [
-'id' => $implementation,
-'definition' => $definition,
-'exerciseid' => $exerciseid,
-'access_token' => $access_token,
-'vm_app_url' => $vm_app_url,
-'player_app_url' => $player_app_url,
-'labstatus' => $status
-]);
-*/
 
-echo $renderer->display_history($history);
+echo $renderer->display_history($history, $showfailed);
 echo $renderer->footer();
 
 

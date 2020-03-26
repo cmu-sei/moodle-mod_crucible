@@ -45,17 +45,17 @@ class mod_crucible_renderer extends plugin_renderer_base {
     }
 
     function display_form($url, $definition) {
-	$data = new stdClass();
-	$data->url = $url;
-	$data->definition = $definition;
-	echo $this->render_from_template('mod_crucible/form', $data);
+        $data = new stdClass();
+        $data->url = $url;
+        $data->definition = $definition;
+        echo $this->render_from_template('mod_crucible/form', $data);
 
     }
 
     function display_link_page($player_app_url, $exerciseid) {
         $data = new stdClass();
-	$data->url =  $player_app_url . '/exercise-player/' .  $exerciseid;
-	$data->playerlinktext = get_string('playerlinktext', 'mod_crucible');
+        $data->url =  $player_app_url . '/exercise-player/' .  $exerciseid;
+        $data->playerlinktext = get_string('playerlinktext', 'mod_crucible');
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_crucible/link', $data);
 
@@ -68,26 +68,60 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     }
 
-    function display_history($history) {
-	$table = new stdClass();
-        $table->tableheaders = [
+    function display_history($history, $showfailed) {
+        $data = new stdClass();
+        $data->tableheaders = [
             get_string('id', 'mod_crucible'),
             get_string('status', 'mod_crucible'),
             get_string('launchdate', 'mod_crucible'),
             get_string('enddate', 'mod_crucible'),
         ];
 
-	foreach ($history as $odx) {
-	    //var_dump($odx);
-	    $data = array();
-	    $data[] = $odx['id'];
-	    $data[] = $odx['status'];
-	    $data[] = $odx['launchDate'];
-	    $data[] = $odx['endDate'];
-	    $table->tabledata[] = $data;
-	}
+        foreach ($history as $odx) {
+            if ((!$showfailed) && ($odx['status'] === 'Failed')) {
+                continue;
+            }
+            $rowdata = array();
+            $rowdata[] = $odx['id'];
+            $rowdata[] = $odx['status'];
+            $rowdata[] = $odx['launchDate'];
+            $rowdata[] = $odx['endDate'];
+            $data->tabledata[] = $rowdata;
+        }
 
-        echo $this->render_from_template('mod_crucible/history', $table);
+        echo $this->render_from_template('mod_crucible/history', $data);
+    }
+
+    function display_tasks($tasks) {
+        $data = new stdClass();
+        $data->tableheaders = [
+            //get_string('taskid', 'mod_crucible'),
+            get_string('taskname', 'mod_crucible'),
+            get_string('taskdesc', 'mod_crucible'),
+            get_string('taskresult', 'mod_crucible'),
+        ];
+
+        foreach ($tasks as $task) {
+            //var_dump($task);
+            $rowdata = array();
+            //$rowdata[] = $task->id;
+            $rowdata[] = $task->name;
+            $rowdata[] = $task->description;
+            $rowdata[] = $task->result->status;
+            $data->tabledata[] = $rowdata;
+        }
+
+        echo $this->render_from_template('mod_crucible/tasks', $data);
+
+    }
+
+    function display_clock($starttime, $endtime) {
+
+        $data = new stdClass();
+        $data->starttime = $starttime;
+        $data->endtime = $endtime;
+
+        echo $this->render_from_template('mod_crucible/clock', $data);
     }
 }
 
