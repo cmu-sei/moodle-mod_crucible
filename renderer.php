@@ -36,10 +36,58 @@ defined('MOODLE_INTERNAL') || die();
 
 class mod_crucible_renderer extends plugin_renderer_base {
 
-    public function display_crucible_detail (&$crucible, $cm, $printaccessbutton) {
-        global $CFG, $OUTPUT, $COURSE;
+    function display_detail ($crucible) {
+        $data = new stdClass();
+        $data->name = $crucible->name;
+        $data->intro = $crucible->intro;
+        echo $this->render_from_template('mod_crucible/detail', $data);
 
-        return $html;
+    }
+
+    function display_form($url, $definition) {
+	$data = new stdClass();
+	$data->url = $url;
+	$data->definition = $definition;
+	echo $this->render_from_template('mod_crucible/form', $data);
+
+    }
+
+    function display_link_page($player_app_url, $exerciseid) {
+        $data = new stdClass();
+	$data->url =  $player_app_url . '/exercise-player/' .  $exerciseid;
+	$data->playerlinktext = get_string('playerlinktext', 'mod_crucible');
+        // Render the data in a Mustache template.
+        echo $this->render_from_template('mod_crucible/link', $data);
+
+    }
+
+    function display_embed_page($crucible) {
+        $data = new stdClass();
+        // Render the data in a Mustache template.
+        echo $this->render_from_template('mod_crucible/embed', $data);
+
+    }
+
+    function display_history($history) {
+	$table = new stdClass();
+        $table->tableheaders = [
+            get_string('id', 'mod_crucible'),
+            get_string('status', 'mod_crucible'),
+            get_string('launchdate', 'mod_crucible'),
+            get_string('enddate', 'mod_crucible'),
+        ];
+
+	foreach ($history as $odx) {
+	    //var_dump($odx);
+	    $data = array();
+	    $data[] = $odx['id'];
+	    $data[] = $odx['status'];
+	    $data[] = $odx['launchDate'];
+	    $data[] = $odx['endDate'];
+	    $table->tabledata[] = $data;
+	}
+
+        echo $this->render_from_template('mod_crucible/history', $table);
     }
 }
 

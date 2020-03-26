@@ -41,14 +41,14 @@ require_once("$CFG->dirroot/mod/crucible/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
-$n = optional_param('n', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
+$c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
 
 if ($id) {
     $cm         = get_coursemodule_from_id('crucible', $id, 0, false, MUST_EXIST);
     $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
     $crucible    = $DB->get_record('crucible', array('id' => $cm->instance), '*', MUST_EXIST);
-} else if ($n) {
-    $crucible    = $DB->get_record('crucible', array('id' => $n), '*', MUST_EXIST);
+} else if ($c) {
+    $crucible    = $DB->get_record('crucible', array('id' => $c), '*', MUST_EXIST);
     $course     = $DB->get_record('course', array('id' => $crucible->course), '*', MUST_EXIST);
     $cm         = get_coursemodule_from_instance('crucible', $crucible->id, $course->id, false, MUST_EXIST);
 } else {
@@ -72,13 +72,12 @@ $PAGE->set_context($context);
 $PAGE->set_title(format_string($crucible->name));
 $PAGE->set_heading($course->fullname);
 
-echo $OUTPUT->header();
+//echo $OUTPUT->header();
 
 // get lab info
 $definition = $crucible->definition;
 $lab = get_definition($definition);
 
-// TODO update name and intro in the db
 // Update the database.
 $crucible->name = $lab->name;
 $crucible->intro = $lab->description;
@@ -94,9 +93,6 @@ $clientid = get_clientid($systemauth);
 $token_url = get_token_url();
 $history = list_implementations($systemauth, $definition);
 $launched = get_launched($history);
-//if ($launched) {
-//    $launched = get_implementation($systemauth, $launched['id']);
-//}
 
 // handle button click
 if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
@@ -112,11 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
 }
 else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
 {
-    if ($launched->status == "Active") {
-        stop_implementation($systemauth, $launched->id);
-        $launched = get_implementation($systemauth, $launched->id);
-        crucible_end($cm, $context, $crucible);
-
+    if ($launched) {
+        if ($launched->status == "Active") {
+            stop_implementation($systemauth, $launched->id);
+            $launched = get_implementation($systemauth, $launched->id);
+            crucible_end($cm, $context, $crucible);
+        }
     }
 
 }
@@ -129,105 +126,34 @@ if ($launched) {
     $exerciseid = null;
 }
 
-// TODO write a renderer
-//$renderer = $PAGE->get_renderer('mod_crucible');
-
-// pull values from the settings
-$alloy_api_url = get_config('crucible', 'alloyapiurl');
-$vm_app_url = get_config('crucible', 'vmappurl');
-$player_app_url = get_config('crucible', 'playerappurl');
-$vmapp = get_config('crucible', 'vmapp');
-$vmapp = $crucible->vmapp;
-
-//echo '<h1>' . $lab->name . '</h1>';
-//echo $lab->description . '<br><br>';
-echo '<h1>' . $crucible->name . '</h1>';
-echo $crucible->intro . '<br><br>';
-
-echo '<form action="' . $url . '" method="post">';
-//echo '<input type="hidden" id="implementation" name="implementation" value="' . $implementation . '"/>';
-//echo '<input id="end_button" style="display:none" class="btn btn-primary" type="submit" name="stop" value="End Lab"' . $implementation . '" />';
-echo '<input type="hidden" id="implementation" name="implementation" value=""/>';
-echo '<input id="end_button" style="display:none" class="btn btn-primary" type="submit" name="stop" value="End Lab" />';
-echo '<input type="hidden" id="definition" name="definition" value="' . $definition . '" />';
-echo '<input id="launch_button" style="display:none" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />';
-echo '</form>';
-echo '<input id="wait" style="display:none; width:400px" class="btn btn-primary" type="" name="start" value="Please wait, system processing" />';
-echo '<input id="failed" style="display:none; width:400px" class="btn btn-primary" type="" name="failed" value="Your operation has failed." />';
-
-echo '<br>';
-
-// TODO dont create these urls in the intitial page because the url is incomplete
-// TODO maybe give them link to alloy instead?
-if ($vmapp == 1) {
-//    echo '<div align="center" class="container">';
-//    echo '<iframe id="vm_or_link" class="iframe-class" style="display:none; background-color:white" src=""></iframe>';
-//    echo '</div><br>';
-    echo '<div align="center" class="iframe-container">';
-    echo '<iframe id="vm_or_link" src="" allowfullscreen></iframe>';
-    echo '</div><br>';
-
-} else {
-    echo '<a href="' . $player_app_url . '/exercise-player/' .  $exerciseid . '" id="vm_or_link" style="display:none; width:400px" target="_blank" class="btn btn-primary">Click here to open player in a new tab</a>';
-}
-
-echo '<br>';
-
-// Display history
-echo '<h3>History</h3>';
-echo '<table style="width:100%"><tr><th>id</th><th>status</th><th>launchDate</th><th>endDate</th></tr>';
-for ($index = count($history) - 1; $index >= 0; $index--) {
-    $odx = $history[$index];
-    echo "<tr><td>" . $odx['id'] . "</td><td>" . $odx['status'] . "</td><td>" . $odx['launchDate'] .  "</td><td>" . $odx['endDate'] . "</td></tr>";
-}
-echo "</table>";
-echo "<style>
-.container {
-    width: 1024px;
-    height: 768px;
-}
-.iframe-class {
-    width: 100%;
-    height: 100%;
-    resize: both;
-    overflow: auto;
-}
-
-/* new below here */
-.iframe-container {
-    overflow: hidden;
-    padding-top: 56.25%;
-    position: relative;
-}
-
-.iframe-container iframe {
-    border: 0;
-    height: 100%;
-    left: 0;
-    position: absolute;
-    top: 0;
-    width: 100%;
-    background-color: white;
-    display: none;
-}
-
-/* 4x3 Aspect Ratio */
-.iframe-container-4x3 {
-    padding-top: 75%;
-}
-</style>
-";
-
-//TODO move js into amd
-$PAGE->requires->js_call_amd('mod_crucible/crucibleview', 'init');
-
+// todo can this go in the check above?
 if (is_object($launched)) {
     $status = $launched->status;
 } else {
     $status = null;
 }
 
+
+// pull values from the settings
+$alloy_api_url = get_config('crucible', 'alloyapiurl');
+$vm_app_url = get_config('crucible', 'vmappurl');
+$player_app_url = get_config('crucible', 'playerappurl');
+$vmapp = $crucible->vmapp;
+
+
+$renderer = $PAGE->get_renderer('mod_crucible');
+echo $renderer->header();
+$renderer->display_detail($crucible);
+$renderer->display_form($url, $definition);
+
+if ($vmapp == 1) {
+    $renderer->display_embed_page($crucible);
+} else {
+    $renderer->display_link_page($player_app_url, $exerciseid);
+}
+
 $refresh_token = null;
+
 
 echo '<script type="text/javascript">';
 echo 'var access_token = "' . $access_token . '";';
@@ -243,13 +169,39 @@ echo 'var token_url = "' . $token_url . '";';
 echo 'var scopes = "' . $scopes . '";';
 echo 'var clientsecret = "' . $clientsecret . '";';
 echo 'var clientid = "' . $clientid . '";';
-
-
 echo "</script>";
+$PAGE->requires->js_call_amd('mod_crucible/crucibleview', 'init');
 
+/*
+$PAGE->requires->js_call_amd('mod_crucible/crucibleview', 'init', [
+'id' => $implementation,
+'definition' => $definition,
+'exerciseid' => $exerciseid,
+'access_token' => $access_token,
+'refresh_token' => $refresh_token,
+'alloy_api_url' => $alloy_api_url,
+'vm_app_url' => $vm_app_url,
+'player_app_url' => $player_app_url,
+'token_url' => $token_url,
+'scopes' => $scopes,
+'clientsecret' => $clientsecret,
+'clientid' => $clientid,
+'labstatus' => $status
+]);
+*/
+/*
+$PAGE->requires->js_call_amd('mod_crucible/check', 'init', [
+'id' => $implementation,
+'definition' => $definition,
+'exerciseid' => $exerciseid,
+'access_token' => $access_token,
+'vm_app_url' => $vm_app_url,
+'player_app_url' => $player_app_url,
+'labstatus' => $status
+]);
+*/
 
-echo $OUTPUT->footer();
-// load js module
-
+echo $renderer->display_history($history);
+echo $renderer->footer();
 
 

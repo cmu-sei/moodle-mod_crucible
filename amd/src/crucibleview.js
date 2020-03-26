@@ -170,15 +170,16 @@ define(['jquery'], function($) {
         x.style.value = id;
         var x = document.getElementById('wait');
         x.style.display = 'none';
-        var x = document.getElementById('vm_or_link');
-        x.setAttribute('src', vm_app_url + '/exercises/' + exerciseid);
-        x.style.display = 'block';
-        // todo only set the sorrect attribute
-        var x = document.getElementById('vm_or_link');
-        x.setAttribute('href', player_app_url + '/exercise-player/' + exerciseid);
-        x.style.display = 'block';
         var x = document.getElementById('failed');
         x.style.display = 'none';
+        var x = document.getElementById('vm_or_link');
+        if (x.getAttribute('src') !== null) {
+            x.setAttribute('src', vm_app_url + '/exercises/' + exerciseid);
+	}
+	if (x.getAttribute('href')) {
+            x.setAttribute('href', player_app_url + '/exercise-player/' + exerciseid);
+	}
+        x.style.display = 'block';
     }
 
     function run_loop() {

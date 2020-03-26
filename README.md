@@ -1,3 +1,16 @@
+# Crucible Plugin for Moodle
+
+## Description
+This is an activity plugin that allows Crucible labs and exercises to accessed from the Moodle LMS. Crucible is a open source lab player for cyber ranges. It can be download from GitHub at https://github.com/cmu-sei/crucible. This plugin allows Crucible labs to be integrated into a Moodle course. The Moodle activity may embed the Crucible VM app into an iframe or it may provide a link for the student to open the full Crucible lab player window in a new tab or window. The Crucible labs can be started, accessed, and stopped using this plugin.
+
+## Requirements 
+* You must have the Crucible applcation stack deployed for your organization
+* You must use the same OUATH2 identity server for authentication of Moodle and Crucible
+
+## Installation
+* Download the plugin and extract into mod/crucible.
+
+## License
 Crucible Plugin for Moodle
 
 Copyright 2020 Carnegie Mellon University.

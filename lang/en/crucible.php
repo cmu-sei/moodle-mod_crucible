@@ -71,3 +71,9 @@ $string['definition'] = 'Alloy Definition';
 $string['pluginadministration'] = 'Crucible administration';
 $string['eventattemptended'] = "Attempt ended";
 
+$string['id'] = 'Alloy Implementation ID';
+$string['status'] = 'Status';
+$string['launchdate'] = 'Launch Date';
+$string['enddate'] = 'End Date';
+$string['tablecaption'] = 'History';
+$string['playerlinktext'] = 'Click here to open player in a new tab';
