@@ -34,15 +34,24 @@ define(['jquery'], function($) {
             session_id = session;
             steamfitter_api_url = steamfitter_api;
 
-            timeout = setInterval(get_results(), 5000);
+            timeout = setInterval(function() {
+                get_results();
+            }, 5000);
 
-            // TODO set event for each row in the table
-            var id = '9949b988-1da1-42e5-8b95-4640b76cb505';
-            var button = document.getElementById(id);
-            if (button.innerHTML === "Execute") {
-                button.onclick=function(){exec_task(id)};
-            }
-
+            var tasks = document.getElementsByClassName('exec-task');
+            $.each(tasks, function(index, value) {
+                var id = value.id;
+                var button = document.getElementById(id);
+                if (button) {
+                    // TODO replace this check
+                    if (button.innerHTML === "Run Task") {
+                        button.onclick = function() {
+                            exec_task(id);
+                        };
+                    }
+                }
+                console.log('set event for button ' + id);
+            });
         }
     };
 
@@ -58,14 +67,24 @@ define(['jquery'], function($) {
                 xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
             },
             success: function(response) {
-                console.log(response);
+
+                // this will ensure the list is time sorted so that we get
+                // the most recent status displayed
+                response.sort(function(a, b) {
+                    return (a.statusDate > b.statusDate) ? 1 : -1;
+                });
+
                 $.each(response, function(index, value) {
-                    console.log('index ' + index);
-                    console.log('value ' + value);
+                    //console.log(value.statusDate + ' task ' + value.dispatchTaskId + ' status ' + value.status);
+                    var result = document.getElementById('result-' + value.dispatchTaskId);
+                    if (result) {
+                        result.innerHTML = value.status;
+                    }
+                    // TODO push score to moodle for saving in the db
                 });
             },
             error: function(response) {
-                    if (response.status == '401') {
+                if (response.status == '401') {
                     console.log('permission error, check token');
                     clearTimeout(timeout);
                 }
@@ -92,13 +111,15 @@ define(['jquery'], function($) {
                 });
             },
             error: function(response) {
-                    if (response.status == '401') {
+                if (response.status == '401') {
                     console.log('permission error, check token');
-                    clearTimeout(timeout);
+                } else if (response.status == '400') {
+                    console.log(response.responseJSON);
+                    alert('Run Task command failed ' + response.responseJSON.detail);
                 }
             }
         });
- 
+
    }
 
 });

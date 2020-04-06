@@ -77,18 +77,19 @@ class mod_crucible_renderer extends plugin_renderer_base {
             get_string('enddate', 'mod_crucible'),
         ];
 
-        foreach ($history as $odx) {
-            if ((!$showfailed) && ($odx['status'] === 'Failed')) {
-                continue;
+        if ($history) {
+            foreach ($history as $odx) {
+                if ((!$showfailed) && ($odx['status'] === 'Failed')) {
+                    continue;
+                }
+                $rowdata = array();
+                $rowdata[] = $odx['id'];
+                $rowdata[] = $odx['status'];
+                $rowdata[] = $odx['launchDate'];
+                $rowdata[] = $odx['endDate'];
+                $data->tabledata[] = $rowdata;
             }
-            $rowdata = array();
-            $rowdata[] = $odx['id'];
-            $rowdata[] = $odx['status'];
-            $rowdata[] = $odx['launchDate'];
-            $rowdata[] = $odx['endDate'];
-            $data->tabledata[] = $rowdata;
         }
-
         echo $this->render_from_template('mod_crucible/history', $data);
     }
 
@@ -98,7 +99,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
             //get_string('taskid', 'mod_crucible'),
             get_string('taskname', 'mod_crucible'),
             get_string('taskdesc', 'mod_crucible'),
-            get_string('taskresult', 'mod_crucible'),
         ];
 
         foreach ($tasks as $task) {
@@ -107,7 +107,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
             //$rowdata[] = $task->id;
             $rowdata[] = $task->name;
             $rowdata[] = $task->description;
-            $rowdata[] = $task->result->status;
             $data->tabledata[] = $rowdata;
         }
 
@@ -126,15 +125,16 @@ class mod_crucible_renderer extends plugin_renderer_base {
         ];
 
         foreach ($tasks as $task) {
+            $rowdata = new stdClass();
             $rowdata->id = $task->id;
             $rowdata->name = $task->name;
             $rowdata->desc = $task->description;
             $rowdata->result = $task->result->status;
             // check whether we can execute the task
-            if ($rowdata->result) {
-                $rowdata->action = "";
+            if ($task->triggerCondition == "Manual") {
+                $rowdata->action = get_string('taskexecute', 'mod_crucible');
             } else {
-                $rowdata->action = "Execute";
+                $rowdata->action = "";
             }
             $data->tabledata[] = $rowdata;
         }

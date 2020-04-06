@@ -93,4 +93,4 @@ $string['taskdesc'] = "Task Description";
 $string['taskname'] = "Task Name";
 $string['taskresult'] = "Task Result";
 $string['taskaction'] = "Action";
-
+$string['taskexecute'] = "Run Task";

@@ -77,14 +77,17 @@ $PAGE->set_heading($course->fullname);
 // get lab info
 $definition = $crucible->definition;
 $lab = get_definition($definition);
-$scenarioid = $lab->scenarioId;
 
 // Update the database.
 if ($lab) {
+    $scenarioid = $lab->scenarioId;
+    // Update the database.
     $crucible->name = $lab->name;
     $crucible->intro = $lab->description;
     $DB->update_record('crucible', $crucible);
     rebuild_course_cache($crucible->course);
+} else {
+    $scenarioid = "";
 }
 
 // get current state of lab
@@ -186,17 +189,19 @@ if ($vmapp == 1) {
 
 // TODO have a completely different view page for active labs
 if ($sessionid) {
-    $tasks = get_sessiontasks($systemauth, $sessionid);
+    $tasks = filter_tasks(get_sessiontasks($systemauth, $sessionid));
     $taskresults = get_taskresults($systemauth, $sessionid);
 
     // taskresults will be null if there are no results
-    foreach ($taskresults as $result) {
-        // find task in tasks and update the result
-        foreach ($tasks as $task) {
-            if ($task->id == $result->dispatchTaskId) {
-                // TODO there may be more than one dispatchTaskResult
-                // for tasks that can be executed multiple times
-                $task->result = $result;
+    if ($taskresults) {
+        foreach ($taskresults as $result) {
+            // find task in tasks and update the result
+            foreach ($tasks as $task) {
+                if ($task->id == $result->dispatchTaskId) {
+                    // TODO there may be more than one dispatchTaskResult
+                    // for tasks that can be executed multiple times
+                    $task->result = $result;
+                }
             }
         }
     }
@@ -209,20 +214,20 @@ if ($sessionid) {
     ]);
 } else if ($scenarioid) {
     // this is when we do not have an active session
-    $tasks = get_scenariotasks($systemauth, $scenarioid);
+    $tasks = filter_tasks(get_scenariotasks($systemauth, $scenarioid));
 
     $renderer->display_tasks($tasks);
 }
+$info = new stdClass();
+$info->token = $access_token;
+$info->state = $status;
+$info->implementation = $implementation;
+$info->exercise = $exerciseid;
+$info->alloy_api_url = $alloy_api_url;
+$info->vm_app_url = $vm_app_url;
+$info->player_app_url = $player_app_url;
 
-$PAGE->requires->js_call_amd('mod_crucible/view', 'init', [
-    'access_token' => $access_token,
-    'state' => $status,
-    'id' => $implementation,
-    'exerciseid' => $exerciseid,
-    'alloy_api_url' => $alloy_api_url,
-    'vm_app_url' => $vm_app_url,
-    'player_app_url' => $player_app_url,
-]);
+$PAGE->requires->js_call_amd('mod_crucible/view', 'init', ['info' => $info]);
 
 echo $renderer->display_history($history, $showfailed);
 echo $renderer->footer();

@@ -31,15 +31,14 @@ define(['jquery'], function($) {
     var player_app_url;
 
     return {
-        init: function(token, state, id, exercise, alloy_api, vm_app, player_app) {
-
-            access_token = token;
-            lab_status = state;
-            implementation_id = id;
-            exercise_id = exercise;
-            alloy_api_url = alloy_api;
-            vm_app_url = vm_app;
-            player_app_url = player_app;
+        init: function(info) {
+            access_token = info.token;
+            lab_status = info.state;
+            implementation_id = info.implementation;
+            exercise_id = info.exercise;
+            alloy_api_url = info.alloy_api_url;
+            vm_app_url = info.vm_app_url;
+            player_app_url = info.player_app_url;
 
             if (lab_status == 'Active') {
                 show_active();
@@ -110,6 +109,7 @@ define(['jquery'], function($) {
                     if (response.status == '401') {
                         console.log('permission error, check token');
                         clearTimeout(timeout);
+                        window.location.replace(window.location.href);
                     }
                 }
             });

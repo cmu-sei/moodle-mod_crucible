@@ -139,11 +139,16 @@ function get_definition($id) {
         echo "check refresh token for the account<br>";
         //throw new \Exception($response);
         //return;
+        debugging('no response received by get_definition', DEBUG_DEVELOPER);
+
     }
     //echo "response:<br><pre>$response</pre>";
     if ($systemauth->info['http_code']  !== 200) {
         echo "response code ". $systemauth->info['http_code'] . "<br>";
         //throw new \Exception($response);
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+        //throw new \Exception($systemauth->info['http_code']);
+
         return;
     }
     $r = json_decode($response);
@@ -154,6 +159,30 @@ function get_definition($id) {
     }
 
     return $r;
+}
+
+function tasksort($a, $b) {
+    return strcmp($a->name, $b->name);
+}
+
+// filter for tasks the user can see and sort by name
+function filter_tasks($tasks) {
+    $filtered = array();
+    foreach ($tasks as $task) {
+        // TODO show automatic checks
+        //if ($task->gradable == "true") {
+        //    $filtered[] = $task;
+        //}
+        // show manual tasks only
+        //if ($task->triggerCondition == "Manual") {
+        //    $filtered[] = $task;
+        //}
+        // TODO for now, show all
+        $filtered[] = $task;
+    }
+    // sort the array by name
+    usort($filtered, "tasksort");
+    return $filtered;
 }
 
 function get_definitions() {
@@ -181,6 +210,7 @@ function get_definitions() {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         //throw new \Exception($response);
         //return;
+        debugging('no response received by get_definitions', DEBUG_DEVELOPER);
     }
     //echo "response:<br><pre>$response</pre>";
     if ($systemauth->info['http_code']  !== 200) {
@@ -213,6 +243,8 @@ function start_implementation($systemauth, $id) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         echo "response code ". $systemauth->info['http_code'] . "<br>";
         //throw new \Exception($response);
+        debugging('no response received by start_implementation', DEBUG_DEVELOPER);
+
         return;
     }
     //echo "response:<br><pre>$response</pre>";
@@ -284,6 +316,8 @@ function get_implementation($systemauth, $id) {
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         //throw new \Exception($response);
+        debugging('no response received by get_implementation', DEBUG_DEVELOPER);
+
         return;
     }
     //echo "response:<br><pre>$response</pre>";
@@ -322,6 +356,8 @@ function get_scenariotasks($systemauth, $id) {
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         //throw new \Exception($response);
+        debugging('no response received by get_scenariotasks', DEBUG_DEVELOPER);
+
         return;
     }
     //echo "response:<br><pre>$response</pre>";
@@ -360,6 +396,7 @@ function get_sessiontasks($systemauth, $id) {
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         //throw new \Exception($response);
+        debugging('no response received by get_sessiontasks', DEBUG_DEVELOPER);
         return;
     }
     //echo "response:<br><pre>$response</pre>";
@@ -398,6 +435,7 @@ function get_taskresults($systemauth, $id) {
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         //throw new \Exception($response);
+        debugging('no response received by get_taskresults', DEBUG_DEVELOPER);
         return;
     }
     if ($systemauth->info['http_code']  !== 200) {
@@ -442,6 +480,8 @@ function list_implementations($systemauth, $id) {
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         //throw new \Exception($response);
+        debugging('no response received by list_implementations', DEBUG_DEVELOPER);
+
         return;
     }
     //echo "response:<br><pre>$response</pre>";
@@ -469,6 +509,9 @@ function launchDate($a, $b) {
 }
 
 function get_launched($history) {
+    if ($history == null) {
+        return null;
+    }
     foreach ($history as $odx) {
         if (($odx['status'] == "Active") || ($odx['status'] == "Creating") || ($odx['status'] == "Planning") ||($odx['status'] == "Applying") || ($odx['status'] == "Ending")) {
             return (object)$odx;
