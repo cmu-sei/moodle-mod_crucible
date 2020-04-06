@@ -80,10 +80,12 @@ $lab = get_definition($definition);
 $scenarioid = $lab->scenarioId;
 
 // Update the database.
-$crucible->name = $lab->name;
-$crucible->intro = $lab->description;
-$DB->update_record('crucible', $crucible);
-rebuild_course_cache($crucible->course);
+if ($lab) {
+    $crucible->name = $lab->name;
+    $crucible->intro = $lab->description;
+    $DB->update_record('crucible', $crucible);
+    rebuild_course_cache($crucible->course);
+}
 
 // get current state of lab
 $systemauth = setup();
@@ -155,6 +157,7 @@ if (is_object($launched)) {
 $alloy_api_url = get_config('crucible', 'alloyapiurl');
 $vm_app_url = get_config('crucible', 'vmappurl');
 $player_app_url = get_config('crucible', 'playerappurl');
+$steamfitter_api_url = get_config('crucible', 'steamfitterapiurl');
 $vmapp = $crucible->vmapp;
 $showfailed = get_config('crucible', 'showfailed');
 
@@ -197,7 +200,13 @@ if ($sessionid) {
             }
         }
     }
-    $renderer->display_tasks($tasks);
+    $renderer->display_results($tasks);
+    // start js to monitor task status
+    $PAGE->requires->js_call_amd('mod_crucible/results', 'init', [
+	'access_token' => $access_token,
+	'session' => $sessionid,
+	'steamfitter_api' => $steamfitter_api_url,
+    ]);
 } else if ($scenarioid) {
     // this is when we do not have an active session
     $tasks = get_scenariotasks($systemauth, $scenarioid);
@@ -206,13 +215,13 @@ if ($sessionid) {
 }
 
 $PAGE->requires->js_call_amd('mod_crucible/view', 'init', [
-'access_token' => $access_token,
-'state' => $status,
-'id' => $implementation,
-'exerciseid' => $exerciseid,
-'alloy_api_url' => $alloy_api_url,
-'vm_app_url' => $vm_app_url,
-'player_app_url' => $player_app_url,
+    'access_token' => $access_token,
+    'state' => $status,
+    'id' => $implementation,
+    'exerciseid' => $exerciseid,
+    'alloy_api_url' => $alloy_api_url,
+    'vm_app_url' => $vm_app_url,
+    'player_app_url' => $player_app_url,
 ]);
 
 echo $renderer->display_history($history, $showfailed);

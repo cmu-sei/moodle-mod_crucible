@@ -115,6 +115,34 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     }
 
+    function display_results($tasks) {
+        $data = new stdClass();
+        $data->tableheaders = [
+            //get_string('taskid', 'mod_crucible'),
+            get_string('taskname', 'mod_crucible'),
+            get_string('taskdesc', 'mod_crucible'),
+            get_string('taskaction', 'mod_crucible'),
+            get_string('taskresult', 'mod_crucible'),
+        ];
+
+        foreach ($tasks as $task) {
+            $rowdata->id = $task->id;
+            $rowdata->name = $task->name;
+            $rowdata->desc = $task->description;
+            $rowdata->result = $task->result->status;
+            // check whether we can execute the task
+            if ($rowdata->result) {
+                $rowdata->action = "";
+            } else {
+                $rowdata->action = "Execute";
+            }
+            $data->tabledata[] = $rowdata;
+        }
+
+        echo $this->render_from_template('mod_crucible/results', $data);
+
+    }
+
     function display_clock($starttime, $endtime) {
 
         $data = new stdClass();
