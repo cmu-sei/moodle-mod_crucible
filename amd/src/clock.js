@@ -26,16 +26,21 @@ define([], function() {
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
+                if (remaining === 0) {
+                    console.log("timer expired, reloading page");
+                    window.location.replace(window.location.href);
+                }
 
                 var hours = Math.floor(remaining % (60 * 60 * 24) / (60 * 60));
                 var minutes = Math.floor(remaining % (60 * 60) / 60);
                 var seconds = Math.floor(remaining % 60);
 
                 var timer = document.getElementById('timer');
+                if (timer) {
                     timer.innerHTML = hours.toString().padStart(2, '0') +
-                     ":" + minutes.toString().padStart(2, '0') + ":" +
-                    seconds.toString().padStart(2, '0');
-
+                            ":" + minutes.toString().padStart(2, '0') + ":" +
+                            seconds.toString().padStart(2, '0');
+                }
             }, 1000);
         },
         countup: function(starttime) {
@@ -49,9 +54,11 @@ define([], function() {
                 var seconds = Math.floor(running % 60);
 
                 var timer = document.getElementById('timer');
-                timer.innerHTML = hours.toString().padStart(2, '0') + ":" +
-                    minutes.toString().padStart(2, '0') + ":" +
-                    seconds.toString().padStart(2, '0');
+                if (timer) {
+                    timer.innerHTML = hours.toString().padStart(2, '0') +
+                        ":" + minutes.toString().padStart(2, '0') + ":" +
+                        seconds.toString().padStart(2, '0');
+                }
             }, 1000);
         },
     };
