@@ -137,6 +137,54 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020040300, 'crucible');
     }
 
+    if ($oldversion < 2020040800) {
+
+        // Define field sessionid to be added to crucible_attempts.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('sessionid', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null, 'crucibleid');
+
+        // Conditionally launch add field sessionid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field eventid to be added to crucible_attempts.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('eventid', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null, 'sessionid');
+
+        // Conditionally launch add field eventid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field state to be added to crucible_attempts.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('state', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'inprogress', 'attemptnum');
+
+        // Conditionally launch add field state.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Changing type of field tasks on table crucible_attempts to text.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('tasks', XMLDB_TYPE_TEXT, null, null, null, null, null, 'state');
+
+        // Launch change of type for field tasks.
+        $dbman->change_field_type($table, $field);
+
+        // Rename field definition on table crucible to eventtemplate.
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('definition', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null, 'intro');
+
+        // Launch rename field eventtemplate.
+        $dbman->rename_field($table, $field, 'eventtemplate');
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020040800, 'crucible');
+    }
+
+
     return true;
 }
 

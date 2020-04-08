@@ -43,39 +43,33 @@ $string['modulenameplural'] = 'Crucibles';
 $string['pluginname'] = 'Crucible';
 
 // plugin settings
-
 $string['alloyapiurl'] = 'Alloy API Base URL';
-$string['vmapp'] = 'Display';
+$string['vmapp'] = 'Display Mode';
 $string['vmappurl'] = 'VM App Base URL';
 $string['playerappurl'] = 'Player Base URL';
 $string['steamfitterapiurl'] = 'SteamFitter API URL';
 $string['issuerid'] = 'OAUTH2 Issuer';
-$string['autocomplete'] = 'Lab Selection Method';
-$string['definition'] = 'Alloy Lab';
-$string['selectname'] = 'Search for a lab by name';
+$string['autocomplete'] = 'Event Template Selection Method';
+$string['eventtemplate'] = 'Event Template';
+$string['selectname'] = 'Search for an Event Template by name';
 $string['showfailed'] = 'Show Failed';
 
 $string['configissuerid'] = 'This is the integer value for the issuer.';
 $string['configvmapp'] = 'This determines whether the VM app is emebedd or whether a link to player is displayed';
 $string['configvmappurl'] = 'Base URL for VM app instance without trailing "/".';
 $string['configplayerappurl'] = 'Base URL for Player instance without trailing "/".';
-$string['configsteamfitterapiurl'] = 'SteamFitter API Base URL address without trailing "/".';
-$string['configalloyapiurl'] = 'Alloy API Base URL address without trailing "/".';
-$string['configdefinition'] = 'Alloy definition ID for the lab to be launched.';
-$string['configautocomplete'] = 'Display list of labs in a dropdown or a searchable text box.';
-$string['configshowfailed'] = 'Show failed implementations in the history table.';
+$string['configsteamfitterapiurl'] = 'Base URL for SteamFitter API instance without trailing "/".';
+$string['configalloyapiurl'] = 'Base URL for Alloy API instance without trailing "/".';
+$string['configeventtemplate'] = 'Event Template GUID to be launched.';
+$string['configautocomplete'] = 'Display list of Event Templates in a dropdown or a searchable text box.';
+$string['configshowfailed'] = 'Show failed Events in the history table.';
 
 // activity settings
-
-$string['vmapp_help'] = 'This determines whether the VM app is emebedd or whether a link to player is displayed';
-$string['definition_help'] = 'This is the lab definition in Alloy.';
-
-$string['definition'] = 'Alloy Definition';
-
+$string['vmapp_help'] = 'This determines whether the VM app is emebeded in an iframe or whether a link to the player is displayed';
+$string['eventtemplate_help'] = 'This is the Event Template GUID in Alloy.';
+$string['eventtemplate'] = 'Alloy Event Template';
 $string['pluginadministration'] = 'Crucible administration';
-$string['eventattemptended'] = "Attempt ended";
-
-$string['id'] = 'Alloy Implementation ID';
+$string['id'] = 'Alloy Event GUID';
 $string['status'] = 'Status';
 $string['launchdate'] = 'Launch Date';
 $string['enddate'] = 'End Date';
@@ -85,6 +79,9 @@ $string['clock'] = 'Clock';
 $string['configclock'] = 'Style for clock.';
 $string['clock_help'] = 'Display no clock, a countup timer, or a countdown timer.';
 
+// events
+$string['eventattemptstarted'] = "Attempt started";
+$string['eventattemptended'] = "Attempt ended";
 
 // tasks
 $string['taskcaption'] = 'Tasks';
@@ -94,3 +91,5 @@ $string['taskname'] = "Task Name";
 $string['taskresult'] = "Task Result";
 $string['taskaction'] = "Action";
 $string['taskexecute'] = "Run Task";
+
+

@@ -75,8 +75,8 @@ $PAGE->set_heading($course->fullname);
 //echo $OUTPUT->header();
 
 // get lab info
-$definition = $crucible->definition;
-$lab = get_definition($definition);
+$eventtemplate = $crucible->eventtemplate;
+$lab = get_eventtemplate($eventtemplate);
 
 // Update the database.
 if ($lab) {
@@ -97,35 +97,48 @@ $scopes = get_scopes($systemauth);
 $clientsecret = get_clientsecret($systemauth);
 $clientid = get_clientid($systemauth);
 $token_url = get_token_url();
-$history = list_implementations($systemauth, $definition);
+$history = list_events($systemauth, $eventtemplate);
 $launched = get_launched($history);
+
+// attempt
+$object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
+
+$attempt = null;
+
+// get active attempt for user
+//$attempt = $object->get_open_attempt();
+
 
 // handle button click
 if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
 {
     // check not started already
     if (!$launched) {
-        $implementation = start_implementation($systemauth, $definition);
-        if ($implementation) {
-            $launched = get_implementation($systemauth, $implementation);
+        $event = start_event($systemauth, $eventtemplate);
+        if ($event) {
+            $launched = get_event($systemauth, $event);
         }
         crucible_start($cm, $context, $crucible);
+        //$attempt = new crucible_attempt();
+
+        var_dump($attempt);
     }
 }
 else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
 {
     if ($launched) {
         if ($launched->status == "Active") {
-            stop_implementation($systemauth, $launched->id);
-            $launched = get_implementation($systemauth, $launched->id);
+            stop_event($systemauth, $launched->id);
+            $launched = get_event($systemauth, $launched->id);
             crucible_end($cm, $context, $crucible);
+            //$attempt->close_attempt();
         }
     }
 
 }
 
 if ($launched) {
-    $implementation = $launched->id;
+    $event = $launched->id;
     $exerciseid = $launched->exerciseId;
     $sessionid = $launched->sessionId;
 
@@ -141,7 +154,7 @@ if ($launched) {
         $endtime = strtotime($launched->expirationDate . 'Z');
     }
 } else {
-    $implementation = null;
+    $event = null;
     $exerciseid = null;
     $sessionid = null;
     $startime = null;
@@ -167,7 +180,7 @@ $showfailed = get_config('crucible', 'showfailed');
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 $renderer->display_detail($crucible);
-$renderer->display_form($url, $definition);
+$renderer->display_form($url, $eventtemplate);
 
 if ($launched) {
 
@@ -221,7 +234,7 @@ if ($sessionid) {
 $info = new stdClass();
 $info->token = $access_token;
 $info->state = $status;
-$info->implementation = $implementation;
+$info->event = $event;
 $info->exercise = $exerciseid;
 $info->alloy_api_url = $alloy_api_url;
 $info->vm_app_url = $vm_app_url;

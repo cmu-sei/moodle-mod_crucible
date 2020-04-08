@@ -116,7 +116,7 @@ function setup() {
     return $client;
 }
 
-function get_definition($id) {
+function get_eventtemplate($id) {
     //try {
     //    $systemauth = setup_system();
     //} catch (Exception $e) {
@@ -139,7 +139,7 @@ function get_definition($id) {
         echo "check refresh token for the account<br>";
         //throw new \Exception($response);
         //return;
-        debugging('no response received by get_definition', DEBUG_DEVELOPER);
+        debugging('no response received by get_eventtemplate', DEBUG_DEVELOPER);
 
     }
     //echo "response:<br><pre>$response</pre>";
@@ -227,7 +227,7 @@ function get_definitions() {
     return $r;
 }
 
-function start_implementation($systemauth, $id) {
+function start_event($systemauth, $id) {
 
     if ($systemauth == null) {
         echo 'error with systemauth<br>';
@@ -243,7 +243,7 @@ function start_implementation($systemauth, $id) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         echo "response code ". $systemauth->info['http_code'] . "<br>";
         //throw new \Exception($response);
-        debugging('no response received by start_implementation', DEBUG_DEVELOPER);
+        debugging('no response received by start_event', DEBUG_DEVELOPER);
 
         return;
     }
@@ -270,7 +270,7 @@ function start_implementation($systemauth, $id) {
 }
 
 
-function stop_implementation($systemauth, $id) {
+function stop_event($systemauth, $id) {
 
     if ($systemauth == null) {
         echo 'error with systemauth<br>';
@@ -296,7 +296,7 @@ function stop_implementation($systemauth, $id) {
     return;
 }
 
-function get_implementation($systemauth, $id) {
+function get_event($systemauth, $id) {
 
     if ($systemauth == null) {
         echo 'error with systemauth<br>';
@@ -316,7 +316,7 @@ function get_implementation($systemauth, $id) {
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         //throw new \Exception($response);
-        debugging('no response received by get_implementation', DEBUG_DEVELOPER);
+        debugging('no response received by get_event', DEBUG_DEVELOPER);
 
         return;
     }
@@ -464,8 +464,8 @@ function get_taskresults($systemauth, $id) {
 }
 
 
-// GET /definitions/{definitionId}/implementations/mine -- Gets the user's Implementations for the indicated Definition
-function list_implementations($systemauth, $id) {
+// GET /definitions/{eventtemplateId}/implementations/mine -- Gets the user's Implementations for the indicated Definition
+function list_events($systemauth, $id) {
 
     if ($systemauth == null) {
         echo 'error with systemauth<br>';
@@ -480,7 +480,7 @@ function list_implementations($systemauth, $id) {
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         //throw new \Exception($response);
-        debugging('no response received by list_implementations', DEBUG_DEVELOPER);
+        debugging('no response received by list_events', DEBUG_DEVELOPER);
 
         return;
     }

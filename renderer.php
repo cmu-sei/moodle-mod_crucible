@@ -44,10 +44,10 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     }
 
-    function display_form($url, $definition) {
+    function display_form($url, $eventtemplate) {
         $data = new stdClass();
         $data->url = $url;
-        $data->definition = $definition;
+        $data->eventtemplate = $eventtemplate;
         echo $this->render_from_template('mod_crucible/form', $data);
 
     }

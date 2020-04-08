@@ -24,7 +24,7 @@ define(['jquery'], function($) {
     var timeout;
     var access_token;
     var lab_status;
-    var implementation_id;
+    var event_id;
     var exercise_id;
     var alloy_api_url;
     var vm_app_url;
@@ -34,7 +34,7 @@ define(['jquery'], function($) {
         init: function(info) {
             access_token = info.token;
             lab_status = info.state;
-            implementation_id = info.implementation;
+            event_id = info.event;
             exercise_id = info.exercise;
             alloy_api_url = info.alloy_api_url;
             vm_app_url = info.vm_app_url;
@@ -54,10 +54,10 @@ define(['jquery'], function($) {
 
     function check_status() {
 
-        if (implementation_id) {
-            console.log('implementation id ' + implementation_id);
+        if (event_id) {
+            console.log('event id ' + event_id);
             $.ajax({
-                url: alloy_api_url + '/implementations/' + implementation_id,
+                url: alloy_api_url + '/implementations/' + event_id,
                 type: 'GET',
                 contentType: 'application/json',
                 dataType: 'json',
@@ -172,8 +172,8 @@ define(['jquery'], function($) {
         x.style.display = 'none';
         var x = document.getElementById('end_button');
         x.style.display = 'block';
-        var x = document.getElementById('implementation');
-        x.style.value = implementation_id;
+        var x = document.getElementById('event');
+        x.style.value = event_id;
         var x = document.getElementById('wait');
         x.style.display = 'none';
         var x = document.getElementById('failed');

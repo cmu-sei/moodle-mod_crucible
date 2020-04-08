@@ -41,7 +41,7 @@ require_once($CFG->dirroot.'/mod/crucible/locallib.php');
 
 class mod_crucible_mod_form extends moodleform_mod {
 
-    function definition() {
+    function eventtemplate() {
         global $COURSE, $CFG, $DB, $PAGE;
         $mform = $this->_form;
 
@@ -51,12 +51,12 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
 	// pull list of exercises/labs from alloy
-        $this->definitions = get_definitions();
+        $this->eventtemplates = get_eventtemplates();
         $labnames = array();
 	$labs = [];
-        foreach ($this->definitions as $definition) {
-            array_push($labnames, $definition->name);
-            $labs[$definition->id] = s($definition->name);
+        foreach ($this->eventtemplates as $eventtemplate) {
+            array_push($labnames, $eventtemplate->name);
+            $labs[$eventtemplate->id] = s($eventtemplate->name);
         }
 	array_unshift($labs, "");
 	asort($labs);
@@ -67,16 +67,16 @@ class mod_crucible_mod_form extends moodleform_mod {
 	    'placeholder' => get_string('selectname', 'crucible')
 	);
 	if ($config->autocomplete) {
-            $mform->addElement('autocomplete', 'definition', get_string('definition', 'crucible'), $labs, $options);
+            $mform->addElement('autocomplete', 'eventtemplate', get_string('eventtemplate', 'crucible'), $labs, $options);
 	} else {
-            $mform->addElement('select', 'definition', get_string('definition', 'crucible'), $labs);
+            $mform->addElement('select', 'eventtemplate', get_string('eventtemplate', 'crucible'), $labs);
 	}
 
-        $mform->addRule('definition', null, 'required', null, 'client');
-        $mform->addRule('definition', 'You must choose an option', 'minlength', '2', 'client');
+        $mform->addRule('eventtemplate', null, 'required', null, 'client');
+        $mform->addRule('eventtemplate', 'You must choose an option', 'minlength', '2', 'client');
 
-        $mform->setDefault('definition', null);
-        $mform->addHelpButton('definition', 'definition', 'crucible');
+        $mform->setDefault('eventtemplate', null);
+        $mform->addHelpButton('eventtemplate', 'eventtemplate', 'crucible');
 
         //-------------------------------------------------------
         $mform->addElement('header', 'optionssection', get_string('appearance'));
@@ -108,16 +108,16 @@ class mod_crucible_mod_form extends moodleform_mod {
     }
 
     function data_postprocessing(&$data) {
-	if (!$data->definition) {
+	if (!$data->eventtemplate) {
             echo "return to settings page<br>";
 	    exit;
         }
 	if (!$data->vmapp) {
 	    $data->vmapp = 0;
         }
-	$index = array_search($data->definition, array_column($this->definitions, 'id'), true);
-	$data->name = $this->definitions[$index]->name;
-        $data->intro = $this->definitions[$index]->description;
+	$index = array_search($data->eventtemplate, array_column($this->eventtemplates, 'id'), true);
+	$data->name = $this->eventtemplates[$index]->name;
+        $data->intro = $this->eventtemplates[$index]->description;
     }
 
 
