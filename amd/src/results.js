@@ -75,7 +75,6 @@ define(['jquery'], function($) {
                 });
 
                 $.each(response, function(index, value) {
-                    //console.log(value.statusDate + ' task ' + value.dispatchTaskId + ' status ' + value.status);
                     var result = document.getElementById('result-' + value.dispatchTaskId);
                     if (result) {
                         result.innerHTML = value.status;
@@ -104,16 +103,21 @@ define(['jquery'], function($) {
                 xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
             },
             success: function(response) {
-                console.log(response);
                 $.each(response, function(index, value) {
-                    console.log('index ' + index);
-                    console.log('value ' + value);
+                    console.log(value.statusDate + ' task ' + value.dispatchTaskId + ' status ' + value.status);
+                    var result = document.getElementById('result-' + value.dispatchTaskId);
+                    if (result) {
+                        result.innerHTML = value.status;
+                    }
                 });
             },
             error: function(response) {
                 if (response.status == '401') {
                     console.log('permission error, check token');
                 } else if (response.status == '400') {
+                    console.log(response.responseJSON);
+                    alert('Run Task command failed ' + response.responseJSON.detail);
+                } else if (response.status == '500') {
                     console.log(response.responseJSON);
                     alert('Run Task command failed ' + response.responseJSON.detail);
                 }
