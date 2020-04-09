@@ -57,5 +57,25 @@ class backup_crucible_activity_task extends backup_activity_task {
         $this->add_step(new backup_crucible_activity_structure_step('crucible_structure', 'crucible.xml'));
     }
 
+    /**
+     * Code the transformations to perform in the activity in
+     * order to get transportable (encoded) links
+     */
+    static public function encode_content_links($content) {
+        global $CFG;
+
+        $base = preg_quote ( $CFG->wwwroot, "/" );
+
+        // Link to the list of CRUCIBLE instances.
+        $search = "/(" . $base . "\/mod\/vpl\/index.php\?id\=)([0-9]+)/";
+        $content = preg_replace ( $search, '$@CRUCIBLEINDEX*$2@$', $content );
+
+        // Link to CRUCIBLE view by moduleid.
+        $search = "/(" . $base . "\/mod\/vpl\/view.php\?id\=)([0-9]+)/";
+        $content = preg_replace ( $search, '$@CRUCIBLEVIEWBYID*$2@$', $content );
+
+        return $content;
+    }
+
 }
 
