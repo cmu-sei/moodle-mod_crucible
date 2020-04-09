@@ -56,10 +56,10 @@ $string['showfailed'] = 'Show Failed';
 
 $string['configissuerid'] = 'This is the integer value for the issuer.';
 $string['configvmapp'] = 'This determines whether the VM app is emebedd or whether a link to player is displayed';
-$string['configvmappurl'] = 'Base URL for VM app instance without trailing '/'.';
-$string['configplayerappurl'] = 'Base URL for Player instance without trailing '/'.';
-$string['configsteamfitterapiurl'] = 'Base URL for SteamFitter API instance without trailing '/'.';
-$string['configalloyapiurl'] = 'Base URL for Alloy API instance without trailing '/'.';
+$string['configvmappurl'] = 'Base URL for VM app instance without trailing /.';
+$string['configplayerappurl'] = 'Base URL for Player instance without trailing /.';
+$string['configsteamfitterapiurl'] = 'Base URL for SteamFitter API instance without trailing /.';
+$string['configalloyapiurl'] = 'Base URL for Alloy API instance without trailing /.';
 $string['configeventtemplate'] = 'Event Template GUID to be launched.';
 $string['configautocomplete'] = 'Display list of Event Templates in a dropdown or a searchable text box.';
 $string['configshowfailed'] = 'Show failed Events in the history table.';
@@ -80,7 +80,12 @@ $string['attemptaverage'] = 'Average of all attempts';
 $string['grademethod'] = 'Grading method';
 $string['grademethod_help'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
 $string['grademethoddesc'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
-
+// Time options
+$string['timing'] = 'Timing';
+$string['eventopen'] = 'Start Quiz';
+$string['eventclose'] = 'Close the quiz';
+$string['eventopen_help'] = 'The actitity will not be available until this date.';
+$string['eventclose_help'] = 'The activity will not be available after this date';
 
 // history table
 $string['id'] = 'Alloy Event GUID';

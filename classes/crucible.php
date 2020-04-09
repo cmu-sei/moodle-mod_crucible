@@ -68,6 +68,8 @@ class crucible {
         $this->context = \context_module::instance($cm->id);
         $PAGE->set_context($this->context);
 
+        $this->systemauth = setup();
+
         $this->renderer = $PAGE->get_renderer('mod_crucible', $renderer_subtype);
 
         //$this->renderer->init($this, $pageurl, $pagevars);

@@ -43,7 +43,6 @@ class grade {
     /** @var \mod_crucible\crucible */
     public $crucible;
 
-
     /**
      * Construct for the grade utility class
      *
@@ -96,27 +95,35 @@ class grade {
      */
     public function calculate_attempt_grade($attempt) {
 
+        if ($this->crucible->openAttempt->sessionid) {
+            $tasks = filter_tasks(get_sessiontasks($this->crucible->systemauth, $this->crucible->openAttempt->sessionid));
+            $taskresults = get_taskresults($this->crucible->systemauth, $this->crucible->openAttempt->sessionid);
+        } else {
+            return;
+        }
         $totalpoints = 0;
         $totalslotpoints = 0;
-        /*
-        foreach ($attempt->getSlots() as $slot) {
-            $totalpoints = $totalpoints + $quba->get_question_max_mark($slot);
-            $slotpoints = $quba->get_question_mark($slot);
-            if (!empty($slotpoints)) {
-                $totalslotpoints = $totalslotpoints + $slotpoints;
+
+        //TODO make sure that results are time sorted first
+
+        $values = array();
+        foreach ($taskresults as $result) {
+            // find task in tasks and update the result
+            foreach ($tasks as $task) {
+                if ($task->id == $result->dispatchTaskId) {
+                    $values[$task->id] = $result->status;
+                }
             }
         }
-        */
-        
-        //TODO count tasks or use total number of tasks to get totalpoints
-        //TODO check success/failure of each task
+        foreach ($values as $value) {
+            $totalpoints++;
+            if ($value === "succeeded") {
+                $totalslotpoints++;
+            }
+        }
 
-        //$attempt->sumgrades = $totalslotpoints;
+        $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->crucible->crucible->grade;
 
-        $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->crucible->grade;
-
-        //TODO remove this:
-        $scaledpoints = 100;
         $attempt->score = $scaledpoints;
         $attempt->save();
 

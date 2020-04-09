@@ -275,6 +275,20 @@ function xmldb_crucible_upgrade($oldversion) {
         // Crucible savepoint reached.
         upgrade_mod_savepoint(true, 2020040904, 'crucible');
     }
+
+    if ($oldversion < 2020041000) {
+
+        // Changing type of field grade on table crucible to int.
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('grade', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'timeclose');
+
+        // Launch change of type for field grade.
+        $dbman->change_field_type($table, $field);
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020041000, 'crucible');
+    }
+
     return true;
 }
 

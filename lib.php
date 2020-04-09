@@ -111,6 +111,9 @@ function crucible_add_instance($crucible, $mform) {
     $crucible->created = time();
     $crucible->id = $DB->insert_record('crucible', $crucible);
 
+    // Do the processing required after an add or an update.
+    crucible_after_add_or_update($crucible);
+
     return $crucible->id;
 }
 
@@ -136,14 +139,40 @@ function crucible_update_instance(stdClass $crucible, $mform) {
     // Get the current value, so we can see what changed.
     $oldcrucible = $DB->get_record('crucible', array('id' => $crucible->instance));
 
+    // We need two values from the existing DB record that are not in the form,
+    // in some of the function calls below.
+    $crucible->grade     = $oldcrucible->grade;
+
     // Update the database.
     $crucible->id = $crucible->instance;
     $DB->update_record('crucible', $crucible);
 
     // Do the processing required after an add or an update.
+    crucible_after_add_or_update($crucible);
+
+    // Do the processing required after an add or an update.
     return true;
 
 }
+
+/**
+ * This function is called at the end of quiz_add_instance
+ * and quiz_update_instance, to do the common processing.
+ *
+ * @param object $quiz the quiz object.
+ */
+function crucible_after_add_or_update($crucible) {
+    global $DB;
+    $cmid = $crucible->coursemodule;
+
+    // We need to use context now, so we need to make sure all needed info is already in db.
+    $DB->set_field('course_modules', 'instance', $crucible->id, array('id'=>$cmid));
+    $context = context_module::instance($cmid);
+
+    // Update related grade item.
+    crucible_grade_item_update($crucible);
+}
+
 
 function crucible_process_options($crucible) {
     global $CFG;
@@ -304,6 +333,7 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
  * @return int 0 if ok, error code otherwise
  */
 function crucible_grade_item_update($crucible, $grades = null) {
+
     global $CFG, $OUTPUT;
     require_once($CFG->dirroot . '/mod/crucible/locallib.php');
     require_once($CFG->libdir . '/gradelib.php');
@@ -325,30 +355,6 @@ function crucible_grade_item_update($crucible, $grades = null) {
     if ($grades  === 'reset') {
         $params['reset'] = true;
         $grades = null;
-    }
-    $gradebook_grades = grade_get_grades($crucible->course, 'mod', 'crucible', $crucible->id);
-    if (!empty($gradebook_grades->items)) {
-        $grade_item = $gradebook_grades->items[0];
-        if ($grade_item->locked) {
-            // NOTE: this is an extremely nasty hack! It is not a bug if this confirmation fails badly. --skodak.
-            $confirm_regrade = optional_param('confirm_regrade', 0, PARAM_INT);
-            if (!$confirm_regrade) {
-                if (!AJAX_SCRIPT) {
-                    $message = get_string('gradeitemislocked', 'grades');
-                    $back_link = $CFG->wwwroot . '/mod/crucible/report.php?q=' . $crucible->id .
-                            '&amp;mode=overview';
-                    $regrade_link = qualified_me() . '&amp;confirm_regrade=1';
-                    echo $OUTPUT->box_start('generalbox', 'notice');
-                    echo '<p>'. $message .'</p>';
-                    echo $OUTPUT->container_start('buttons');
-                    echo $OUTPUT->single_button($regrade_link, get_string('regradeanyway', 'grades'));
-                    echo $OUTPUT->single_button($back_link,  get_string('cancel'));
-                    echo $OUTPUT->container_end();
-                    echo $OUTPUT->box_end();
-                }
-                return GRADE_UPDATE_ITEM_LOCKED;
-            }
-        }
     }
 
     return grade_update('mod/crucible', $crucible->course, 'mod', 'crucible', $crucible->id, 0, $grades, $params);

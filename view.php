@@ -89,14 +89,14 @@ if ($eventtemplate) {
     $scenarioid = "";
 }
 
-// get current state of eventtemplate
-$systemauth = setup();
-$access_token = get_token($systemauth);
-$history = list_events($systemauth, $crucible->eventtemplate);
-$launched = get_launched($history);
-
 // new crucible class
 $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
+
+// get current state of eventtemplate
+$access_token = get_token($object->systemauth);
+$history = list_events($object->systemauth, $crucible->eventtemplate);
+$launched = get_launched($history);
+
 $object->event = $launched;
 
 // get active attempt for user: true/false
@@ -111,9 +111,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
 
     // check not started already
     if (!$launched) {
-        $event = start_event($systemauth, $object->crucible->eventtemplate);
+        $event = start_event($object->systemauth, $object->crucible->eventtemplate);
         if ($event) {
-            $launched = get_event($systemauth, $event);
+            $launched = get_event($object->systemauth, $event);
             $object->event = $launched;
             // TODO make sure we have an eventid or allow it to be null but wed have to update it later
             $attempt = $object->init_attempt();
@@ -125,11 +125,12 @@ else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
 {
     if ($launched) {
         if ($launched->status == "Active") {
-            stop_event($systemauth, $launched->id); //why call this again?
-            $launched = get_event($systemauth, $launched->id); //why call this again?
+            stop_event($object->systemauth, $launched->id); //why call this again?
+            $launched = get_event($object->systemauth, $launched->id); //why call this again?
             crucible_end($cm, $context, $crucible);
             $object->openAttempt->close_attempt();
-            $grader = new \mod_crucible\utils\grade($object->crucible);
+
+            $grader = new \mod_crucible\utils\grade($object);
             $grader->calculate_attempt_grade($object->openAttempt);
         }
     }
@@ -138,7 +139,7 @@ else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
 
 if ($launched) {
     if (($launched->status == "Active") && (!$attempt)) {
-        $attempt = $object->init_attempt();
+        //$attempt = $object->init_attempt();
         print_error('eventwithoutattempt', 'crucible');
     }
 
@@ -208,8 +209,8 @@ if ($vmapp == 1) {
 
 // TODO have a completely different view page for active labs
 if ($sessionid) {
-    $tasks = filter_tasks(get_sessiontasks($systemauth, $sessionid));
-    $taskresults = get_taskresults($systemauth, $sessionid);
+    $tasks = filter_tasks(get_sessiontasks($object->systemauth, $sessionid));
+    $taskresults = get_taskresults($object->systemauth, $sessionid);
 
     // taskresults will be null if there are no results
     if ($taskresults) {
@@ -233,8 +234,7 @@ if ($sessionid) {
     ]);
 } else if ($scenarioid) {
     // this is when we do not have an active session
-    $tasks = filter_tasks(get_scenariotasks($systemauth, $scenarioid));
-
+    $tasks = filter_tasks(get_scenariotasks($object->systemauth, $scenarioid));
     $renderer->display_tasks($tasks);
 }
 $info = new stdClass();

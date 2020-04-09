@@ -41,11 +41,22 @@ require_once($CFG->dirroot.'/mod/crucible/locallib.php');
 
 class mod_crucible_mod_form extends moodleform_mod {
 
+    /** @var array options to be used with date_time_selector fields in the activity. */
+    public static $datefieldoptions = array('optional' => true);
+
     function definition() {
         global $COURSE, $CFG, $DB, $PAGE;
         $mform = $this->_form;
 
         $config = get_config('crucible');
+
+        // Adding the standard "intro" and "introformat" fields.
+        $this->standard_intro_elements();
+        //TODO remove ability to edit the description and just show the select and dropdown
+        //$mform->removeElement('introeditor');
+        //TODO figure out why the description doesnt appear
+        $mform->removeElement('showdescription');
+
 
         //-------------------------------------------------------
         $mform->addElement('header', 'general', get_string('general', 'form'));
@@ -91,23 +102,40 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->setDefault('clock', '');
         $mform->addHelpButton('clock', 'clock', 'crucible');
 
-
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
+
         $mform->removeElement('grade');
+
+/*
         if (property_exists($this->current, 'grade')) {
             $currentgrade = $this->current->grade;
         } else {
-            $currentgrade = $crucibleconfig->maximumgrade;
+            $currentgrade = 0;
         }
-        $mform->addElement('hidden', 'grade', $currentgrade);
-        $mform->setType('grade', PARAM_FLOAT);
+
+        $mform->addElement('text', 'grade', get_string('grade', 'crucible'), $currentgrade);
+        $mform->setType('grade', PARAM_INT);
+        $mform->addHelpButton('grade', 'grade', 'crucible');
+*/
 
         $mform->addElement('select', 'grademethod',
             get_string('grademethod', 'crucible'),
             \mod_crucible\utils\scaletypes::get_display_types());
         $mform->setType('grademethod', PARAM_INT);
         $mform->addHelpButton('grademethod', 'grademethod', 'crucible');
+
+        // -------------------------------------------------------------------------------
+        $mform->addElement('header', 'timing', get_string('timing', 'crucible'));
+
+        // Open and close dates.
+        $mform->addElement('date_time_selector', 'timeopen', get_string('eventopen', 'crucible'),
+                self::$datefieldoptions);
+        $mform->addHelpButton('timeopen', 'eventopen', 'crucible');
+
+        $mform->addElement('date_time_selector', 'timeclose', get_string('eventclose', 'crucible'),
+                self::$datefieldoptions);
+        $mform->addHelpButton('timeclose', 'eventclose', 'crucible');
 
 
         //-------------------------------------------------------
@@ -118,7 +146,40 @@ class mod_crucible_mod_form extends moodleform_mod {
 
     }
 
+    public function validation($data, $files) {
+        $errors = parent::validation($data, $files);
+
+        // Check open and close times are consistent.
+        if ($data['timeopen'] != 0 && $data['timeclose'] != 0 &&
+                $data['timeclose'] < $data['timeopen']) {
+            $errors['timeclose'] = get_string('closebeforeopen', 'quiz');
+        }
+
+        if (array_key_exists('completion', $data) && $data['completion'] == COMPLETION_TRACKING_AUTOMATIC) {
+            $completionpass = isset($data['completionpass']) ? $data['completionpass'] : $this->current->completionpass;
+
+            // Show an error if require passing grade was selected and the grade to pass was set to 0.
+            if ($completionpass && (empty($data['gradepass']) || grade_floatval($data['gradepass']) == 0)) {
+                if (isset($data['completionpass'])) {
+                    $errors['completionpassgroup'] = get_string('gradetopassnotset', 'crucible');
+                } else {
+                    $errors['gradepass'] = get_string('gradetopassmustbeset', 'crucible');
+                }
+            }
+        }
+    }
+
     function data_preprocessing(&$data) {
+        if (isset($toform['grade'])) {
+            // Convert to a real number, so we don't get 0.0000.
+            $toform['grade'] = $toform['grade'] + 0;
+        }
+
+        // Completion settings check.
+        if (empty($toform['completionusegrade'])) {
+            $toform['completionpass'] = 0; // Forced unchecked.
+        }
+
     }
 
     function data_postprocessing(&$data) {
@@ -132,6 +193,7 @@ class mod_crucible_mod_form extends moodleform_mod {
 	$index = array_search($data->eventtemplate, array_column($this->eventtemplates, 'id'), true);
 	$data->name = $this->eventtemplates[$index]->name;
         $data->intro = $this->eventtemplates[$index]->description;
+        //$data->introformat = 1;
     }
 
 
