@@ -68,6 +68,32 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     }
 
+    function display_attempts($attempts, $showfailed) {
+        $data = new stdClass();
+        $data->tableheaders = [
+            get_string('eventid', 'mod_crucible'),
+            //get_string('state', 'mod_crucible'),
+            get_string('timestart', 'mod_crucible'),
+            get_string('timefinish', 'mod_crucible'),
+            get_string('tasks', 'mod_crucible'),
+            get_string('score', 'mod_crucible'),
+        ];
+
+        if ($attempts) {
+            foreach ($attempts as $attempt) {
+                $rowdata = array();
+                $rowdata[] = $attempt->eventid;
+                //$rowdata[] = $attempt->getState();
+                $rowdata[] = userdate($attempt->timestart);
+                $rowdata[] = userdate($attempt->timefinish);
+                $rowdata[] = $attempt->tasks;
+                $rowdata[] = $attempt->score;
+                $data->tabledata[] = $rowdata;
+            }
+        }
+        echo $this->render_from_template('mod_crucible/history', $data);
+    }
+
     function display_history($history, $showfailed) {
         $data = new stdClass();
         $data->tableheaders = [
@@ -75,6 +101,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
             get_string('status', 'mod_crucible'),
             get_string('launchdate', 'mod_crucible'),
             get_string('enddate', 'mod_crucible'),
+
         ];
 
         if ($history) {

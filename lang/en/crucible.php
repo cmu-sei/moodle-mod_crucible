@@ -69,15 +69,25 @@ $string['vmapp_help'] = 'This determines whether the VM app is emebeded in an if
 $string['eventtemplate_help'] = 'This is the Event Template GUID in Alloy.';
 $string['eventtemplate'] = 'Alloy Event Template';
 $string['pluginadministration'] = 'Crucible administration';
+$string['playerlinktext'] = 'Click here to open player in a new tab';
+$string['clock'] = 'Clock';
+$string['configclock'] = 'Style for clock.';
+$string['clock_help'] = 'Display no clock, a countup timer, or a countdown timer.';
+
+// history table
 $string['id'] = 'Alloy Event GUID';
 $string['status'] = 'Status';
 $string['launchdate'] = 'Launch Date';
 $string['enddate'] = 'End Date';
 $string['historycaption'] = 'History';
-$string['playerlinktext'] = 'Click here to open player in a new tab';
-$string['clock'] = 'Clock';
-$string['configclock'] = 'Style for clock.';
-$string['clock_help'] = 'Display no clock, a countup timer, or a countdown timer.';
+// attempt table
+$string['eventid'] = 'Alloy Event GUID';
+$string['state'] = 'State';
+$string['timestart'] = 'Time Started';
+$string['timefinish'] = 'Time Finished';
+$string['tasks'] = 'Tasks';
+$string['score'] = 'Score';
+
 
 // events
 $string['eventattemptstarted'] = "Attempt started";

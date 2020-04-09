@@ -74,30 +74,25 @@ $PAGE->set_context($context);
 $PAGE->set_title(format_string($crucible->name));
 $PAGE->set_heading($course->fullname);
 
-// get lab info
-$eventtemplate = $crucible->eventtemplate;
-$lab = get_eventtemplate($eventtemplate);
+// get eventtemplate info
+$eventtemplate = get_eventtemplate($crucible->eventtemplate);
 
 // Update the database.
-if ($lab) {
-    $scenarioid = $lab->scenarioId;
+if ($eventtemplate) {
+    $scenarioid = $eventtemplate->scenarioId;
     // Update the database.
-    $crucible->name = $lab->name;
-    $crucible->intro = $lab->description;
+    $crucible->name = $eventtemplate->name;
+    $crucible->intro = $eventtemplate->description;
     $DB->update_record('crucible', $crucible);
     rebuild_course_cache($crucible->course);
 } else {
     $scenarioid = "";
 }
 
-// get current state of lab
+// get current state of eventtemplate
 $systemauth = setup();
 $access_token = get_token($systemauth);
-$scopes = get_scopes($systemauth);
-$clientsecret = get_clientsecret($systemauth);
-$clientid = get_clientid($systemauth);
-$token_url = get_token_url();
-$history = list_events($systemauth, $eventtemplate);
+$history = list_events($systemauth, $crucible->eventtemplate);
 $launched = get_launched($history);
 
 // new crucible class
@@ -248,7 +243,10 @@ $info->player_app_url = $player_app_url;
 
 $PAGE->requires->js_call_amd('mod_crucible/view', 'init', ['info' => $info]);
 
+$attempts = $object->getall_attempts('closed');
+echo $renderer->display_attempts($attempts, $showfailed);
 echo $renderer->display_history($history, $showfailed);
+
 echo $renderer->footer();
 
 

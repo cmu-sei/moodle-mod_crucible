@@ -197,6 +197,28 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020040805, 'crucible');
     }
 
+    if ($oldversion < 2020040900) {
+
+        // Changing nullability of field eventid on table crucible_attempts to not null.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('eventid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'sessionid');
+
+        // Launch change of nullability for field eventid.
+        $dbman->change_field_notnull($table, $field);
+
+        // Define field attemptnum to be dropped from crucible_attempts.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('attemptnum');
+
+        // Conditionally launch drop field attemptnum.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020040900, 'crucible');
+    }
+
     return true;
 }
 

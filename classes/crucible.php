@@ -81,6 +81,10 @@ class crucible {
             return false;
         } else {
             $this->openAttempt = reset($attempts);
+            // update values
+            $this->openAttempt->eventid = $this->event->id;
+            $this->openAttempt->sessionid = $this->event->sessionId;
+            $this->openAttempt->save();
             return true;
         }
     }
@@ -125,6 +129,10 @@ class crucible {
         $openAttempt = $this->get_open_attempt();
         if ($openAttempt !== false) {
             $this->openAttempt = $openAttempt;
+            // update values
+            $this->openAttempt->eventid = $this->event->id;
+            $this->openAttempt->sessionid = $this->event->sessionId;
+            $this->openAttempt->save();
             return true;
         }
 
@@ -137,7 +145,6 @@ class crucible {
         $attempt->timefinish = null;
         $attempt->crucibleid = $this->crucible->id;
         $attempt->setState('inprogress');
-        $attempt->attemptnum = null;
         $attempt->score = 0;
         $attempt->eventid = $this->event->id;
         $attempt->sessionid = $this->event->sessionId;
