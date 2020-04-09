@@ -40,6 +40,12 @@ DM20-0196
 
 class crucible {
 
+    public $event;
+
+    public $crucible;
+
+    public $openAttempt;
+
     /**
      * Construct class
      *
@@ -69,23 +75,29 @@ class crucible {
 
 
 
-    function get_open_attempt() {
-        return $this->getall_attempts('open');
+    public function get_open_attempt() {
+        $attempts = $this->getall_attempts('open');
+        if (count($attempts) !== 1) {
+            return false;
+        } else {
+            $this->openAttempt = reset($attempts);
+            return true;
+        }
     }
 
-    function getall_attempts($state = 'all') {
+    public function getall_attempts($state = 'all') {
         global $DB;
 
         $sqlparams = array();
         $where = array();
 
         $where[] = 'crucibleid = ?';
-        $sqlparams[] = $this->context->id;
+        $sqlparams[] = $this->crucible->id;
 
         switch ($state) {
             case 'open':
                 $where[] = 'state = ?';
-                $sqlparams[] = \mod_crucible\crucible_attempt::INPROGRESS;
+                $sqlparams[] = crucible_attempt::INPROGRESS;
                 break;
             case 'closed':
                 $where[] = 'state = ?';
@@ -100,11 +112,45 @@ class crucible {
         $sql = "SELECT * FROM {crucible_attempts} WHERE $wherestring";
         $dbattempts = $DB->get_records_sql($sql, $sqlparams);
 
-        $attempts = array();
+        // create array of class attempts from the db entry
         foreach ($dbattempts as $dbattempt) {
-            $attempts[ $dbattempt->id ] = new crucible_attempt($dbattempt, $this->context);
+            $attempts[] = new crucible_attempt($dbattempt);
         }
         return $attempts;
 
+    }
+
+    public function init_attempt() {
+        global $DB, $USER;
+        $openAttempt = $this->get_open_attempt();
+        if ($openAttempt !== false) {
+            $this->openAttempt = $openAttempt;
+            return true;
+        }
+
+        // create a new attempt
+        $attempt = new \mod_crucible\crucible_attempt();
+        $attempt->userid = $USER->id;
+        $attempt->state = \mod_crucible\crucible_attempt::NOTSTARTED;
+        $attempt->timemodified = time();
+        $attempt->timestart = time();
+        $attempt->timefinish = null;
+        $attempt->crucibleid = $this->crucible->id;
+        $attempt->setState('inprogress');
+        $attempt->attemptnum = null;
+        $attempt->score = 0;
+        $attempt->eventid = $this->event->id;
+        $attempt->sessionid = $this->event->sessionId;
+        // TODO get list of tasks
+        $attempt->tasks = "";
+
+        if ($attempt->save()) {
+            $this->openAttempt = $attempt;
+        } else {
+            return false;
+        }
+
+        //TODO call start attempt event class from here
+        return true;
     }
 }

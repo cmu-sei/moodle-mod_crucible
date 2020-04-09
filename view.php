@@ -34,6 +34,8 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
+use \mod_crucible\crucible;
+
 //require('../../config.php');
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
@@ -72,8 +74,6 @@ $PAGE->set_context($context);
 $PAGE->set_title(format_string($crucible->name));
 $PAGE->set_heading($course->fullname);
 
-//echo $OUTPUT->header();
-
 // get lab info
 $eventtemplate = $crucible->eventtemplate;
 $lab = get_eventtemplate($eventtemplate);
@@ -100,44 +100,50 @@ $token_url = get_token_url();
 $history = list_events($systemauth, $eventtemplate);
 $launched = get_launched($history);
 
-// attempt
+// new crucible class
 $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
+$object->event = $launched;
 
-$attempt = null;
-
-// get active attempt for user
-//$attempt = $object->get_open_attempt();
-
+// get active attempt for user: true/false
+$attempt = $object->get_open_attempt();
 
 // handle button click
 if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
 {
+    if ($attempt) {
+        print_error('attemptalreadyexists', 'crucible');
+    }
+
     // check not started already
     if (!$launched) {
         $event = start_event($systemauth, $eventtemplate);
         if ($event) {
             $launched = get_event($systemauth, $event);
+            $object->event = $launched;
+            // TODO make sure we have an eventid or allow it to be null but wed have to update it later
+            $attempt = $object->init_attempt();
+            crucible_start($cm, $context, $crucible);
         }
-        crucible_start($cm, $context, $crucible);
-        //$attempt = new crucible_attempt();
-
-        var_dump($attempt);
     }
 }
 else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
 {
     if ($launched) {
         if ($launched->status == "Active") {
-            stop_event($systemauth, $launched->id);
-            $launched = get_event($systemauth, $launched->id);
+            stop_event($systemauth, $launched->id); //why call this again?
+            $launched = get_event($systemauth, $launched->id); //why call this again?
             crucible_end($cm, $context, $crucible);
-            //$attempt->close_attempt();
+            $object->openAttempt->close_attempt();
         }
     }
 
 }
 
 if ($launched) {
+    if (($launched->status == "Active") && (!$attempt)) {
+        print_error('eventwithoutattempt', 'crucible');
+    }
+
     $event = $launched->id;
     $exerciseid = $launched->exerciseId;
     $sessionid = $launched->sessionId;

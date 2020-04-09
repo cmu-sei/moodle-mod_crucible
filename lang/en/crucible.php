@@ -92,4 +92,6 @@ $string['taskresult'] = "Task Result";
 $string['taskaction'] = "Action";
 $string['taskexecute'] = "Run Task";
 
+// view
+$string['eventwithoutattempt'] = "Event exists but attempt does not exist in moodle db.";
 

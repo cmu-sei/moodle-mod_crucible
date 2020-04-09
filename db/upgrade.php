@@ -184,6 +184,18 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020040800, 'crucible');
     }
 
+    if ($oldversion < 2020040805) {
+
+        // Changing nullability of field sessionid on table crucible_attempts to not null.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('sessionid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'crucibleid');
+
+        // Launch change of nullability for field sessionid.
+        $dbman->change_field_notnull($table, $field);
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020040805, 'crucible');
+    }
 
     return true;
 }

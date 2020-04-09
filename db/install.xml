@@ -39,7 +39,7 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="crucibleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the crucible lab for this attempt"/>
-        <FIELD NAME="sessionid" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The steamfitter session for this attempt"/>
+        <FIELD NAME="sessionid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter session for this attempt"/>
         <FIELD NAME="eventid" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The alloy event for this attempt"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The userid for this attempt"/>
         <FIELD NAME="attemptnum" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The attempt number for this user"/>
