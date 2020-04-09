@@ -39,7 +39,6 @@ defined('MOODLE_INTERNAL') || die;
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 
 function setup_system() {
-    //echo "<br><br><br><br>setup_system<br>";
 
     $issuerid = get_config('crucible', 'issuerid');
     if (!$issuerid) {
@@ -72,11 +71,10 @@ function get_token_url() {
 }
 
 function setup() {
-    //echo "setup<br>";
     global $PAGE;
     $issuerid = get_config('crucible', 'issuerid');
     if (!$issuerid) {
-            //echo "crucible does not have issuerid set<br>";
+        //crucible does not have issuerid
         return;
     }
     $issuer = \core\oauth2\api::get_issuer($issuerid);
@@ -88,41 +86,16 @@ function setup() {
     $client = \core\oauth2\api::get_user_oauth_client($issuer, $returnurl);
 
     if ($client) {
-        //echo "we got client<Br>";
-        //var_dump($client);
-        //TODO store and save token or just use js everywhere...
-        //$token = $client->get_stored_token();
-        //if ($token) {
-            //echo  "we got token<br>";
-            //var_dump($token); exit;
-        //} else {
-            //echo "no stored token<br>";
-        //}
         if (!$client->is_logged_in()) {
-            //echo "not logged in, lets redurect to id server<br>";
-            //echo "login url " . $client->get_login_url();
             redirect($client->get_login_url());
-        } else {
-            //echo "user already logged in<br>";
         }
-        //$auth = new \auth_oauth2\auth();
-        //$auth->complete_login($client, $wantsurl);
-    } else {
-        //echo  "no client<br>";
-        //throw new moodle_exception('Could not get an OAuth client.');
     }
 
-    //return $systemauth;
     return $client;
 }
 
 function get_eventtemplate($id) {
-    //try {
-    //    $systemauth = setup_system();
-    //} catch (Exception $e) {
-        //echo "system failed, try user<Br>";
-        $systemauth = setup();
-    //}
+    $systemauth = setup();
 
     if ($systemauth == null) {
         //echo 'error with systemauth<br>';
@@ -185,16 +158,9 @@ function filter_tasks($tasks) {
     return $filtered;
 }
 
-function get_definitions() {
+function get_eventtemplates() {
 
-    //try {
-        //echo "<br><br><br><br><br>trying system now<br>";
-    //    $systemauth = setup_system();
-    //} catch (Exception $e) {
-        // try user
-        //echo "trying user now<br>";
-        $systemauth = setup();
-    //}
+    $systemauth = setup();
 
     if ($systemauth == null) {
         echo 'error with systemauth<br>';
@@ -210,7 +176,7 @@ function get_definitions() {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         //throw new \Exception($response);
         //return;
-        debugging('no response received by get_definitions', DEBUG_DEVELOPER);
+        debugging('no response received by get_eventtemplates', DEBUG_DEVELOPER);
     }
     //echo "response:<br><pre>$response</pre>";
     if ($systemauth->info['http_code']  !== 200) {
@@ -258,12 +224,9 @@ function start_event($systemauth, $id) {
     if ($systemauth->info['http_code']  === 201) {
         return $r->id;
     }
-
     if ($systemauth->info['http_code']  === 500) {
         //echo "response code ". $systemauth->info['http_code'] . "<br>";
-        echo "$r->detail<br>";
-        //throw new \Exception($r);
-        return;
+        print_error($r->detail);
     }
 
     return;

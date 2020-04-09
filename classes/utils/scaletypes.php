@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_crucible\utils;
+
+defined('MOODLE_INTERNAL') || die();
+
 /**
- * Skatch backgrounds.
+ * Class to define grade types for the module
+ * Is used in multiple classes/functions
  *
- * @package    mod_crucible
- * @copyright  2020 Carnegie Mellon University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     mod_crucible
+ * @copyright   2020 Carnegie Mellon University
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
@@ -30,29 +35,50 @@ Released under a GNU GPL 3.0-style license, please see license.txt or contact pe
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
+2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md) Copyright 2014 John Hoopes and the University of Wisconsin.
 DM20-0196
  */
 
-// This line protects the file from being accessed by a URL directly.
-defined('MOODLE_INTERNAL') || die();
+class scaletypes {
 
-// This is the version of the plugin.
-$plugin->version = 2020040904;
+    /** Define grading scale types */
+    const crucible_FIRSTATTEMPT = 1;
+    const crucible_LASTATTEMPT = 2;
+    const crucible_ATTEMPTAVERAGE = 3;
+    const crucible_HIGHESTATTEMPTGRADE = 4;
 
-// This is the version of Moodle this plugin requires.
-$plugin->requires = 2018050800;
 
-// This is the component name of the plugin - it always starts with 'component_'
-$plugin->component = 'mod_crucible';
+    /**
+     * Return array of scale types keyed by the type name
+     *
+     * @return array
+     */
+    public static function get_types() {
 
-// This is a list of plugins, this plugin depends on (and their versions).
-$plugin->dependencies = [
-];
+        return array(
+            'firstattempt' => self::crucible_FIRSTATTEMPT,
+            'lastattempt'  => self::crucible_LASTATTEMPT,
+            'average'      => self::crucible_ATTEMPTAVERAGE,
+            'highestgrade' => self::crucible_HIGHESTATTEMPTGRADE,
+        );
+    }
 
-// This is a stable release.
-//$plugin->maturity = MATURITY_STABLE;
-$plugin->maturity = MATURITY_BETA;
+    /**
+     * Returns an array of scale types for display, i.e. a form
+     * keyed by the values that each type is
+     *
+     * @return array
+     */
+    public static function get_display_types() {
 
-// This is the named version.
-$plugin->release = 0.1;
+        return array(
+            self::crucible_FIRSTATTEMPT        => get_string('firstattempt', 'crucible'),
+            self::crucible_LASTATTEMPT        => get_string('lastattempt', 'crucible'),
+            self::crucible_ATTEMPTAVERAGE      => get_string('attemptaverage', 'crucible'),
+            self::crucible_HIGHESTATTEMPTGRADE => get_string('highestattempt', 'crucible'),
+        );
+    }
+
+}
+
 

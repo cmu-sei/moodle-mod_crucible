@@ -219,6 +219,62 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020040900, 'crucible');
     }
 
+    if ($oldversion < 2020040903) {
+
+        // Define field timeopen to be added to crucible.
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('timeopen', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'clock');
+
+        // Conditionally launch add field timeopen.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field timeclose to be added to crucible.
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('timeclose', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'timeopen');
+
+        // Conditionally launch add field timeclose.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field grade to be added to crucible.
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('grade', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0', 'timeopen');
+
+        // Conditionally launch add field grade.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field grademethod to be added to crucible.
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('grademethod', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'grade');
+
+        // Conditionally launch add field grademethod.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020040903, 'crucible');
+    }
+
+    if ($oldversion < 2020040904) {
+
+        // Define field introformat to be added to crucible.
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('introformat', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'intro');
+
+        // Conditionally launch add field introformat.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020040904, 'crucible');
+    }
     return true;
 }
 

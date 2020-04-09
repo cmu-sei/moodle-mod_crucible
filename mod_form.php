@@ -41,7 +41,7 @@ require_once($CFG->dirroot.'/mod/crucible/locallib.php');
 
 class mod_crucible_mod_form extends moodleform_mod {
 
-    function eventtemplate() {
+    function definition() {
         global $COURSE, $CFG, $DB, $PAGE;
         $mform = $this->_form;
 
@@ -94,6 +94,20 @@ class mod_crucible_mod_form extends moodleform_mod {
 
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
+        $mform->removeElement('grade');
+        if (property_exists($this->current, 'grade')) {
+            $currentgrade = $this->current->grade;
+        } else {
+            $currentgrade = $crucibleconfig->maximumgrade;
+        }
+        $mform->addElement('hidden', 'grade', $currentgrade);
+        $mform->setType('grade', PARAM_FLOAT);
+
+        $mform->addElement('select', 'grademethod',
+            get_string('grademethod', 'crucible'),
+            \mod_crucible\utils\scaletypes::get_display_types());
+        $mform->setType('grademethod', PARAM_INT);
+        $mform->addHelpButton('grademethod', 'grademethod', 'crucible');
 
 
         //-------------------------------------------------------

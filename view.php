@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
 
     // check not started already
     if (!$launched) {
-        $event = start_event($systemauth, $eventtemplate);
+        $event = start_event($systemauth, $object->crucible->eventtemplate);
         if ($event) {
             $launched = get_event($systemauth, $event);
             $object->event = $launched;
@@ -129,6 +129,8 @@ else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
             $launched = get_event($systemauth, $launched->id); //why call this again?
             crucible_end($cm, $context, $crucible);
             $object->openAttempt->close_attempt();
+            $grader = new \mod_crucible\utils\grade($object->crucible);
+            $grader->calculate_attempt_grade($object->openAttempt);
         }
     }
 
@@ -136,6 +138,7 @@ else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
 
 if ($launched) {
     if (($launched->status == "Active") && (!$attempt)) {
+        $attempt = $object->init_attempt();
         print_error('eventwithoutattempt', 'crucible');
     }
 
@@ -193,6 +196,8 @@ if ($launched) {
         $renderer->display_clock($starttime, $endtime);
         $PAGE->requires->js_call_amd('mod_crucible/clock', 'countup', array('starttime' => $starttime));
     }
+} else {
+    $renderer->display_grade($crucible);
 }
 
 if ($vmapp == 1) {

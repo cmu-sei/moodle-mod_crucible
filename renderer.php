@@ -68,6 +68,18 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     }
 
+    function display_grade($crucible) {
+        global $USER;
+
+        $usergrades = \mod_crucible\utils\grade::get_user_grade($crucible, $USER->id);
+        // should only be 1 grade, but we'll always get end just in case
+        $usergrade = end($usergrades);
+        $data = new stdClass();
+        $data->overallgrade = get_string('overallgrade', 'groupquiz');
+        $data->grade = number_format($usergrade, 2);
+        echo $this->render_from_template('mod_crucible/grade', $data);;
+    }
+
     function display_attempts($attempts, $showfailed) {
         $data = new stdClass();
         $data->tableheaders = [
@@ -75,7 +87,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
             //get_string('state', 'mod_crucible'),
             get_string('timestart', 'mod_crucible'),
             get_string('timefinish', 'mod_crucible'),
-            get_string('tasks', 'mod_crucible'),
+            //get_string('tasks', 'mod_crucible'),
             get_string('score', 'mod_crucible'),
         ];
 
@@ -86,7 +98,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 //$rowdata[] = $attempt->getState();
                 $rowdata[] = userdate($attempt->timestart);
                 $rowdata[] = userdate($attempt->timefinish);
-                $rowdata[] = $attempt->tasks;
+                //$rowdata[] = $attempt->tasks;
                 $rowdata[] = $attempt->score;
                 $data->tabledata[] = $rowdata;
             }
