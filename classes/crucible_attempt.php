@@ -61,7 +61,6 @@ class crucible_attempt {
      * @param \context_module $context
      */
     public function __construct($dbattempt = null, $context = null) {
-        $this->questionmanager = $questionmanager;
         $this->context = $context;
 
         // if empty create new attempt

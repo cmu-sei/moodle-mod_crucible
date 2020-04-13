@@ -46,6 +46,8 @@ class crucible {
 
     public $openAttempt;
 
+    public $eventtemplate;
+
     /**
      * Construct class
      *
@@ -75,6 +77,41 @@ class crucible {
         //$this->renderer->init($this, $pageurl, $pagevars);
     }
 
+    // GET /definitions/{eventtemplateId}/implementations/mine -- Gets the user's Implementations for the indicated Definition
+    function list_events() {
+
+        if ($this->systemauth == null) {
+            echo 'error with systemauth<br>';
+            return;
+        }
+
+        // web request
+        $url = get_config('crucible', 'alloyapiurl') . "/definitions/" . $this->crucible->eventtemplateid . "/implementations/mine";
+        //echo "GET $url<br>";
+
+        $response = $this->systemauth->get($url);
+
+        if ($this->systemauth->info['http_code']  !== 200) {
+            echo "response code ". $this->systemauth->info['http_code'] . "<br>";
+            return;
+        }
+
+        //echo "response:<br><pre>$response</pre>";
+        if (!$response) {
+            echo "curl error: " . curl_strerror($this->systemauth->errno) . "<br>";
+            debugging('no response received by list_events', DEBUG_DEVELOPER);
+            return;
+        }
+
+        $r = json_decode($response, true);
+
+        if (!$r) {
+            echo "could not end<br>";
+            return;
+        }
+        usort($r, 'launchDate');
+        return $r;
+    }
 
 
     public function get_open_attempt() {
@@ -118,6 +155,7 @@ class crucible {
         $sql = "SELECT * FROM {crucible_attempts} WHERE $wherestring";
         $dbattempts = $DB->get_records_sql($sql, $sqlparams);
 
+        $attempts = array();
         // create array of class attempts from the db entry
         foreach ($dbattempts as $dbattempt) {
             $attempts[] = new crucible_attempt($dbattempt);

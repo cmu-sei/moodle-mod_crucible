@@ -74,27 +74,30 @@ $PAGE->set_context($context);
 $PAGE->set_title(format_string($crucible->name));
 $PAGE->set_heading($course->fullname);
 
+// new crucible class
+$pageurl = null;
+$pagevars = array();
+$object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
+
 // get eventtemplate info
-$eventtemplate = get_eventtemplate($crucible->eventtemplate);
+$object->eventtemplate = get_eventtemplate($crucible->eventtemplateid);
 
 // Update the database.
-if ($eventtemplate) {
-    $scenarioid = $eventtemplate->scenarioId;
+if ($object->eventtemplate) {
+    $scenarioid = $object->eventtemplate->scenarioId;
     // Update the database.
-    $crucible->name = $eventtemplate->name;
-    $crucible->intro = $eventtemplate->description;
+    $crucible->name = $object->eventtemplate->name;
+    $crucible->intro = $object->eventtemplate->description;
     $DB->update_record('crucible', $crucible);
     rebuild_course_cache($crucible->course);
 } else {
     $scenarioid = "";
 }
 
-// new crucible class
-$object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
 
 // get current state of eventtemplate
 $access_token = get_token($object->systemauth);
-$history = list_events($object->systemauth, $crucible->eventtemplate);
+$history = $object->list_events();
 $launched = get_launched($history);
 
 $object->event = $launched;
@@ -102,20 +105,24 @@ $object->event = $launched;
 // get active attempt for user: true/false
 $attempt = $object->get_open_attempt();
 
-// handle button click
+            $grader = new \mod_crucible\utils\grade($object);
+            $grader->calculate_attempt_grade($object->openAttempt);
+//exit;
+// handle buttmn click
 if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
 {
     if ($attempt) {
         print_error('attemptalreadyexists', 'crucible');
+        //TODO maybe close the attempt? we could have a scheduled task close it too if we save expirationDate into the attempt
+        $object->openAttempt->close_attempt();
     }
 
     // check not started already
     if (!$launched) {
-        $event = start_event($object->systemauth, $object->crucible->eventtemplate);
-        if ($event) {
-            $launched = get_event($object->systemauth, $event);
+        $object->event = start_event($object->systemauth, $object->crucible->eventtemplateid);
+        if ($object->event) {
+            $launched = get_event($object->systemauth, $object->event);
             $object->event = $launched;
-            // TODO make sure we have an eventid or allow it to be null but wed have to update it later
             $attempt = $object->init_attempt();
             crucible_start($cm, $context, $crucible);
         }
@@ -143,7 +150,7 @@ if ($launched) {
         print_error('eventwithoutattempt', 'crucible');
     }
 
-    $event = $launched->id;
+    $eventid = $launched->id;
     $exerciseid = $launched->exerciseId;
     $sessionid = $launched->sessionId;
 
@@ -159,7 +166,7 @@ if ($launched) {
         $endtime = strtotime($launched->expirationDate . 'Z');
     }
 } else {
-    $event = null;
+    $eventid = null;
     $exerciseid = null;
     $sessionid = null;
     $startime = null;
@@ -185,7 +192,7 @@ $showfailed = get_config('crucible', 'showfailed');
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 $renderer->display_detail($crucible);
-$renderer->display_form($url, $eventtemplate);
+$renderer->display_form($url, $object->crucible->eventtemplateid);
 
 if ($launched) {
 
@@ -210,6 +217,7 @@ if ($vmapp == 1) {
 // TODO have a completely different view page for active labs
 if ($sessionid) {
     $tasks = filter_tasks(get_sessiontasks($object->systemauth, $sessionid));
+/*
     $taskresults = get_taskresults($object->systemauth, $sessionid);
 
     // taskresults will be null if there are no results
@@ -225,13 +233,15 @@ if ($sessionid) {
             }
         }
     }
+*/
     $renderer->display_results($tasks);
+
     // start js to monitor task status
-    $PAGE->requires->js_call_amd('mod_crucible/results', 'init', [
-	'access_token' => $access_token,
-	'session' => $sessionid,
-	'steamfitter_api' => $steamfitter_api_url,
-    ]);
+    $info = new stdClass();
+    $info->token = $access_token;
+    $info->session = $sessionid;;
+    $info->steamfitter_api = $steamfitter_api_url;
+    $PAGE->requires->js_call_amd('mod_crucible/results', 'init', [$info]);
 } else if ($scenarioid) {
     // this is when we do not have an active session
     $tasks = filter_tasks(get_scenariotasks($object->systemauth, $scenarioid));
@@ -240,17 +250,18 @@ if ($sessionid) {
 $info = new stdClass();
 $info->token = $access_token;
 $info->state = $status;
-$info->event = $event;
+$info->event = $eventid;
 $info->exercise = $exerciseid;
 $info->alloy_api_url = $alloy_api_url;
 $info->vm_app_url = $vm_app_url;
 $info->player_app_url = $player_app_url;
 
-$PAGE->requires->js_call_amd('mod_crucible/view', 'init', ['info' => $info]);
+//$PAGE->requires->js_call_amd('mod_crucible/view', 'init', ['info' => $info]);
+$PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$info]);
 
 $attempts = $object->getall_attempts('closed');
 echo $renderer->display_attempts($attempts, $showfailed);
-echo $renderer->display_history($history, $showfailed);
+//echo $renderer->display_history($history, $showfailed);
 
 echo $renderer->footer();
 

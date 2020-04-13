@@ -168,7 +168,11 @@ class mod_crucible_renderer extends plugin_renderer_base {
             $rowdata->id = $task->id;
             $rowdata->name = $task->name;
             $rowdata->desc = $task->description;
-            $rowdata->result = $task->result->status;
+            //if (defined($task->result->status)) {
+            //    $rowdata->result = $task->result->status;
+            //} else {
+                $rowdata->result = '';
+            //}
             // check whether we can execute the task
             if ($task->triggerCondition == "Manual") {
                 $rowdata->action = get_string('taskexecute', 'mod_crucible');

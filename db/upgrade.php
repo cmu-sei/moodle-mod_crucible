@@ -289,6 +289,19 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020041000, 'crucible');
     }
 
+    if ($oldversion < 2020041300) {
+
+        // Rename field eventtemplate on table crucible to eventtemplateid.
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('eventtemplate', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null, 'introformat');
+
+        // Launch rename field eventtemplateid.
+        $dbman->rename_field($table, $field, 'eventtemplateid');
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020041300, 'crucible');
+    }
+
     return true;
 }
 

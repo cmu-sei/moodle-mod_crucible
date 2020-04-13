@@ -38,6 +38,7 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 
+/*
 function setup_system() {
 
     $issuerid = get_config('crucible', 'issuerid');
@@ -62,20 +63,13 @@ function setup_system() {
     //echo "system looks good<Br>";
     return $systemauth;
 }
-
-function get_token_url() {
-    $config = get_config('crucible');
-    $issuerid = $config->issuerid;
-    $issuer = \core\oauth2\api::get_issuer($issuerid);
-    return $issuer->get_endpoint_url('token');
-}
+*/
 
 function setup() {
     global $PAGE;
     $issuerid = get_config('crucible', 'issuerid');
     if (!$issuerid) {
-        //crucible does not have issuerid
-        return;
+        print_error('no issuer set for plugin');
     }
     $issuer = \core\oauth2\api::get_issuer($issuerid);
 
@@ -99,31 +93,26 @@ function get_eventtemplate($id) {
 
     if ($systemauth == null) {
         //echo 'error with systemauth<br>';
-        return;
+        print_error('could not setup session');
     }
-
     // web request
     $url = get_config('crucible', 'alloyapiurl') . "/definitions/" . $id;
     //echo "GET $url<br>";
 
     $response = $systemauth->get($url);
-    if (!$response) {
-        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        echo "check refresh token for the account<br>";
-        //throw new \Exception($response);
-        //return;
-        debugging('no response received by get_eventtemplate', DEBUG_DEVELOPER);
 
-    }
-    //echo "response:<br><pre>$response</pre>";
-    if ($systemauth->info['http_code']  !== 200) {
+    if ($systemauth->info['http_code'] !== 200) {
         echo "response code ". $systemauth->info['http_code'] . "<br>";
         //throw new \Exception($response);
         debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
-        //throw new \Exception($systemauth->info['http_code']);
-
-        return;
+        debugging($token = get_token($systemauth));
+        print_error($systemauth->info['http_code'] . " for $url " . $systemauth->response['www-authenticate']);
     }
+
+    if (!$response) {
+        debugging('no response received by get_eventtemplate', DEBUG_DEVELOPER);
+    }
+    //echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
 
     if (!$r) {
@@ -280,7 +269,6 @@ function get_event($systemauth, $id) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         //throw new \Exception($response);
         debugging('no response received by get_event', DEBUG_DEVELOPER);
-
         return;
     }
     //echo "response:<br><pre>$response</pre>";
@@ -294,7 +282,7 @@ function get_event($systemauth, $id) {
         return $r;
     } else {
         echo "response code ". $systemauth->info['http_code'] . "<br>";
-        //throw new \Exception($response);
+        print_error($r->detail);
     }
     return;
 }
@@ -424,43 +412,6 @@ function get_taskresults($systemauth, $id) {
         //throw new \Exception($response);
     }
     return;
-}
-
-
-// GET /definitions/{eventtemplateId}/implementations/mine -- Gets the user's Implementations for the indicated Definition
-function list_events($systemauth, $id) {
-
-    if ($systemauth == null) {
-        echo 'error with systemauth<br>';
-        return;
-    }
-
-    // web request
-    $url = get_config('crucible', 'alloyapiurl') . "/definitions/" . $id . "/implementations/mine";
-    //echo "GET $url<br>";
-
-    $response = $systemauth->get($url);
-    if (!$response) {
-        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        //throw new \Exception($response);
-        debugging('no response received by list_events', DEBUG_DEVELOPER);
-
-        return;
-    }
-    //echo "response:<br><pre>$response</pre>";
-    if ($systemauth->info['http_code']  !== 200) {
-        echo "response code ". $systemauth->info['http_code'] . "<br>";
-        //throw new \Exception($response);
-        return;
-    }
-    $r = json_decode($response, true);
-
-    if (!$r) {
-        echo "could not end<br>";
-        return;
-    }
-    usort($r, 'launchDate');
-    return $r;
 }
 
 function endDate($a, $b) {

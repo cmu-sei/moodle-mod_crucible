@@ -26,13 +26,16 @@ define(['jquery'], function($) {
     var timeout;
 
     return {
-        init: function(token, session, steamfitter_api) {
+        //init: function(token, session, steamfitter_api) {
+        init: function(info) {
 
-            console.log('session id ' + session);
+            console.log('session id ' + info.session);
 
-            access_token = token;
-            session_id = session;
-            steamfitter_api_url = steamfitter_api;
+            access_token = info.token;
+            session_id = info.session;
+            steamfitter_api_url = info.steamfitter_api;
+
+            get_results();
 
             timeout = setInterval(function() {
                 get_results();

@@ -116,12 +116,13 @@ class grade {
             }
         }
         foreach ($values as $value) {
-            $totalpoints++;
             if ($value === "succeeded") {
                 $totalslotpoints++;
             }
         }
 
+        // TODO one day check attribute for whether the task is gradable or not
+        $totalpoints = count($tasks);
         $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->crucible->crucible->grade;
 
         $attempt->score = $scaledpoints;

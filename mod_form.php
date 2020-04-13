@@ -78,16 +78,16 @@ class mod_crucible_mod_form extends moodleform_mod {
 	    'placeholder' => get_string('selectname', 'crucible')
 	);
 	if ($config->autocomplete) {
-            $mform->addElement('autocomplete', 'eventtemplate', get_string('eventtemplate', 'crucible'), $labs, $options);
+            $mform->addElement('autocomplete', 'eventtemplateid', get_string('eventtemplate', 'crucible'), $labs, $options);
 	} else {
-            $mform->addElement('select', 'eventtemplate', get_string('eventtemplate', 'crucible'), $labs);
+            $mform->addElement('select', 'eventtemplateid', get_string('eventtemplate', 'crucible'), $labs);
 	}
 
-        $mform->addRule('eventtemplate', null, 'required', null, 'client');
-        $mform->addRule('eventtemplate', 'You must choose an option', 'minlength', '2', 'client');
+        $mform->addRule('eventtemplateid', null, 'required', null, 'client');
+        $mform->addRule('eventtemplateid', 'You must choose an option', 'minlength', '2', 'client'); //why is this client?
 
-        $mform->setDefault('eventtemplate', null);
-        $mform->addHelpButton('eventtemplate', 'eventtemplate', 'crucible');
+        $mform->setDefault('eventtemplateid', null);
+        $mform->addHelpButton('eventtemplateid', 'eventtemplate', 'crucible');
 
         //-------------------------------------------------------
         $mform->addElement('header', 'optionssection', get_string('appearance'));
@@ -183,14 +183,14 @@ class mod_crucible_mod_form extends moodleform_mod {
     }
 
     function data_postprocessing(&$data) {
-	if (!$data->eventtemplate) {
+	if (!$data->eventtemplateid) {
             echo "return to settings page<br>";
 	    exit;
         }
 	if (!$data->vmapp) {
 	    $data->vmapp = 0;
         }
-	$index = array_search($data->eventtemplate, array_column($this->eventtemplates, 'id'), true);
+	$index = array_search($data->eventtemplateid, array_column($this->eventtemplates, 'id'), true);
 	$data->name = $this->eventtemplates[$index]->name;
         $data->intro = $this->eventtemplates[$index]->description;
         //$data->introformat = 1;
