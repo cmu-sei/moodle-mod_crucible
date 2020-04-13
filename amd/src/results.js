@@ -2,7 +2,7 @@
 Crucible Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE
-MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO 
+MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO
 WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
 INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR
 MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
@@ -87,7 +87,11 @@ define(['jquery'], function($) {
             },
             error: function(response) {
                 if (response.status == '401') {
-                    console.log('permission error, check token');
+                    console.log('permission error, check token, reload page');
+                    alert('permission error, check token, reload page');
+                    clearTimeout(timeout);
+                } else {
+                    console.log(response);
                     clearTimeout(timeout);
                 }
             }
@@ -116,7 +120,8 @@ define(['jquery'], function($) {
             },
             error: function(response) {
                 if (response.status == '401') {
-                    console.log('permission error, check token');
+                    console.log('permission error, check token, reload page');
+                    alert('permission error, check token, reload page');
                 } else if (response.status == '400') {
                     console.log(response.responseJSON);
                     alert('Run Task command failed ' + response.responseJSON.detail);

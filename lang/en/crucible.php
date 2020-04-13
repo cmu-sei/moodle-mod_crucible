@@ -121,3 +121,6 @@ $string['courseorinstanceid'] = 'Either a course id or an instance must be given
 $string['attemptalreadyexists'] = 'An open attempt already exists for this event';
 $string['overallgrade'] = 'Overall Grade: ';
 
+// task
+$string['taskcloseattempt'] = 'Close expired Crucible attempts';
+

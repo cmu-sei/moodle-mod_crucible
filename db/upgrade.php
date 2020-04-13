@@ -302,6 +302,22 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020041300, 'crucible');
     }
 
+    if ($oldversion < 2020041307) {
+
+        // Define field endtime to be added to crucible_attempts.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('endtime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 1586788681, 'score');
+
+        // Conditionally launch add field endtime.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020041307, 'crucible');
+    }
+
+
     return true;
 }
 

@@ -105,15 +105,17 @@ $object->event = $launched;
 // get active attempt for user: true/false
 $attempt = $object->get_open_attempt();
 
-            $grader = new \mod_crucible\utils\grade($object);
-            $grader->calculate_attempt_grade($object->openAttempt);
+//$grader = new \mod_crucible\utils\grade($object);
+//$grader->calculate_attempt_grade($object->openAttempt);
 //exit;
-// handle buttmn click
+
+// handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
 {
     if ($attempt) {
         print_error('attemptalreadyexists', 'crucible');
-        //TODO maybe close the attempt? we could have a scheduled task close it too if we save expirationDate into the attempt
+        debugging('closing attempt - not active');
+        //TODO maybe we could have a scheduled task close it too if we save expirationDate into the attempt
         $object->openAttempt->close_attempt();
     }
 
@@ -124,6 +126,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
             $launched = get_event($object->systemauth, $object->event);
             $object->event = $launched;
             $attempt = $object->init_attempt();
+            if (!$attempt) {
+                print_error('init_attempt failed');
+            }
             crucible_start($cm, $context, $crucible);
         }
     }
@@ -132,24 +137,31 @@ else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
 {
     if ($launched) {
         if ($launched->status == "Active") {
-            stop_event($object->systemauth, $launched->id); //why call this again?
-            $launched = get_event($object->systemauth, $launched->id); //why call this again?
-            crucible_end($cm, $context, $crucible);
+            if (!$attempt) {
+                print_error('no attempt exists');
+            }
             $object->openAttempt->close_attempt();
-
             $grader = new \mod_crucible\utils\grade($object);
             $grader->calculate_attempt_grade($object->openAttempt);
+
+	    stop_event($object->systemauth, $launched->id); //why call this again?
+            $launched = get_event($object->systemauth, $launched->id); //why call this again?
+            crucible_end($cm, $context, $crucible);
         }
     }
 
 }
 
-if ($launched) {
-    if (($launched->status == "Active") && (!$attempt)) {
-        //$attempt = $object->init_attempt();
-        print_error('eventwithoutattempt', 'crucible');
-    }
+if (($launched->status === "Active") && (!$attempt)) {
+    print_error('eventwithoutattempt', 'crucible');
+    //$attempt = $object->init_attempt();
+}
+if ((!$launched) && ($attempt)) {
+    print_error('attemptalreadyexists', 'crucible');
+    //$object->openAttempt->close_attempt();
+}
 
+if ($launched) {
     $eventid = $launched->id;
     $exerciseid = $launched->exerciseId;
     $sessionid = $launched->sessionId;
@@ -166,6 +178,11 @@ if ($launched) {
         $endtime = strtotime($launched->expirationDate . 'Z');
     }
 } else {
+    if ($attempt) {
+        print_error('attemptalreadyexists', 'crucible');
+        debugging('closing attempt - not active');
+        //$object->openAttempt->close_attempt();
+    }
     $eventid = null;
     $exerciseid = null;
     $sessionid = null;
@@ -187,7 +204,15 @@ $vm_app_url = get_config('crucible', 'vmappurl');
 $player_app_url = get_config('crucible', 'playerappurl');
 $steamfitter_api_url = get_config('crucible', 'steamfitterapiurl');
 $vmapp = $crucible->vmapp;
-$showfailed = get_config('crucible', 'showfailed');
+
+$grader = new \mod_crucible\utils\grade($object);
+$gradepass = $grader->get_grade_item_passing_grade();
+
+if (floatval($gradepass) > 0) {
+    $showgrade = true;
+} else {
+    $showgrade = false;
+}
 
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
@@ -204,6 +229,8 @@ if ($launched) {
         $renderer->display_clock($starttime, $endtime);
         $PAGE->requires->js_call_amd('mod_crucible/clock', 'countup', array('starttime' => $starttime));
     }
+    // no matter what, start our session timer
+    $PAGE->requires->js_call_amd('mod_crucible/clock', 'init', array('endtime' => $endtime));
 } else {
     $renderer->display_grade($crucible);
 }
@@ -260,7 +287,7 @@ $info->player_app_url = $player_app_url;
 $PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$info]);
 
 $attempts = $object->getall_attempts('closed');
-echo $renderer->display_attempts($attempts, $showfailed);
+echo $renderer->display_attempts($attempts, $showgrade);
 //echo $renderer->display_history($history, $showfailed);
 
 echo $renderer->footer();

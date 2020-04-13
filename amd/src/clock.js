@@ -2,7 +2,7 @@
 Crucible Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE
-MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO 
+MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO
 WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
 INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR
 MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
@@ -21,8 +21,8 @@ DM20-0196
 define([], function() {
 
     return {
-        countdown: function(endtime) {
 
+        init: function(endtime) {
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
@@ -30,6 +30,14 @@ define([], function() {
                     console.log("timer expired, reloading page");
                     window.location.replace(window.location.href);
                 }
+            }, 1000);
+        },
+
+        countdown: function(endtime) {
+
+            setInterval(function() {
+                var timenow = Math.round(new Date().getTime() / 1000);
+                var remaining = endtime - timenow;
 
                 var hours = Math.floor(remaining % (60 * 60 * 24) / (60 * 60));
                 var minutes = Math.floor(remaining % (60 * 60) / 60);
@@ -43,6 +51,7 @@ define([], function() {
                 }
             }, 1000);
         },
+
         countup: function(starttime) {
 
             setInterval(function() {

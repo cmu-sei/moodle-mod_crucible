@@ -121,8 +121,18 @@ class crucible {
         } else {
             $this->openAttempt = reset($attempts);
             // update values
-            $this->openAttempt->eventid = $this->event->id;
-            $this->openAttempt->sessionid = $this->event->sessionId;
+            if ($this->openAttempt->eventid === null) {
+                $this->openAttempt->eventid = $this->event->id;
+            }
+            if ($this->openAttempt->sessionid === null) {
+                $this->openAttempt->sessionid = $this->event->sessionId;
+            }
+            //TODO remove check for Z once API is updated
+            if (strpos($this->event->expirationDate, "Z")) {
+                $this->openAttempt->endtime = strtotime($this->event->expirationDate);
+            } else {
+                $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
+            }
             $this->openAttempt->save();
             return true;
         }
@@ -170,8 +180,18 @@ class crucible {
         if ($openAttempt !== false) {
             $this->openAttempt = $openAttempt;
             // update values
-            $this->openAttempt->eventid = $this->event->id;
-            $this->openAttempt->sessionid = $this->event->sessionId;
+            if ($this->openAttempt->eventid === null) {
+                $this->openAttempt->eventid = $this->event->id;
+            }
+            if ($this->openAttempt->sessionid === null) {
+                $this->openAttempt->sessionid = $this->event->sessionId;
+            }
+            //TODO remove check for Z once API is updated
+            if (strpos($this->event->expirationDate, "Z")) {
+                $this->openAttempt->endtime = strtotime($this->event->expirationDate);
+            } else {
+                $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
+            }
             $this->openAttempt->save();
             return true;
         }
@@ -188,6 +208,13 @@ class crucible {
         $attempt->score = 0;
         $attempt->eventid = $this->event->id;
         $attempt->sessionid = $this->event->sessionId;
+        //TODO remove check for Z once API is updated
+        if (strpos($this->event->expirationDate, "Z")) {
+            $this->openAttempt->endtime = strtotime($this->event->expirationDate);
+        } else {
+            $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
+        }
+
         // TODO get list of tasks
         $attempt->tasks = "";
 

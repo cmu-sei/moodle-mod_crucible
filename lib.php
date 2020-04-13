@@ -109,6 +109,7 @@ function crucible_add_instance($crucible, $mform) {
     }
 
     $crucible->created = time();
+    $crucible->grade = 100; //default
     $crucible->id = $DB->insert_record('crucible', $crucible);
 
     // Do the processing required after an add or an update.

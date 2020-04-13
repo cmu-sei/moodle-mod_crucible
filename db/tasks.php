@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Skatch backgrounds.
+ * crucible module tasks
  *
  * @package    mod_crucible
  * @copyright  2020 Carnegie Mellon University
@@ -33,26 +34,18 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-// This line protects the file from being accessed by a URL directly.
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 
-// This is the version of the plugin.
-$plugin->version = 2020041602;
-
-// This is the version of Moodle this plugin requires.
-$plugin->requires = 2018050800;
-
-// This is the component name of the plugin - it always starts with 'component_'
-$plugin->component = 'mod_crucible';
-
-// This is a list of plugins, this plugin depends on (and their versions).
-$plugin->dependencies = [
-];
-
-// This is a stable release.
-//$plugin->maturity = MATURITY_STABLE;
-$plugin->maturity = MATURITY_BETA;
-
-// This is the named version.
-$plugin->release = 0.1;
+// List of tasks.
+$tasks = array(
+    array(
+        'classname' => 'mod_crucible\task\close_attempts',
+        'blocking' => 0,
+        'minute' => '*/5',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*'
+    )
+);
 

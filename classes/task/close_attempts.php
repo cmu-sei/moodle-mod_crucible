@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Skatch backgrounds.
+ * crucible module main user interface
  *
  * @package    mod_crucible
  * @copyright  2020 Carnegie Mellon University
@@ -33,26 +34,65 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-// This line protects the file from being accessed by a URL directly.
+namespace mod_crucible\task;
+
 defined('MOODLE_INTERNAL') || die();
 
-// This is the version of the plugin.
-$plugin->version = 2020041602;
+class close_attempts extends \core\task\scheduled_task {
 
-// This is the version of Moodle this plugin requires.
-$plugin->requires = 2018050800;
+    /**
+     * Get a descriptive name for this task.
+     *
+     * @return string
+     */
+    public function get_name() {
+        return get_string('taskcloseattempt', 'mod_crucible');
+    }
 
-// This is the component name of the plugin - it always starts with 'component_'
-$plugin->component = 'mod_crucible';
+    public function execute() {
+        $attempts = $this->getall_attempts('open');
 
-// This is a list of plugins, this plugin depends on (and their versions).
-$plugin->dependencies = [
-];
+        foreach ($attempts as $attempt) {
+            echo "closing attempt $attempt->id<br>";
+            $attempt->close_attempt();
+        }
 
-// This is a stable release.
-//$plugin->maturity = MATURITY_STABLE;
-$plugin->maturity = MATURITY_BETA;
+    }
 
-// This is the named version.
-$plugin->release = 0.1;
+    public function getall_attempts($state = 'open') {
+        global $DB;
 
+        $sqlparams = array();
+        $where = array();
+
+        switch ($state) {
+            case 'open':
+                $where[] = 'state = ?';
+                $sqlparams[] = \mod_crucible\crucible_attempt::INPROGRESS;
+                break;
+            case 'closed':
+                $where[] = 'state = ?';
+                $sqlparams[] = \mod_crucible\crucible_attempt::FINISHED;
+                break;
+            default:
+                // add no condition for state when 'all' or something other than open/closed
+        }
+
+        $where[] = 'endtime < ?';
+        $sqlparams[] = time();
+
+        $wherestring = implode(' AND ', $where);
+
+        $sql = "SELECT * FROM {crucible_attempts} WHERE $wherestring";
+        $dbattempts = $DB->get_records_sql($sql, $sqlparams);
+
+        $attempts = array();
+        // create array of class attempts from the db entry
+        foreach ($dbattempts as $dbattempt) {
+            $attempts[] = new \mod_crucible\crucible_attempt($dbattempt);
+        }
+        return $attempts;
+
+    }
+
+}

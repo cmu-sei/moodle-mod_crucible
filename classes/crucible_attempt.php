@@ -177,6 +177,7 @@ class crucible_attempt {
      */
     public function close_attempt() {
         global $USER;
+
         $this->attempt->state = self::FINISHED;
         $this->attempt->timefinish = time();
         $this->save();

@@ -51,11 +51,11 @@ class mod_crucible_mod_form extends moodleform_mod {
         $config = get_config('crucible');
 
         // Adding the standard "intro" and "introformat" fields.
-        $this->standard_intro_elements();
+        //$this->standard_intro_elements();
         //TODO remove ability to edit the description and just show the select and dropdown
         //$mform->removeElement('introeditor');
         //TODO figure out why the description doesnt appear
-        $mform->removeElement('showdescription');
+        //$mform->removeElement('showdescription');
 
 
         //-------------------------------------------------------
@@ -193,7 +193,7 @@ class mod_crucible_mod_form extends moodleform_mod {
 	$index = array_search($data->eventtemplateid, array_column($this->eventtemplates, 'id'), true);
 	$data->name = $this->eventtemplates[$index]->name;
         $data->intro = $this->eventtemplates[$index]->description;
-        //$data->introformat = 1;
+        $data->introeditor['format'] = FORMAT_PLAIN;
     }
 
 

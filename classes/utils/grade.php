@@ -130,4 +130,18 @@ class grade {
 
         return $scaledpoints;
     }
+
+    /**
+     * Helper function that returns the grade to pass.
+     *
+     * @return string
+     */
+    public function get_grade_item_passing_grade() {
+        global $DB;
+
+        $gradetopass = $DB->get_field('grade_items', 'gradepass', array('iteminstance' => $this->crucible->crucible->id, 'itemmodule' => 'crucible'));
+
+        return $gradetopass;
+    }
+
 }
