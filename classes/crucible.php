@@ -192,8 +192,11 @@ class crucible {
             } else {
                 $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
             }
-            $this->openAttempt->save();
-            return true;
+            if ($this->openAttempt->save()) {
+                    return true;
+            } else {
+                    return false;
+            }
         }
 
         // create a new attempt
@@ -206,13 +209,19 @@ class crucible {
         $attempt->crucibleid = $this->crucible->id;
         $attempt->setState('inprogress');
         $attempt->score = 0;
-        $attempt->eventid = $this->event->id;
-        $attempt->sessionid = $this->event->sessionId;
+        if ($this->event->id) {
+            $attempt->eventid = $this->event->id;
+        } else {
+            $attempt->event->id = 0;
+        }
+        if ($this->event->sessionId) {
+            $attempt->sessionid = 0;
+        }
         //TODO remove check for Z once API is updated
         if (strpos($this->event->expirationDate, "Z")) {
-            $this->openAttempt->endtime = strtotime($this->event->expirationDate);
+            $attempt->endtime = strtotime($this->event->expirationDate);
         } else {
-            $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
+            $attempt->endtime = strtotime($this->event->expirationDate . 'Z');
         }
 
         // TODO get list of tasks

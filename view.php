@@ -112,18 +112,18 @@ $attempt = $object->get_open_attempt();
 // handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
 {
-    if ($attempt) {
+    if ($attempt) { //&& (!$object->event !== null)
+        //TODO this should also check that we dont have an attempt
         print_error('attemptalreadyexists', 'crucible');
         debugging('closing attempt - not active');
-        //TODO maybe we could have a scheduled task close it too if we save expirationDate into the attempt
         $object->openAttempt->close_attempt();
     }
 
     // check not started already
     if (!$launched) {
-        $object->event = start_event($object->systemauth, $object->crucible->eventtemplateid);
-        if ($object->event) {
-            $launched = get_event($object->systemauth, $object->event);
+        $eventid = start_event($object->systemauth, $object->crucible->eventtemplateid);
+        if ($eventid) {
+            $launched = get_event($object->systemauth, $eventid);
             $object->event = $launched;
             $attempt = $object->init_attempt();
             if (!$attempt) {
@@ -144,7 +144,7 @@ else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
             $grader = new \mod_crucible\utils\grade($object);
             $grader->calculate_attempt_grade($object->openAttempt);
 
-	    stop_event($object->systemauth, $launched->id); //why call this again?
+            stop_event($object->systemauth, $launched->id); //why call this again?
             $launched = get_event($object->systemauth, $launched->id); //why call this again?
             crucible_end($cm, $context, $crucible);
         }

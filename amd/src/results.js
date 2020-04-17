@@ -50,10 +50,10 @@ define(['jquery'], function($) {
                     if (button.innerHTML === "Run Task") {
                         button.onclick = function() {
                             exec_task(id);
+                            console.log('set event for button ' + id);
                         };
                     }
                 }
-                console.log('set event for button ' + id);
             });
         }
     };

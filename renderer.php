@@ -187,7 +187,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
             if ($task->triggerCondition == "Manual") {
                 $rowdata->action = get_string('taskexecute', 'mod_crucible');
             } else {
-                $rowdata->action = "";
+                $rowdata->action = get_string('tasknoexecute', 'mod_crucible');
             }
             $data->tabledata[] = $rowdata;
         }
