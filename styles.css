@@ -1,7 +1,3 @@
-.container {
-    width: 1024px;
-    height: 768px;
-}
 .iframe-class {
     width: 100%;
     height: 100%;
@@ -12,7 +8,7 @@
 /* new below here */
 .iframe-container {
     overflow: hidden;
-    padding-top: 56.25%;
+    padding-top: 50%;
     position: relative;
 }
 
@@ -25,11 +21,6 @@
     width: 100%;
     background-color: white;
     display: none;
-}
-
-/* 4x3 Aspect Ratio */
-.iframe-container-4x3 {
-    padding-top: 75%;
 }
 
 #timer {

@@ -47,6 +47,15 @@ define(['jquery'], function($) {
             } else {
                 show_wait();
             }
+
+            var button = document.getElementById('enable-fullscreen');
+            if (button) {
+                button.onclick = function() {
+                    var frame = document.getElementById('vm_or_link');
+                    frame.requestFullscreen() ;
+                }
+            }
+
             run_loop();
 
         }
@@ -131,6 +140,8 @@ define(['jquery'], function($) {
         x.style.display = 'none';
         var x = document.getElementById('crucible-container');
         x.style.display = 'none';
+        var x = document.getElementById('enable-fullscreen');
+        x.style.display = 'none';
     }
 
     function show_ended() {
@@ -150,6 +161,8 @@ define(['jquery'], function($) {
         }
         var x = document.getElementById('crucible-container');
         x.style.display = 'none';
+        var x = document.getElementById('enable-fullscreen');
+        x.style.display = 'none';
     }
 
     function show_failed() {
@@ -164,6 +177,8 @@ define(['jquery'], function($) {
         var x = document.getElementById('failed');
         x.style.display = 'block';
         var x = document.getElementById('crucible-container');
+        x.style.display = 'none';
+        var x = document.getElementById('enable-fullscreen');
         x.style.display = 'none';
     }
 
@@ -192,6 +207,8 @@ define(['jquery'], function($) {
         }
         var x = document.getElementById('crucible-container');
         x.style.display = 'block';
+        var x = document.getElementById('enable-fullscreen');
+        x.style.display = 'inline-block';
    }
 
     function run_loop() {

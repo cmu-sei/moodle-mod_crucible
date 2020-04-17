@@ -120,6 +120,7 @@ $string['eventwithoutattempt'] = 'Event exists but attempt does not exist in moo
 $string['courseorinstanceid'] = 'Either a course id or an instance must be given.';
 $string['attemptalreadyexists'] = 'An open attempt already exists for this event';
 $string['overallgrade'] = 'Overall Grade: ';
+$string['fullscreen'] = "Fullscreen VM App";
 
 // task
 $string['taskcloseattempt'] = 'Close expired Crucible attempts';

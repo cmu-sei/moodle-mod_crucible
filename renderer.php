@@ -63,6 +63,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     function display_embed_page($crucible) {
         $data = new stdClass();
+        $data->fullscreen = get_string('fullscreen', 'mod_crucible');
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_crucible/embed', $data);
 
