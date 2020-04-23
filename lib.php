@@ -142,7 +142,7 @@ function crucible_update_instance(stdClass $crucible, $mform) {
 
     // We need two values from the existing DB record that are not in the form,
     // in some of the function calls below.
-    $crucible->grade     = $oldcrucible->grade;
+    $crucible->grade = $oldcrucible->grade;
 
     // Update the database.
     $crucible->id = $crucible->instance;
@@ -311,15 +311,14 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
     if ($crucible->grade == 0) {
         crucible_grade_item_update($crucible);
 
-    } else if ($grades = crucible_get_user_grades($crucible, $userid)) {
-        crucible_grade_item_update($crucible, $grades);
+    } else if ($grades =  crucible_get_user_grades($crucible, $userid)) {
 
+        $status = crucible_grade_item_update($crucible, $grades);
     } else if ($userid && $nullifnone) {
         $grade = new stdClass();
         $grade->userid = $userid;
         $grade->rawgrade = null;
         crucible_grade_item_update($crucible, $grade);
-
     } else {
         crucible_grade_item_update($crucible);
     }
@@ -336,7 +335,6 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
 function crucible_grade_item_update($crucible, $grades = null) {
 
     global $CFG, $OUTPUT;
-    require_once($CFG->dirroot . '/mod/crucible/locallib.php');
     require_once($CFG->libdir . '/gradelib.php');
 
     if (array_key_exists('cmidnumber', $crucible)) { // May not be always present.
@@ -344,12 +342,10 @@ function crucible_grade_item_update($crucible, $grades = null) {
     } else {
         $params = array('itemname' => $crucible->name);
     }
-
     if ($crucible->grade > 0) {
         $params['gradetype'] = GRADE_TYPE_VALUE;
         $params['grademax']  = $crucible->grade;
         $params['grademin']  = 0;
-
     } else {
         $params['gradetype'] = GRADE_TYPE_NONE;
     }
@@ -357,7 +353,6 @@ function crucible_grade_item_update($crucible, $grades = null) {
         $params['reset'] = true;
         $grades = null;
     }
-
     return grade_update('mod/crucible', $crucible->course, 'mod', 'crucible', $crucible->id, 0, $grades, $params);
 }
 
@@ -375,5 +370,38 @@ function crucible_grade_item_delete($crucible) {
 
     return grade_update('mod/crucible', $crucible->course, 'mod', 'crucible', $crucible->id, 0,
             null, array('deleted' => 1));
+}
+
+/**
+ * Return grade for given user or all users.
+ *
+ * @param int $crucible id of crucible
+ * @param int $userid optional user id, 0 means all users
+ * @return array array of grades, false if none. These are raw grades.
+ */
+function crucible_get_user_grades($crucible, $userid = 0) {
+    global $CFG, $DB;
+
+    $params = array($crucible->id);
+    $usertest = '';
+    if ($userid) {
+        $params[] = $userid;
+        $usertest = 'AND u.id = ?';
+    }
+    return $DB->get_records_sql("
+            SELECT
+                u.id,
+                u.id AS userid,
+                cg.grade AS rawgrade,
+                cg.timemodified AS dategraded,
+                MAX(ca.timefinish) AS datesubmitted
+
+            FROM {user} u
+            JOIN {crucible_grades} cg ON u.id = cg.userid
+            JOIN {crucible_attempts} ca ON ca.crucibleid = cg.crucibleid AND ca.userid = u.id
+
+            WHERE cg.crucibleid = ?
+            $usertest
+            GROUP BY u.id, cg.grade, cg.timemodified", $params);
 }
 

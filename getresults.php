@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Skatch backgrounds.
+ * crucible module main user interface
  *
  * @package    mod_crucible
  * @copyright  2020 Carnegie Mellon University
@@ -33,26 +33,46 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-// This line protects the file from being accessed by a URL directly.
-defined('MOODLE_INTERNAL') || die();
+define('AJAX_SCRIPT', true);
 
-// This is the version of the plugin.
-$plugin->version = 2020042803;
+require_once(__DIR__ . '/../../config.php');
+require_once("$CFG->dirroot/mod/crucible/locallib.php");
 
-// This is the version of Moodle this plugin requires.
-$plugin->requires = 2018050800;
+require_login();
+require_sesskey();
 
-// This is the component name of the plugin - it always starts with 'component_'
-$plugin->component = 'mod_crucible';
+$id = required_param('id', PARAM_ALPHANUMEXT);
 
-// This is a list of plugins, this plugin depends on (and their versions).
-$plugin->dependencies = [
-];
+// Require the session key - want to make sure that this isn't called
+// maliciously to keep a session alive longer than intended.
+if (!confirm_sesskey()) {
+    header('HTTP/1.1 403 Forbidden');
+    print_error('invalidsesskey');
+}
 
-// This is a stable release.
-//$plugin->maturity = MATURITY_STABLE;
-$plugin->maturity = MATURITY_BETA;
+$system = setup_system();
+$results = get_taskresults($system, $id);
+$response = array();
 
-// This is the named version.
-$plugin->release = 0.1.0;
+if (!$results) {
+    header('HTTP/1.1 500 Error');
+    $response['message'] = "error";
+}
+
+$data = array();
+foreach ($results as $result) {
+    $object = new stdClass();
+    $object->statusDate = $result->statusDate;
+    $object->status = $result->status;
+    $object->dispatchTaskId = $result->dispatchTaskId;
+    array_push($data, $object);
+}
+
+header('HTTP/1.1 200 OK');
+$response['parsed'] = $data;
+$response['message'] = "success";
+$response['id'] = $id;
+
+echo json_encode($response);
+
 

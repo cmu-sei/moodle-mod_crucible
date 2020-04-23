@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Skatch backgrounds.
+ * crucible module main user interface
  *
- * @package    mod_crucible
- * @copyright  2020 Carnegie Mellon University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     mod_crucible
+ * @copyright   2020 Carnegie Mellon Univeristy
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
@@ -33,26 +33,19 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-// This line protects the file from being accessed by a URL directly.
-defined('MOODLE_INTERNAL') || die();
+require_once("../../config.php");
 
-// This is the version of the plugin.
-$plugin->version = 2020042803;
+$id = required_param('id', PARAM_INT);
 
-// This is the version of Moodle this plugin requires.
-$plugin->requires = 2018050800;
+// Item number, may be != 0 for activities that allow more than one grade per user.
+$itemnumber = optional_param('itemnumber', 0, PARAM_INT);
 
-// This is the component name of the plugin - it always starts with 'component_'
-$plugin->component = 'mod_crucible';
+$userid = optional_param('userid', 0, PARAM_INT);
 
-// This is a list of plugins, this plugin depends on (and their versions).
-$plugin->dependencies = [
-];
+// In the simplest case just redirect to the view page.
+redirect('view.php?id='.$id);
 
-// This is a stable release.
-//$plugin->maturity = MATURITY_STABLE;
-$plugin->maturity = MATURITY_BETA;
+// TODO redirect instructors to a grade review page
 
-// This is the named version.
-$plugin->release = 0.1.0;
+
 

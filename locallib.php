@@ -38,7 +38,7 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 
-/*
+
 function setup_system() {
 
     $issuerid = get_config('crucible', 'issuerid');
@@ -63,7 +63,7 @@ function setup_system() {
     //echo "system looks good<Br>";
     return $systemauth;
 }
-*/
+
 
 function setup() {
     global $PAGE;
@@ -81,6 +81,7 @@ function setup() {
 
     if ($client) {
         if (!$client->is_logged_in()) {
+            debugging('not logged in', DEBUG_DEVELOPER);
             redirect($client->get_login_url());
         }
     }
@@ -88,8 +89,7 @@ function setup() {
     return $client;
 }
 
-function get_eventtemplate($id) {
-    $systemauth = setup();
+function get_eventtemplate($systemauth, $id) {
 
     if ($systemauth == null) {
         //echo 'error with systemauth<br>';
@@ -103,9 +103,7 @@ function get_eventtemplate($id) {
 
     if ($systemauth->info['http_code'] !== 200) {
         echo "response code ". $systemauth->info['http_code'] . "<br>";
-        //throw new \Exception($response);
         debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
-        debugging($token = get_token($systemauth));
         print_error($systemauth->info['http_code'] . " for $url " . $systemauth->response['www-authenticate']);
     }
 
@@ -129,6 +127,9 @@ function tasksort($a, $b) {
 
 // filter for tasks the user can see and sort by name
 function filter_tasks($tasks) {
+    if (is_null($tasks)) {
+        return;
+    }
     $filtered = array();
     foreach ($tasks as $task) {
         // TODO show automatic checks
@@ -147,9 +148,7 @@ function filter_tasks($tasks) {
     return $filtered;
 }
 
-function get_eventtemplates() {
-
-    $systemauth = setup();
+function get_eventtemplates($systemauth) {
 
     if ($systemauth == null) {
         echo 'error with systemauth<br>';
@@ -163,14 +162,12 @@ function get_eventtemplates() {
     $response = $systemauth->get($url);
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        //throw new \Exception($response);
-        //return;
         debugging('no response received by get_eventtemplates', DEBUG_DEVELOPER);
     }
     //echo "response:<br><pre>$response</pre>";
     if ($systemauth->info['http_code']  !== 200) {
         echo "response code ". $systemauth->info['http_code'] . "<br>";
-        //throw new \Exception($response);
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
         return;
     }
     $r = json_decode($response);
@@ -197,7 +194,6 @@ function start_event($systemauth, $id) {
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
         echo "response code ". $systemauth->info['http_code'] . "<br>";
-        //throw new \Exception($response);
         debugging('no response received by start_event', DEBUG_DEVELOPER);
 
         return;
@@ -215,6 +211,7 @@ function start_event($systemauth, $id) {
     }
     if ($systemauth->info['http_code']  === 500) {
         //echo "response code ". $systemauth->info['http_code'] . "<br>";
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
         print_error($r->detail);
     }
 
@@ -237,7 +234,7 @@ function stop_event($systemauth, $id) {
 
     if ($systemauth->info['http_code']  !== 204) {
         echo "response code ". $systemauth->info['http_code'] . "<br>";
-        throw new \Exception($response);
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
     }
 
     //if (!$response) {
@@ -246,6 +243,26 @@ function stop_event($systemauth, $id) {
     //}
     //echo "response:<br><pre>$response</pre>";
     return;
+}
+
+function run_task($systemauth, $id) {
+
+    if ($systemauth == null) {
+        return;
+    }
+
+    // web request
+    $url = get_config('crucible', 'steamfitterapiurl') . "/dispatchtasks/" . $id . "/execute";
+
+    $response = $systemauth->post($url);
+
+    if ($systemauth->info['http_code']  !== 200) {
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+    }
+
+    $r = json_decode($response);
+
+    return $r;
 }
 
 function get_event($systemauth, $id) {
@@ -267,7 +284,6 @@ function get_event($systemauth, $id) {
     $response = $systemauth->get($url);
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        //throw new \Exception($response);
         debugging('no response received by get_event', DEBUG_DEVELOPER);
         return;
     }
@@ -282,6 +298,7 @@ function get_event($systemauth, $id) {
         return $r;
     } else {
         echo "response code ". $systemauth->info['http_code'] . "<br>";
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
         print_error($r->detail);
     }
     return;
@@ -305,24 +322,20 @@ function get_scenariotasks($systemauth, $id) {
 
     $response = $systemauth->get($url);
     if (!$response) {
-        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        //throw new \Exception($response);
         debugging('no response received by get_scenariotasks', DEBUG_DEVELOPER);
-
         return;
     }
     //echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
-        echo "could not decode json<br>";
+        debugging("could not decode json", DEBUG_DEVELOPER);
         return;
     }
 
     if ($systemauth->info['http_code']  === 200) {
         return $r;
     } else {
-        echo "response code ". $systemauth->info['http_code'] . "<br>";
-        //throw new \Exception($response);
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
     }
     return;
 }
@@ -345,23 +358,20 @@ function get_sessiontasks($systemauth, $id) {
 
     $response = $systemauth->get($url);
     if (!$response) {
-        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        //throw new \Exception($response);
         debugging('no response received by get_sessiontasks', DEBUG_DEVELOPER);
         return;
     }
     //echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
-        echo "could not decode json<br>";
+        debugging("could not decode json", DEBUG_DEVELOPER);
         return;
     }
 
     if ($systemauth->info['http_code']  === 200) {
         return $r;
     } else {
-        echo "response code ". $systemauth->info['http_code'] . "<br>";
-        //throw new \Exception($response);
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
     }
     return;
 }
@@ -385,13 +395,11 @@ function get_taskresults($systemauth, $id) {
     $response = $systemauth->get($url);
     if (!$response) {
         echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        //throw new \Exception($response);
         debugging('no response received by get_taskresults', DEBUG_DEVELOPER);
         return;
     }
     if ($systemauth->info['http_code']  !== 200) {
-        echo "response code ". $systemauth->info['http_code'] . "<br>";
-        //throw new \Exception($response);
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
     }
 
     //echo "response:<br><pre>$response</pre>";
@@ -401,15 +409,14 @@ function get_taskresults($systemauth, $id) {
 
     $r = json_decode($response);
     if (!$r) {
-        echo "could not decode json<br>";
+        debugging("could not decode json", DEBUG_DEVELOPER);
         return;
     }
 
     if ($systemauth->info['http_code']  === 200) {
         return $r;
     } else {
-        echo "response code ". $systemauth->info['http_code'] . "<br>";
-        //throw new \Exception($response);
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
     }
     return;
 }

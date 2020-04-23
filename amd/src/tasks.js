@@ -18,11 +18,11 @@ subject to its own license:
 DM20-0196
  */
 
-define(['jquery'], function($) {
+define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
-    var access_token;
+    //var access_token;
     var session_id;
-    var steamfitter_api_url;
+    //var steamfitter_api_url;
     var timeout;
 
     return {
@@ -31,9 +31,9 @@ define(['jquery'], function($) {
 
             console.log('session id ' + info.session);
 
-            access_token = info.token;
+            //access_token = info.token;
             session_id = info.session;
-            steamfitter_api_url = info.steamfitter_api;
+            //steamfitter_api_url = info.steamfitter_api;
 
             get_results();
 
@@ -49,17 +49,17 @@ define(['jquery'], function($) {
                     // TODO replace this check
                     if (button.innerHTML === "Run Task") {
                         button.onclick = function() {
-                            exec_task(id);
-                            console.log('set event for button ' + id);
+                            exec_task_mdl(id);
                         };
+                        console.log('set event for button ' + id);
                     }
                 }
             });
         }
     };
 
-
-    function get_results() {
+/*
+    function get_results_sf() {
 
         $.ajax({
             url: steamfitter_api_url + '/sessions/' + session_id + '/dispatchtaskresults',
@@ -97,8 +97,44 @@ define(['jquery'], function($) {
             }
         });
     }
+*/
+    function get_results() {
+        $.ajax({
+            url: config.wwwroot + '/mod/crucible/getresults.php',
+            dataType: 'json',
+            type: 'POST',
+            data: {
+                'sesskey': config.sesskey,
+                'time': $.now(),
+                'id': session_id
+            },
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Expires': '-1'
+            },
+            success: function(response) {
+                console.log(response);
+                response.parsed.sort(function(a, b) {
+                    return (a.statusDate > b.statusDate) ? 1 : -1;
+                });
 
-    function exec_task(id) {
+                $.each(response.parsed, function(index, value) {
+                    var result = document.getElementById('result-' + value.dispatchTaskId);
+                    if (result) {
+                        result.innerHTML = value.status;
+                    }
+                });
+            },
+            error: function(response) {
+                console.log('error');
+                console.log(response);
+                clearTimeout(timeout);
+            }
+        });
+    }
+
+/*
+    function exec_task_sf(id) {
         console.log('exec task for ' + id);
 
         $.ajax({
@@ -131,7 +167,32 @@ define(['jquery'], function($) {
                 }
             }
         });
+    }
+*/
+    function exec_task_mdl(id) {
+        console.log('exec task for ' + id);
 
-   }
-
+        $.ajax({
+            url: config.wwwroot + '/mod/crucible/runtask.php',
+            dataType: 'json',
+            type: 'POST',
+            data: {
+                'sesskey': config.sesskey,
+                'time': $.now(),
+                'id': id
+            },
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Expires': '-1'
+            },
+            success: function(result) {
+                console.log(result);
+            },
+            error: function(request) {
+                console.log("crucible task failed");
+                console.log(request);
+                log.debug('moodle-mod_crucible-runtask: ' . request);
+            }
+        });
+    }
 });

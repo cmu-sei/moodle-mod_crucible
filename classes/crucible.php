@@ -48,6 +48,17 @@ class crucible {
 
     public $eventtemplate;
 
+    protected $context;
+
+    protected $isinstructor;
+
+    public $system;
+
+    public $systemauth;
+
+    public $userauth;
+
+
     /**
      * Construct class
      *
@@ -71,10 +82,47 @@ class crucible {
         $PAGE->set_context($this->context);
 
         $this->systemauth = setup();
+        $this->userauth = setup();
+
+        $this->system = setup_system();
 
         $this->renderer = $PAGE->get_renderer('mod_crucible', $renderer_subtype);
 
         //$this->renderer->init($this, $pageurl, $pagevars);
+    }
+
+
+    /**
+     * Wrapper for the has_capability function to provide the context
+     *
+     * @param string $capability
+     * @param int    $userid
+     *
+     * @return bool Whether or not the current user has the capability
+     */
+    public function has_capability($capability, $userid = 0) {
+        if ($userid !== 0) {
+            // pass in userid if there is one
+            return has_capability($capability, $this->context, $userid);
+        } else {
+            // just do standard check with current user
+            return has_capability($capability, $this->context);
+        }
+    }
+
+    /**
+     * Quick function for whether or not the current user is the instructor/can control the quiz
+     *
+     * @return bool
+     */
+    public function is_instructor() {
+
+        if (is_null($this->isinstructor)) {
+            $this->isinstructor = $this->has_capability('mod/crucible:manage');
+            return $this->isinstructor;
+        } else {
+            return $this->isinstructor;
+        }
     }
 
     // GET /definitions/{eventtemplateId}/implementations/mine -- Gets the user's Implementations for the indicated Definition
@@ -92,7 +140,7 @@ class crucible {
         $response = $this->systemauth->get($url);
 
         if ($this->systemauth->info['http_code']  !== 200) {
-            echo "response code ". $this->systemauth->info['http_code'] . "<br>";
+            debugging('response code ' . $this->systemauth->info['http_code'], DEBUG_DEVELOPER);
             return;
         }
 

@@ -80,7 +80,7 @@ $pagevars = array();
 $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
 
 // get eventtemplate info
-$object->eventtemplate = get_eventtemplate($crucible->eventtemplateid);
+$object->eventtemplate = get_eventtemplate($object->systemauth, $crucible->eventtemplateid);
 
 // Update the database.
 if ($object->eventtemplate) {
@@ -105,16 +105,18 @@ $object->event = $launched;
 // get active attempt for user: true/false
 $attempt = $object->get_open_attempt();
 
-//$grader = new \mod_crucible\utils\grade($object);
-//$grader->calculate_attempt_grade($object->openAttempt);
+$grader = new \mod_crucible\utils\grade($object);
+$grader->process_attempt($object->openAttempt);
 //exit;
+
+//TODO send instructor to a different page
 
 // handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
 {
     if ($attempt) { //&& (!$object->event !== null)
         //TODO this should also check that we dont have an attempt
-        print_error('attemptalreadyexists', 'crucible');
+        //print_error('attemptalreadyexists', 'crucible');
         debugging('closing attempt - not active');
         $object->openAttempt->close_attempt();
     }
@@ -140,25 +142,28 @@ else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
             if (!$attempt) {
                 print_error('no attempt exists');
             }
-            $object->openAttempt->close_attempt();
-            $grader = new \mod_crucible\utils\grade($object);
+
+	    $grader = new \mod_crucible\utils\grade($object);
             $grader->calculate_attempt_grade($object->openAttempt);
+
+	    $object->openAttempt->close_attempt();
 
             stop_event($object->systemauth, $launched->id); //why call this again?
             $launched = get_event($object->systemauth, $launched->id); //why call this again?
             crucible_end($cm, $context, $crucible);
         }
     }
-
 }
 
-if (($launched->status === "Active") && (!$attempt)) {
-    print_error('eventwithoutattempt', 'crucible');
-    //$attempt = $object->init_attempt();
+if ($launched) {
+    if (($launched->status === "Active") && (!$attempt)) {
+        //print_error('eventwithoutattempt', 'crucible');
+        $attempt = $object->init_attempt();
+    }
 }
 if ((!$launched) && ($attempt)) {
-    print_error('attemptalreadyexists', 'crucible');
-    //$object->openAttempt->close_attempt();
+    //print_error('attemptalreadyexists', 'crucible');
+    $object->openAttempt->close_attempt();
 }
 
 if ($launched) {
@@ -179,9 +184,9 @@ if ($launched) {
     }
 } else {
     if ($attempt) {
-        print_error('attemptalreadyexists', 'crucible');
+        //print_error('attemptalreadyexists', 'crucible');
         debugging('closing attempt - not active');
-        //$object->openAttempt->close_attempt();
+        $object->openAttempt->close_attempt();
     }
     $eventid = null;
     $exerciseid = null;
@@ -244,6 +249,16 @@ if ($vmapp == 1) {
 // TODO have a completely different view page for active labs
 if ($sessionid) {
     $tasks = filter_tasks(get_sessiontasks($object->systemauth, $sessionid));
+
+    if (is_null($tasks)) {
+        // run as system account
+        $system = setup_system();
+        $tasks = filter_tasks(get_sessiontasks($system, $sessionid));
+    }
+
+    // TODO remove run task button is pulled as system
+    // TODO have run task button hit a ajax script on server to run as system
+
 /*
     $taskresults = get_taskresults($object->systemauth, $sessionid);
 
@@ -265,13 +280,21 @@ if ($sessionid) {
 
     // start js to monitor task status
     $info = new stdClass();
-    $info->token = $access_token;
+    //$info->token = $access_token;
     $info->session = $sessionid;;
-    $info->steamfitter_api = $steamfitter_api_url;
-    $PAGE->requires->js_call_amd('mod_crucible/results', 'init', [$info]);
+    //$info->steamfitter_api = $steamfitter_api_url;
+    $PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
 } else if ($scenarioid) {
     // this is when we do not have an active session
     $tasks = filter_tasks(get_scenariotasks($object->systemauth, $scenarioid));
+
+    // TODO it may be fine to leave this here
+    if (is_null($tasks)) {
+        // run as system account
+        $system = setup_system();
+        $tasks = filter_tasks(get_scenariotasks($system, $scenarioid));
+    }
+
     $renderer->display_tasks($tasks);
 }
 $info = new stdClass();
@@ -289,6 +312,10 @@ $PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$info]);
 $attempts = $object->getall_attempts('closed');
 echo $renderer->display_attempts($attempts, $showgrade);
 //echo $renderer->display_history($history, $showfailed);
+
+$jsoptions = ['keepaliveinterval' => 1];
+$PAGE->requires->js_call_amd('mod_crucible/keepalive', 'init', [$jsoptions]);
+
 
 echo $renderer->footer();
 

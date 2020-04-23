@@ -66,21 +66,61 @@ class grade {
     }
 
     /**
-     * Gets the user grade, userid can be 0, which will return all grades for the groupquiz
+     * Gets the user grade, userid can be 0, which will return all grades for the crucible
      *
-     * @param $groupquiz
+     * @param $crucible
      * @param $userid
      * @return array
      */
-    public static function get_user_grade($groupquiz, $userid = 0) {
+    public static function get_user_grade($crucible, $userid = 0) {
+
         global $DB;
-        $recs = $DB->get_records_select('groupquiz_grades', 'userid = ?',
-                array($userid), 'grade');
+        $recs = $DB->get_records_select('crucible_grades', 'userid = ? AND crucibleid = ?',
+                array($userid, $crucible->id), 'grade');
         $grades = array();
         foreach ($recs as $rec) {
             array_push($grades, $rec->grade);
         }
         return $grades;
+    }
+
+    public function process_attempt($attempt) {
+        // get this attempt grade
+        $this->calculate_attempt_grade($attempt);
+
+        // get all attempt grades
+        global $DB;
+        $grades = array();
+        $attemptsgrades = array();
+        $attempts = $this->crucible->getall_attempts('closed');
+
+        foreach ($attempts as $attempt) {
+            array_push($attemptsgrades, $attempt->score);
+        }
+
+        $grade = $this->apply_grading_method($attemptsgrades);
+        $grades[$attempt->userid] = $grade;
+
+        // run the whole thing on a transaction (persisting to our table and gradebook updates).
+        $transaction = $DB->start_delegated_transaction();
+
+        // now that we have the final grades persist the grades to crucible grades table.
+        //TODO we could remove this table
+        $this->persist_grades($grades, $transaction);
+
+        // update grades to gradebookapi.
+        $updated = crucible_update_grades($this->crucible->crucible, $attempt->userid, $grade);
+
+        if ($updated === GRADE_UPDATE_FAILED) {
+            $transaction->rollback(new \Exception('Unable to save grades to gradebook'));
+        }
+
+        // Allow commit if we get here
+        $transaction->allow_commit();
+
+        // if everything passes to here return true
+        return true;
+
     }
 
     /**
@@ -95,9 +135,15 @@ class grade {
      */
     public function calculate_attempt_grade($attempt) {
 
+        if (is_null($attempt)) {
+            return;
+        }
+
         if ($this->crucible->openAttempt->sessionid) {
-            $tasks = filter_tasks(get_sessiontasks($this->crucible->systemauth, $this->crucible->openAttempt->sessionid));
-            $taskresults = get_taskresults($this->crucible->systemauth, $this->crucible->openAttempt->sessionid);
+            //$tasks = filter_tasks(get_sessiontasks($this->crucible->systemauth, $this->crucible->openAttempt->sessionid));
+            //$taskresults = get_taskresults($this->crucible->systemauth, $this->crucible->openAttempt->sessionid);
+            $tasks = filter_tasks(get_sessiontasks($this->crucible->system, $this->crucible->openAttempt->sessionid));
+            $taskresults = get_taskresults($this->crucible->system, $this->crucible->openAttempt->sessionid);
         } else {
             return;
         }
@@ -144,4 +190,93 @@ class grade {
         return $gradetopass;
     }
 
+    /**
+     * Applies the grading method chosen
+     *
+     * @param array $grades The grades for each session for a particular user
+     * @return number
+     * @throws \Exception When there is no valid scaletype throws new exception
+     */
+    protected function apply_grading_method($grades) {
+        switch ($this->crucible->crucible->grademethod) {
+            case \mod_crucible\utils\scaletypes::crucible_FIRSTATTEMPT:
+                // take the first record (as there should only be one since it was filtered out earlier)
+                reset($grades);
+                return current($grades);
+
+                break;
+            case \mod_crucible\utils\scaletypes::crucible_LASTATTEMPT:
+                // take the last grade (there should only be one, as the last session was filtered out earlier)
+                return end($grades);
+
+                break;
+            case \mod_crucible\utils\scaletypes::crucible_ATTEMPTAVERAGE:
+                // average the grades
+                $gradecount = count($grades);
+                $gradetotal = 0;
+                foreach ($grades as $grade) {
+                    $gradetotal = $gradetotal + $grade;
+                }
+                return $gradetotal / $gradecount;
+
+                break;
+            case \mod_crucible\utils\scaletypes::crucible_HIGHESTATTEMPTGRADE:
+                // find the highest grade
+                $highestgrade = 0;
+                foreach ($grades as $grade) {
+                    if ($grade > $highestgrade) {
+                        $highestgrade = $grade;
+                    }
+                }
+                return $highestgrade;
+
+                break;
+            default:
+                throw new \Exception('Invalid session grade method');
+                break;
+        }
+    }
+
+    /**
+     * Persist the passed in grades (keyed by userid) to the database
+     *
+     * @param array               $grades
+     * @param \moodle_transaction $transaction
+     *
+     * @return bool
+     */
+
+    protected function persist_grades($grades, \moodle_transaction $transaction) {
+        global $DB;
+
+        foreach ($grades as $userid => $grade) {
+
+            if ($usergrade = $DB->get_record('crucible_grades', array('userid' => $userid, 'crucibleid' => $this->crucible->crucible->id))) {
+                // we're updating
+
+                $usergrade->grade = $grade;
+                $usergrade->timemodified = time();
+
+                if (!$DB->update_record('crucible_grades', $usergrade)) {
+                    $transaction->rollback(new \Exception('Can\'t update user grades'));
+                }
+            } else {
+                // we're adding
+
+                $usergrade = new \stdClass();
+                $usergrade->crucibleid = $this->crucible->crucible->id;
+                $usergrade->userid = $userid;
+                $usergrade->grade = $grade;
+                $usergrade->timemodified = time();
+
+                if (!$DB->insert_record('crucible_grades', $usergrade)) {
+                    $transaction->rollback(new \Exception('Can\'t insert user grades'));
+                }
+
+            }
+        }
+
+        return true;
+
+    }
 }

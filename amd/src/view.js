@@ -52,8 +52,8 @@ define(['jquery'], function($) {
             if (button) {
                 button.onclick = function() {
                     var frame = document.getElementById('vm_or_link');
-                    frame.requestFullscreen() ;
-                }
+                    frame.requestFullscreen();
+                };
             }
 
             run_loop();

@@ -62,7 +62,8 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
 	// pull list of exercises/labs from alloy
-        $this->eventtemplates = get_eventtemplates();
+        $systemauth = setup();
+        $this->eventtemplates = get_eventtemplates($systemauth);
         $labnames = array();
 	$labs = [];
         foreach ($this->eventtemplates as $eventtemplate) {
@@ -107,17 +108,15 @@ class mod_crucible_mod_form extends moodleform_mod {
 
         $mform->removeElement('grade');
 
-/*
         if (property_exists($this->current, 'grade')) {
             $currentgrade = $this->current->grade;
         } else {
             $currentgrade = 0;
         }
 
-        $mform->addElement('text', 'grade', get_string('grade', 'crucible'), $currentgrade);
+        $mform->addElement('text', 'grade', get_string('grade'), $currentgrade);
         $mform->setType('grade', PARAM_INT);
         $mform->addHelpButton('grade', 'grade', 'crucible');
-*/
 
         $mform->addElement('select', 'grademethod',
             get_string('grademethod', 'crucible'),
@@ -170,11 +169,11 @@ class mod_crucible_mod_form extends moodleform_mod {
     }
 
     function data_preprocessing(&$data) {
+/*
         if (isset($toform['grade'])) {
-            // Convert to a real number, so we don't get 0.0000.
             $toform['grade'] = $toform['grade'] + 0;
         }
-
+*/
         // Completion settings check.
         if (empty($toform['completionusegrade'])) {
             $toform['completionpass'] = 0; // Forced unchecked.
@@ -194,6 +193,7 @@ class mod_crucible_mod_form extends moodleform_mod {
 	$data->name = $this->eventtemplates[$index]->name;
         $data->intro = $this->eventtemplates[$index]->description;
         $data->introeditor['format'] = FORMAT_PLAIN;
+
     }
 
 
