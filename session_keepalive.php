@@ -39,25 +39,20 @@ require_once(__DIR__ . '/../../config.php');
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 
 require_login();
-require_sesskey();
+//require_sesskey();
 
 // Require the session key - want to make sure that this isn't called
 // maliciously to keep a session alive longer than intended.
 if (!confirm_sesskey()) {
     header('HTTP/1.1 403 Forbidden');
     print_error('invalidsesskey');
-}
+} else {
 
 header('HTTP/1.1 200 OK');
 $response = array();
 $response['message'] = "success";
 
-/*
-// we cant actually do this becaus of a redirect
-$client = setup();
-$token = get_token($client);
-$response['token'] = $token;
-*/
+}
 
 echo json_encode($response);
 

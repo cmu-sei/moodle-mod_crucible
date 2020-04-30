@@ -89,7 +89,8 @@ if ($object->eventtemplate) {
     $crucible->name = $object->eventtemplate->name;
     $crucible->intro = $object->eventtemplate->description;
     $DB->update_record('crucible', $crucible);
-    rebuild_course_cache($crucible->course);
+    // this generates lots of hvp module errors
+    //rebuild_course_cache($crucible->course);
 } else {
     $scenarioid = "";
 }
@@ -105,8 +106,8 @@ $object->event = $launched;
 // get active attempt for user: true/false
 $attempt = $object->get_open_attempt();
 
-$grader = new \mod_crucible\utils\grade($object);
-$grader->process_attempt($object->openAttempt);
+//$grader = new \mod_crucible\utils\grade($object);
+//$grader->process_attempt($object->openAttempt);
 //exit;
 
 //TODO send instructor to a different page
@@ -144,7 +145,7 @@ else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
             }
 
 	    $grader = new \mod_crucible\utils\grade($object);
-            $grader->calculate_attempt_grade($object->openAttempt);
+            $grader->process_attempt($object->openAttempt);
 
 	    $object->openAttempt->close_attempt();
 
@@ -158,7 +159,8 @@ else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
 if ($launched) {
     if (($launched->status === "Active") && (!$attempt)) {
         //print_error('eventwithoutattempt', 'crucible');
-        $attempt = $object->init_attempt();
+        // init_attempt here causes null enddate error
+        //$attempt = $object->init_attempt();
     }
 }
 if ((!$launched) && ($attempt)) {
@@ -256,34 +258,18 @@ if ($sessionid) {
         $tasks = filter_tasks(get_sessiontasks($system, $sessionid));
     }
 
-    // TODO remove run task button is pulled as system
-    // TODO have run task button hit a ajax script on server to run as system
-
-/*
-    $taskresults = get_taskresults($object->systemauth, $sessionid);
-
-    // taskresults will be null if there are no results
-    if ($taskresults) {
-        foreach ($taskresults as $result) {
-            // find task in tasks and update the result
-            foreach ($tasks as $task) {
-                if ($task->id == $result->dispatchTaskId) {
-                    // TODO there may be more than one dispatchTaskResult
-                    // for tasks that can be executed multiple times
-                    $task->result = $result;
-                }
-            }
-        }
-    }
-*/
     $renderer->display_results($tasks);
 
     // start js to monitor task status
     $info = new stdClass();
-    //$info->token = $access_token;
     $info->session = $sessionid;;
-    //$info->steamfitter_api = $steamfitter_api_url;
-    $PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
+    // have run task button hit a ajax script on server to run as system
+    //$PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
+
+    $info->token = $access_token;
+    $info->steamfitter_api = $steamfitter_api_url;
+    // have js run tasks as user from browser
+    $PAGE->requires->js_call_amd('mod_crucible/results', 'init', [$info]);
 } else if ($scenarioid) {
     // this is when we do not have an active session
     $tasks = filter_tasks(get_scenariotasks($object->systemauth, $scenarioid));
@@ -297,6 +283,7 @@ if ($sessionid) {
 
     $renderer->display_tasks($tasks);
 }
+
 $info = new stdClass();
 $info->token = $access_token;
 $info->state = $status;
@@ -306,7 +293,6 @@ $info->alloy_api_url = $alloy_api_url;
 $info->vm_app_url = $vm_app_url;
 $info->player_app_url = $player_app_url;
 
-//$PAGE->requires->js_call_amd('mod_crucible/view', 'init', ['info' => $info]);
 $PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$info]);
 
 $attempts = $object->getall_attempts('closed');

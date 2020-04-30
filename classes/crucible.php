@@ -178,7 +178,9 @@ class crucible {
             //TODO remove check for Z once API is updated
             if (strpos($this->event->expirationDate, "Z")) {
                 $this->openAttempt->endtime = strtotime($this->event->expirationDate);
-            } else {
+	    } else if (is_null($this->event->expirationDate)) {
+		$this->openAttempt->endtime = time() + 28800;
+	    } else {
                 $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
             }
             $this->openAttempt->save();

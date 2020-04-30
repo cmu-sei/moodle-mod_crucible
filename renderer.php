@@ -167,6 +167,9 @@ class mod_crucible_renderer extends plugin_renderer_base {
     }
 
     function display_results($tasks) {
+        if (is_null($tasks)) {
+            return;
+	}		
         $data = new stdClass();
         $data->tableheaders = [
             //get_string('taskid', 'mod_crucible'),
