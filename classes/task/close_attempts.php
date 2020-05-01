@@ -50,16 +50,17 @@ class close_attempts extends \core\task\scheduled_task {
     }
 
     public function execute() {
-        $attempts = $this->getall_attempts('open');
+        $attempts = $this->getall_expired_attempts('open');
 
         foreach ($attempts as $attempt) {
-            echo "closing attempt $attempt->id<br>";
+	    echo "closing attempt $attempt->id<br>";
+	    debugging("scheduled task is closing attempt $attempt->id", DEBUG_DEVELOPER);
             $attempt->close_attempt();
         }
 
     }
 
-    public function getall_attempts($state = 'open') {
+    public function getall_expired_attempts($state = 'open') {
         global $DB;
 
         $sqlparams = array();

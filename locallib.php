@@ -43,25 +43,23 @@ function setup_system() {
 
     $issuerid = get_config('crucible', 'issuerid');
     if (!$issuerid) {
-        echo "crucible does not have issuerid set<br>";
+        debugging("crucible does not have issuerid set", DEBUG_DEVELOPER);
         return;
     }
     $issuer = \core\oauth2\api::get_issuer($issuerid);
 
     try {
-        $systemauth = \core\oauth2\api::get_system_oauth_client($issuer);
+        $client = \core\oauth2\api::get_system_oauth_client($issuer);
     } catch (Exception $e) {
-        echo "$e->errorcode<br>";
-        var_dump($e);
+        debugging("get_system_oauth_client failed with $e->errorcode", DEBUG_NORMAL);
     }
-    if ($systemauth === false) {
+    if ($client === false) {
+        debugging('Cannot connect as system account', DEBUG_NORMAL);
         $details = 'Cannot connect as system account';
-        echo "$details<br>";
         throw new \Exception($details);
         return;
     }
-    //echo "system looks good<Br>";
-    return $systemauth;
+    return $client;
 }
 
 
@@ -89,22 +87,21 @@ function setup() {
     return $client;
 }
 
-function get_eventtemplate($systemauth, $id) {
+function get_eventtemplate($client, $id) {
 
-    if ($systemauth == null) {
-        //echo 'error with systemauth<br>';
+    if ($client == null) {
         print_error('could not setup session');
     }
+
     // web request
     $url = get_config('crucible', 'alloyapiurl') . "/definitions/" . $id;
     //echo "GET $url<br>";
 
-    $response = $systemauth->get($url);
+    $response = $client->get($url);
 
-    if ($systemauth->info['http_code'] !== 200) {
-        echo "response code ". $systemauth->info['http_code'] . "<br>";
-        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
-        print_error($systemauth->info['http_code'] . " for $url " . $systemauth->response['www-authenticate']);
+    if ($client->info['http_code'] !== 200) {
+        debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        print_error($client->info['http_code'] . " for $url " . $client->response['www-authenticate']);
     }
 
     if (!$response) {
@@ -114,7 +111,7 @@ function get_eventtemplate($systemauth, $id) {
     $r = json_decode($response);
 
     if (!$r) {
-        echo "could not find item by id<br>";
+        debugging("could not find item by id", DEBUG_DEVELOPER);
         return;
     }
 
@@ -148,10 +145,10 @@ function filter_tasks($tasks) {
     return $filtered;
 }
 
-function get_eventtemplates($systemauth) {
+function get_eventtemplates($client) {
 
-    if ($systemauth == null) {
-        echo 'error with systemauth<br>';
+    if ($client == null) {
+        debugging('error with client in get_eventtemplates', DEBUG_DEVELOPER);;
         return;
     }
 
@@ -159,30 +156,28 @@ function get_eventtemplates($systemauth) {
     $url = get_config('crucible', 'alloyapiurl') . "/definitions";
     //echo "GET $url<br>";
 
-    $response = $systemauth->get($url);
+    $response = $client->get($url);
     if (!$response) {
-        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        debugging('no response received by get_eventtemplates', DEBUG_DEVELOPER);
+        debugging("no response received by get_eventtemplates for $url", DEBUG_DEVELOPER);
     }
     //echo "response:<br><pre>$response</pre>";
-    if ($systemauth->info['http_code']  !== 200) {
-        echo "response code ". $systemauth->info['http_code'] . "<br>";
-        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+    if ($client->info['http_code']  !== 200) {
+        debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         return;
     }
     $r = json_decode($response);
 
     if (!$r) {
-        echo "could not find item by id<br>";
+        debugging("could not find item by id", DEBUG_DEVELOPER);
         return;
     }
     return $r;
 }
 
-function start_event($systemauth, $id) {
+function start_event($client, $id) {
 
-    if ($systemauth == null) {
-        echo 'error with systemauth<br>';
+    if ($client == null) {
+        debugging('error with client in start_event', DEBUG_DEVELOPER);;
         return;
     }
 
@@ -190,12 +185,9 @@ function start_event($systemauth, $id) {
     $url = get_config('crucible', 'alloyapiurl') . "/definitions/" . $id . "/implementations";
     //echo "POST $url<br>";
 
-    $response = $systemauth->post($url);
+    $response = $client->post($url);
     if (!$response) {
-        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        echo "response code ". $systemauth->info['http_code'] . "<br>";
-        debugging('no response received by start_event', DEBUG_DEVELOPER);
-
+        debugging('no response received by start_event response code ' , $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         return;
     }
     //echo "response:<br><pre>$response</pre>";
@@ -206,12 +198,12 @@ function start_event($systemauth, $id) {
     }
 
     // success
-    if ($systemauth->info['http_code']  === 201) {
+    if ($client->info['http_code']  === 201) {
         return $r->id;
     }
-    if ($systemauth->info['http_code']  === 500) {
-        //echo "response code ". $systemauth->info['http_code'] . "<br>";
-        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+    if ($client->info['http_code']  === 500) {
+        //echo "response code ". $client->info['http_code'] . "<br>";
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
         print_error($r->detail);
     }
 
@@ -219,10 +211,10 @@ function start_event($systemauth, $id) {
 }
 
 
-function stop_event($systemauth, $id) {
+function stop_event($client, $id) {
 
-    if ($systemauth == null) {
-        echo 'error with systemauth<br>';
+    if ($client == null) {
+        debugging('error with client in stop_event', DEBUG_DEVELOPER);;
         return;
     }
 
@@ -230,11 +222,10 @@ function stop_event($systemauth, $id) {
     $url = get_config('crucible', 'alloyapiurl') . "/implementations/" . $id . "/end";
     //echo "DELETE $url<br>";
 
-    $response = $systemauth->delete($url);
+    $response = $client->delete($url);
 
-    if ($systemauth->info['http_code']  !== 204) {
-        echo "response code ". $systemauth->info['http_code'] . "<br>";
-        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+    if ($client->info['http_code']  !== 204) {
+        debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
     }
 
     //if (!$response) {
@@ -245,19 +236,19 @@ function stop_event($systemauth, $id) {
     return;
 }
 
-function run_task($systemauth, $id) {
+function run_task($client, $id) {
 
-    if ($systemauth == null) {
+    if ($client == null) {
         return;
     }
 
     // web request
     $url = get_config('crucible', 'steamfitterapiurl') . "/dispatchtasks/" . $id . "/execute";
 
-    $response = $systemauth->post($url);
+    $response = $client->post($url);
 
-    if ($systemauth->info['http_code']  !== 200) {
-        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+    if ($client->info['http_code']  !== 200) {
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
     }
 
     $r = json_decode($response);
@@ -265,15 +256,15 @@ function run_task($systemauth, $id) {
     return $r;
 }
 
-function get_event($systemauth, $id) {
+function get_event($client, $id) {
 
-    if ($systemauth == null) {
-        echo 'error with systemauth<br>';
+    if ($client == null) {
+        debugging('error with client in get_event', DEBUG_DEVELOPER);;
         return;
     }
 
     if ($id == null) {
-        echo 'error with id<br>';
+        debugging('error with id in get_event', DEBUG_DEVELOPER);;
         return;
     }
 
@@ -281,38 +272,36 @@ function get_event($systemauth, $id) {
     $url = get_config('crucible', 'alloyapiurl') . "/implementations/" . $id;
     //echo "GET $url<br>";
 
-    $response = $systemauth->get($url);
+    $response = $client->get($url);
     if (!$response) {
-        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        debugging('no response received by get_event', DEBUG_DEVELOPER);
+        debugging("no response received by get_event for $url", DEBUG_DEVELOPER);
         return;
     }
     //echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
-        echo "could not decode json<br>";
+        debugging("could not decode json for $url", DEBUG_DEVELOPER);
         return;
     }
 
-    if ($systemauth->info['http_code']  === 200) {
+    if ($client->info['http_code']  === 200) {
         return $r;
     } else {
-        echo "response code ". $systemauth->info['http_code'] . "<br>";
-        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+        debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         print_error($r->detail);
     }
     return;
 }
 
-function get_scenariotasks($systemauth, $id) {
+function get_scenariotasks($client, $id) {
 
-    if ($systemauth == null) {
-        echo 'error with systemauth<br>';
+    if ($client == null) {
+        debugging('error with client in get_scenariotasks', DEBUG_DEVELOPER);;
         return;
     }
 
     if ($id == null) {
-        echo 'error with id<br>';
+        debugging('error with id in get_scenariotasks', DEBUG_DEVELOPER);;
         return;
     }
 
@@ -320,7 +309,7 @@ function get_scenariotasks($systemauth, $id) {
     $url = get_config('crucible', 'steamfitterapiurl') . "/scenarios/" . $id . "/dispatchtasks";
     //echo "GET $url<br>";
 
-    $response = $systemauth->get($url);
+    $response = $client->get($url);
     if (!$response) {
         debugging('no response received by get_scenariotasks', DEBUG_DEVELOPER);
         return;
@@ -332,23 +321,23 @@ function get_scenariotasks($systemauth, $id) {
         return;
     }
 
-    if ($systemauth->info['http_code']  === 200) {
+    if ($client->info['http_code']  === 200) {
         return $r;
     } else {
-        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
     }
     return;
 }
 
-function get_sessiontasks($systemauth, $id) {
+function get_sessiontasks($client, $id) {
 
-    if ($systemauth == null) {
-        echo 'error with systemauth<br>';
+    if ($client == null) {
+        debugging('error with client in get_sessiontasks', DEBUG_DEVELOPER);;
         return;
     }
 
     if ($id == null) {
-        echo 'error with id<br>';
+        debugging('error with id in get_sessiontasks', DEBUG_DEVELOPER);;
         return;
     }
 
@@ -356,7 +345,7 @@ function get_sessiontasks($systemauth, $id) {
     $url = get_config('crucible', 'steamfitterapiurl') . "/sessions/" . $id . "/dispatchtasks";
     //echo "GET $url<br>";
 
-    $response = $systemauth->get($url);
+    $response = $client->get($url);
     if (!$response) {
         debugging('no response received by get_sessiontasks', DEBUG_DEVELOPER);
         return;
@@ -368,23 +357,23 @@ function get_sessiontasks($systemauth, $id) {
         return;
     }
 
-    if ($systemauth->info['http_code']  === 200) {
+    if ($client->info['http_code']  === 200) {
         return $r;
     } else {
-        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
     }
     return;
 }
 
-function get_taskresults($systemauth, $id) {
+function get_taskresults($client, $id) {
 
-    if ($systemauth == null) {
-        echo 'error with systemauth<br>';
+    if ($client == null) {
+        debugging('error with client in get_taskresults', DEBUG_DEVELOPER);;
         return;
     }
 
     if ($id == null) {
-        echo 'error with id<br>';
+        debugging('error with client in get_taskresults', DEBUG_DEVELOPER);;
         return;
     }
 
@@ -392,14 +381,13 @@ function get_taskresults($systemauth, $id) {
     $url = get_config('crucible', 'steamfitterapiurl') . "/sessions/" . $id . "/dispatchtaskresults";
     //echo "GET $url<br>";
 
-    $response = $systemauth->get($url);
+    $response = $client->get($url);
     if (!$response) {
-        echo "curl error: " . curl_strerror($systemauth->errno) . "<br>";
-        debugging('no response received by get_taskresults', DEBUG_DEVELOPER);
+        debugging("no response received by get_taskresults for $url", DEBUG_DEVELOPER);
         return;
     }
-    if ($systemauth->info['http_code']  !== 200) {
-        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+    if ($client->info['http_code']  !== 200) {
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
     }
 
     //echo "response:<br><pre>$response</pre>";
@@ -413,10 +401,10 @@ function get_taskresults($systemauth, $id) {
         return;
     }
 
-    if ($systemauth->info['http_code']  === 200) {
+    if ($client->info['http_code']  === 200) {
         return $r;
     } else {
-        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
     }
     return;
 }
@@ -429,7 +417,7 @@ function launchDate($a, $b) {
     return strnatcmp($a['launchDate'], $b['launchDate']);
 }
 
-function get_launched($history) {
+function get_active_event($history) {
     if ($history == null) {
         return null;
     }

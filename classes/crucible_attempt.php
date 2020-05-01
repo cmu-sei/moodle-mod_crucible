@@ -49,6 +49,7 @@ class crucible_attempt {
     /** @var \stdClass The attempt record */
     protected $attempt;
 
+    // TODO remove context if we dont use it
     /** @var \context_module $context The context for this attempt */
     protected $context;
 
@@ -142,6 +143,10 @@ class crucible_attempt {
      */
     public function save() {
         global $DB;
+        // TODO check for undefined
+        if (is_null($this->attempt->endtime)) {
+            debugging("null endtime passed to attempt->save for " . $this->attempt->id, DEBUG_DEVELOPER);
+        }
 
         $this->attempt->timemodified = time();
 
@@ -188,7 +193,7 @@ class crucible_attempt {
             'relateduserid' => $USER->id
         );
 
-        // TODO verify this info is gtg
+        // TODO verify this info is gtg and send the event
         //$event = \mod_crucible\event\attempt_ended::create($params);
         //$event->add_record_snapshot('crucible_attempts', $this->attempt);
         //$event->trigger();

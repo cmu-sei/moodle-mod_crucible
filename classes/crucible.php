@@ -52,8 +52,6 @@ class crucible {
 
     protected $isinstructor;
 
-    public $system;
-
     public $systemauth;
 
     public $userauth;
@@ -64,7 +62,7 @@ class crucible {
      *
      * @param object $cm The course module instance
      * @param object $course The course object the activity is contained in
-     * @param object $quiz The specific real time quiz record for this activity
+     * @param object $crucible The specific crucible record for this activity
      * @param \moodle_url $pageurl The page url
      * @param array  $pagevars The variables and options for the page
      * @param string $renderer_subtype Renderer sub-type to load if requested
@@ -81,10 +79,8 @@ class crucible {
         $this->context = \context_module::instance($cm->id);
         $PAGE->set_context($this->context);
 
-        $this->systemauth = setup();
+        $this->systemauth = setup_system();
         $this->userauth = setup();
-
-        $this->system = setup_system();
 
         $this->renderer = $PAGE->get_renderer('mod_crucible', $renderer_subtype);
 
@@ -128,8 +124,8 @@ class crucible {
     // GET /definitions/{eventtemplateId}/implementations/mine -- Gets the user's Implementations for the indicated Definition
     function list_events() {
 
-        if ($this->systemauth == null) {
-            echo 'error with systemauth<br>';
+        if ($this->userauth == null) {
+            echo 'error with userauth<br>';
             return;
         }
 
@@ -137,26 +133,26 @@ class crucible {
         $url = get_config('crucible', 'alloyapiurl') . "/definitions/" . $this->crucible->eventtemplateid . "/implementations/mine";
         //echo "GET $url<br>";
 
-        $response = $this->systemauth->get($url);
+        $response = $this->userauth->get($url);
 
-        if ($this->systemauth->info['http_code']  !== 200) {
-            debugging('response code ' . $this->systemauth->info['http_code'], DEBUG_DEVELOPER);
+        if ($this->userauth->info['http_code']  !== 200) {
+            debugging('response code ' . $this->userauth->info['http_code'] . " $url", DEBUG_DEVELOPER);
             return;
         }
 
         //echo "response:<br><pre>$response</pre>";
         if (!$response) {
-            echo "curl error: " . curl_strerror($this->systemauth->errno) . "<br>";
-            debugging('no response received by list_events', DEBUG_DEVELOPER);
+            debugging("no response received by list_events $url", DEBUG_DEVELOPER);
             return;
         }
 
         $r = json_decode($response, true);
 
         if (!$r) {
-            echo "could not end<br>";
+            debugging("could not decode json $url", DEBUG_DEVELOPER);
             return;
         }
+
         usort($r, 'launchDate');
         return $r;
     }
@@ -165,27 +161,33 @@ class crucible {
     public function get_open_attempt() {
         $attempts = $this->getall_attempts('open');
         if (count($attempts) !== 1) {
+            debugging("could not find a single open attempt", DEBUG_DEVELOPER);
             return false;
-        } else {
-            $this->openAttempt = reset($attempts);
-            // update values
-            if ($this->openAttempt->eventid === null) {
-                $this->openAttempt->eventid = $this->event->id;
-            }
-            if ($this->openAttempt->sessionid === null) {
-                $this->openAttempt->sessionid = $this->event->sessionId;
-            }
-            //TODO remove check for Z once API is updated
-            if (strpos($this->event->expirationDate, "Z")) {
-                $this->openAttempt->endtime = strtotime($this->event->expirationDate);
-	    } else if (is_null($this->event->expirationDate)) {
-		$this->openAttempt->endtime = time() + 28800;
-	    } else {
-                $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
-            }
-            $this->openAttempt->save();
-            return true;
         }
+        debugging("open attempt found", DEBUG_DEVELOPER);
+
+        // get the first (and only) value in the array
+        $this->openAttempt = reset($attempts);
+
+        // update values if null in attempt but exist in event
+        if ((!$this->openAttempt->eventid) && ($this->event->id)) {
+            $this->openAttempt->eventid = $this->event->id;
+        }
+        if ((!$this->openAttempt->sessionid) && ($this->event->sessionId)) {
+            $this->openAttempt->sessionid = $this->event->sessionId;
+        }
+
+        //TODO remove check for Z once API is updated
+        if (strpos($this->event->expirationDate, "Z")) {
+            $this->openAttempt->endtime = strtotime($this->event->expirationDate);
+        } else if (is_null($this->event->expirationDate)) {
+            debugging("event " . $this->event->id . " does not have expirationDate set");
+            $this->openAttempt->endtime = time() + 28800;
+        } else {
+            $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
+        }
+        $this->openAttempt->save();
+        return true;
     }
 
     public function getall_attempts($state = 'all') {
@@ -226,28 +228,13 @@ class crucible {
 
     public function init_attempt() {
         global $DB, $USER;
-        $openAttempt = $this->get_open_attempt();
-        if ($openAttempt !== false) {
-            $this->openAttempt = $openAttempt;
-            // update values
-            if ($this->openAttempt->eventid === null) {
-                $this->openAttempt->eventid = $this->event->id;
-            }
-            if ($this->openAttempt->sessionid === null) {
-                $this->openAttempt->sessionid = $this->event->sessionId;
-            }
-            //TODO remove check for Z once API is updated
-            if (strpos($this->event->expirationDate, "Z")) {
-                $this->openAttempt->endtime = strtotime($this->event->expirationDate);
-            } else {
-                $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
-            }
-            if ($this->openAttempt->save()) {
-                    return true;
-            } else {
-                    return false;
-            }
+
+        $attempt = $this->get_open_attempt();
+        if ($attempt === true) {
+            debugging("init_attempt found " . $this->openAttempt->id, DEBUG_DEVELOPER);
+            return true;
         }
+        debugging("init_attempt could not find attempt", DEBUG_DEVELOPER);
 
         // create a new attempt
         $attempt = new \mod_crucible\crucible_attempt();
@@ -268,13 +255,19 @@ class crucible {
             $attempt->sessionid = 0;
         }
         //TODO remove check for Z once API is updated
-        if (strpos($this->event->expirationDate, "Z")) {
+        if (is_null($this->event->expirationDate)) {
+            debugging("event " . $this->event->id . " does not have expirationDate set");
+            $attempt->endtime = time() + 28800;
+        } else if (strpos($this->event->expirationDate, "Z")) {
             $attempt->endtime = strtotime($this->event->expirationDate);
         } else {
             $attempt->endtime = strtotime($this->event->expirationDate . 'Z');
         }
 
-        // TODO get list of tasks
+        // TODO get list of tasks from steamfitter
+        if ($this->event->sessionId) {
+            debugging("event has a sessionid", DEBUG_DEVELOPER);
+        }
         $attempt->tasks = "";
 
         if ($attempt->save()) {

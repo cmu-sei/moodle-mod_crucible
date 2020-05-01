@@ -81,18 +81,23 @@ class grade {
         foreach ($recs as $rec) {
             array_push($grades, $rec->grade);
         }
+        // user should only have one grade entry in the crucible grades table for each activity
+        debugging("user $userid has " . count($grades) . " grades for $crucible->id", DEBUG_DEVELOPER);
         return $grades;
     }
 
     public function process_attempt($attempt) {
+        global $DB;
+
         // get this attempt grade
         $this->calculate_attempt_grade($attempt);
 
         // get all attempt grades
-        global $DB;
         $grades = array();
         $attemptsgrades = array();
-        $attempts = $this->crucible->getall_attempts('closed');
+
+        // TODO should we be processing just one user here?
+        $attempts = $this->crucible->getall_attempts('');
 
         foreach ($attempts as $attempt) {
             array_push($attemptsgrades, $attempt->score);
@@ -100,12 +105,13 @@ class grade {
 
         $grade = $this->apply_grading_method($attemptsgrades);
         $grades[$attempt->userid] = $grade;
+        debugging("new grade for $attempt->userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
 
         // run the whole thing on a transaction (persisting to our table and gradebook updates).
         $transaction = $DB->start_delegated_transaction();
 
         // now that we have the final grades persist the grades to crucible grades table.
-        //TODO we could remove this table
+        //TODO we could possibly remove this table and just look at the grade_grades table
         $this->persist_grades($grades, $transaction);
 
         // update grades to gradebookapi.
@@ -134,21 +140,28 @@ class grade {
      * @return number The grade to save
      */
     public function calculate_attempt_grade($attempt) {
+    
+        $totalpoints = 0;
+        $totalslotpoints = 0;
 
         if (is_null($attempt)) {
-            return;
+            return $totalslotpoints;
         }
 
         if ($this->crucible->openAttempt->sessionid) {
             //$tasks = filter_tasks(get_sessiontasks($this->crucible->systemauth, $this->crucible->openAttempt->sessionid));
             //$taskresults = get_taskresults($this->crucible->systemauth, $this->crucible->openAttempt->sessionid);
-            $tasks = filter_tasks(get_sessiontasks($this->crucible->system, $this->crucible->openAttempt->sessionid));
-            $taskresults = get_taskresults($this->crucible->system, $this->crucible->openAttempt->sessionid);
+            $tasks = filter_tasks(get_sessiontasks($this->crucible->userauth, $this->crucible->openAttempt->sessionid));
+            $taskresults = get_taskresults($this->crucible->userauth, $this->crucible->openAttempt->sessionid);
         } else {
-            return;
+            debugging("attempt $attempt->id has no steamfitter tasks to grade", DEBUG_DEVELOPER);
+            return $totalslotpoints;
         }
-        $totalpoints = 0;
-        $totalslotpoints = 0;
+
+        if (empty($taskresults)) {
+            debugging("no taskresults found in session " . $this->crucible->openAttempt->sessionid, DEBUG_DEVELOPER);
+            return $totalslotpoints;
+        }
 
         //TODO make sure that results are time sorted first
 
@@ -170,6 +183,7 @@ class grade {
         // TODO one day check attribute for whether the task is gradable or not
         $totalpoints = count($tasks);
         $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->crucible->crucible->grade;
+        debugging("new score for $attempt->id is $scaledpoints", DEBUG_DEVELOPER);
 
         $attempt->score = $scaledpoints;
         $attempt->save();
@@ -198,6 +212,7 @@ class grade {
      * @throws \Exception When there is no valid scaletype throws new exception
      */
     protected function apply_grading_method($grades) {
+        debugging("grade method is " . $this->crucible->crucible->grademethod . " for " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
         switch ($this->crucible->crucible->grademethod) {
             case \mod_crucible\utils\scaletypes::crucible_FIRSTATTEMPT:
                 // take the first record (as there should only be one since it was filtered out earlier)
@@ -274,6 +289,7 @@ class grade {
                 }
 
             }
+            debugging("persisted $grade for $userid in crucible " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
         }
 
         return true;

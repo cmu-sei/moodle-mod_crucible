@@ -45,16 +45,18 @@ require_once($CFG->libdir . '/completionlib.php');
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
 
-if ($id) {
-    $cm         = get_coursemodule_from_id('crucible', $id, 0, false, MUST_EXIST);
-    $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-    $crucible   = $DB->get_record('crucible', array('id' => $cm->instance), '*', MUST_EXIST);
-} else if ($c) {
-    $crucible   = $DB->get_record('crucible', array('id' => $c), '*', MUST_EXIST);
-    $course     = $DB->get_record('course', array('id' => $crucible->course), '*', MUST_EXIST);
-    $cm         = get_coursemodule_from_instance('crucible', $crucible->id, $course->id, false, MUST_EXIST);
-} else {
-    print_error('courseorinstanceid', 'crucible');
+try {
+    if ($id) {
+        $cm         = get_coursemodule_from_id('crucible', $id, 0, false, MUST_EXIST);
+        $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+        $crucible   = $DB->get_record('crucible', array('id' => $cm->instance), '*', MUST_EXIST);
+    } else if ($c) {
+        $crucible   = $DB->get_record('crucible', array('id' => $c), '*', MUST_EXIST);
+        $course     = $DB->get_record('course', array('id' => $crucible->course), '*', MUST_EXIST);
+        $cm         = get_coursemodule_from_instance('crucible', $crucible->id, $course->id, false, MUST_EXIST);
+    }
+} catch (Exception $e) {
+    print_error("invalid course module id passed");
 }
 
 require_course_login($course, true, $cm);
@@ -80,7 +82,7 @@ $pagevars = array();
 $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
 
 // get eventtemplate info
-$object->eventtemplate = get_eventtemplate($object->systemauth, $crucible->eventtemplateid);
+$object->eventtemplate = get_eventtemplate($object->userauth, $crucible->eventtemplateid);
 
 // Update the database.
 if ($object->eventtemplate) {
@@ -97,97 +99,108 @@ if ($object->eventtemplate) {
 
 
 // get current state of eventtemplate
-$access_token = get_token($object->systemauth);
+$access_token = get_token($object->userauth);
 $history = $object->list_events();
-$launched = get_launched($history);
-
-$object->event = $launched;
+$object->event = get_active_event($history);
 
 // get active attempt for user: true/false
 $attempt = $object->get_open_attempt();
-
-//$grader = new \mod_crucible\utils\grade($object);
-//$grader->process_attempt($object->openAttempt);
-//exit;
+if ($attempt == true) {
+    debugging("get_open_attempt returned " . $object->openAttempt->id, DEBUG_DEVELOPER);
+} else if ($attempt == false) {
+    debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
+}
 
 //TODO send instructor to a different page
 
 // handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
 {
+    debugging("start request received", DEBUG_DEVELOPER);
+
     if ($attempt) { //&& (!$object->event !== null)
         //TODO this should also check that we dont have an attempt
         //print_error('attemptalreadyexists', 'crucible');
-        debugging('closing attempt - not active');
+        debugging('closing attempt - not active', DEBUG_DEVELOPER);
         $object->openAttempt->close_attempt();
     }
 
     // check not started already
-    if (!$launched) {
-        $eventid = start_event($object->systemauth, $object->crucible->eventtemplateid);
+    if (!$object->event) {
+        $eventid = start_event($object->userauth, $object->crucible->eventtemplateid);
         if ($eventid) {
-            $launched = get_event($object->systemauth, $eventid);
-            $object->event = $launched;
+            debugging("new event created $eventid", DEBUG_DEVELOPER);
+            $object->event = get_event($object->userauth, $eventid);
             $attempt = $object->init_attempt();
+            debugging("init_attempt returned $attempt", DEBUG_DEVELOPER);
             if (!$attempt) {
+                debugging("init_attempt failed");
                 print_error('init_attempt failed');
             }
             crucible_start($cm, $context, $crucible);
+        } else {
+            debugging("start_event failed", DEBUG_DEVELOPER);
+            print_error("start_event failed");
         }
     }
 }
 else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
 {
-    if ($launched) {
-        if ($launched->status == "Active") {
+    debugging("stop request received", DEBUG_DEVELOPER);
+    if ($object->event) {
+        if ($object->event->status == "Active") {
             if (!$attempt) {
-                print_error('no attempt exists');
+                debugging('no attempt to close', DEBUG_DEVELOPER);
+                print_error('no attempt to close');
             }
 
-	    $grader = new \mod_crucible\utils\grade($object);
+            $grader = new \mod_crucible\utils\grade($object);
             $grader->process_attempt($object->openAttempt);
 
-	    $object->openAttempt->close_attempt();
+            $object->openAttempt->close_attempt();
 
-            stop_event($object->systemauth, $launched->id); //why call this again?
-            $launched = get_event($object->systemauth, $launched->id); //why call this again?
+            stop_event($object->userauth, $object->event->id);
+            $object->event = get_event($object->userauth, $object->event->id); //why call this again? just to check that it is ending
+            debugging("stop_attempt called, get_event returned " . $object->event->status, DEBUG_DEVELOPER);
             crucible_end($cm, $context, $crucible);
         }
     }
 }
 
-if ($launched) {
-    if (($launched->status === "Active") && (!$attempt)) {
+if ($object->event) {
+    if (($object->event->status === "Active") && (!$attempt)) {
+        debugging("active event with no attempt", DEBUG_DEVELOPER);
         //print_error('eventwithoutattempt', 'crucible');
-        // init_attempt here causes null enddate error
-        //$attempt = $object->init_attempt();
+        // TODO give user a popup to confirm they are starting an attempt
+        $attempt = $object->init_attempt();
     }
 }
-if ((!$launched) && ($attempt)) {
+if ((!$object->event) && ($attempt)) {
+    debugging("active attempt with no event", DEBUG_DEVELOPER);
     //print_error('attemptalreadyexists', 'crucible');
     $object->openAttempt->close_attempt();
 }
 
-if ($launched) {
-    $eventid = $launched->id;
-    $exerciseid = $launched->exerciseId;
-    $sessionid = $launched->sessionId;
+if ($object->event) {
+    $eventid = $object->event->id;
+    $exerciseid = $object->event->exerciseId;
+    $sessionid = $object->event->sessionId;
 
     // TODO remove this check once the steamfitter is updated
-    if (strpos($launched->launchDate, "Z")) {
-        $starttime = strtotime($launched->launchDate);
+    if (strpos($object->event->launchDate, "Z")) {
+        $starttime = strtotime($object->event->launchDate);
     } else {
-        $starttime = strtotime($launched->launchDate . 'Z');
+        $starttime = strtotime($object->event->launchDate . 'Z');
     }
-    if (strpos($launched->expirationDate, "Z")) {
-        $endtime = strtotime($launched->expirationDate);
+    if (strpos($object->event->expirationDate, "Z")) {
+        $endtime = strtotime($object->event->expirationDate);
     } else {
-        $endtime = strtotime($launched->expirationDate . 'Z');
+        $endtime = strtotime($object->event->expirationDate . 'Z');
     }
 } else {
     if ($attempt) {
         //print_error('attemptalreadyexists', 'crucible');
-        debugging('closing attempt - not active');
+        debugging('closing attempt - not active', DEBUG_DEVELOPER);
         $object->openAttempt->close_attempt();
     }
     $eventid = null;
@@ -198,8 +211,8 @@ if ($launched) {
 }
 
 // todo can this go in the check above?
-if (is_object($launched)) {
-    $status = $launched->status;
+if (is_object($object->event)) {
+    $status = $object->event->status;
 } else {
     $status = null;
 }
@@ -214,8 +227,10 @@ $vmapp = $crucible->vmapp;
 
 $grader = new \mod_crucible\utils\grade($object);
 $gradepass = $grader->get_grade_item_passing_grade();
+debugging("grade pass is $gradepass", DEBUG_DEVELOPER);
 
-if (floatval($gradepass) > 0) {
+// show grade only if a passing grade is set
+if ((int)$gradepass >0) {
     $showgrade = true;
 } else {
     $showgrade = false;
@@ -226,7 +241,7 @@ echo $renderer->header();
 $renderer->display_detail($crucible);
 $renderer->display_form($url, $object->crucible->eventtemplateid);
 
-if ($launched) {
+if ($object->event) {
 
     // TODO add mod setting to pick format
     if ($crucible->clock == 1) {
@@ -238,7 +253,7 @@ if ($launched) {
     }
     // no matter what, start our session timer
     $PAGE->requires->js_call_amd('mod_crucible/clock', 'init', array('endtime' => $endtime));
-} else {
+} else if ($showgrade) {
     $renderer->display_grade($crucible);
 }
 
@@ -250,12 +265,11 @@ if ($vmapp == 1) {
 
 // TODO have a completely different view page for active labs
 if ($sessionid) {
-    $tasks = filter_tasks(get_sessiontasks($object->systemauth, $sessionid));
+    $tasks = filter_tasks(get_sessiontasks($object->userauth, $sessionid));
 
     if (is_null($tasks)) {
         // run as system account
-        $system = setup_system();
-        $tasks = filter_tasks(get_sessiontasks($system, $sessionid));
+        $tasks = filter_tasks(get_sessiontasks($object->systemauth, $sessionid));
     }
 
     $renderer->display_results($tasks);
@@ -272,13 +286,12 @@ if ($sessionid) {
     $PAGE->requires->js_call_amd('mod_crucible/results', 'init', [$info]);
 } else if ($scenarioid) {
     // this is when we do not have an active session
-    $tasks = filter_tasks(get_scenariotasks($object->systemauth, $scenarioid));
+    $tasks = filter_tasks(get_scenariotasks($object->userauth, $scenarioid));
 
     // TODO it may be fine to leave this here
     if (is_null($tasks)) {
         // run as system account
-        $system = setup_system();
-        $tasks = filter_tasks(get_scenariotasks($system, $scenarioid));
+        $tasks = filter_tasks(get_scenariotasks($object->systemauth, $scenarioid));
     }
 
     $renderer->display_tasks($tasks);

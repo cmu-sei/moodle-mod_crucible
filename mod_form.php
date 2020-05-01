@@ -61,28 +61,28 @@ class mod_crucible_mod_form extends moodleform_mod {
         //-------------------------------------------------------
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-	// pull list of exercises/labs from alloy
+        // pull list of exercises/labs from alloy
         $systemauth = setup();
         $this->eventtemplates = get_eventtemplates($systemauth);
         $labnames = array();
-	$labs = [];
+        $labs = [];
         foreach ($this->eventtemplates as $eventtemplate) {
             array_push($labnames, $eventtemplate->name);
             $labs[$eventtemplate->id] = s($eventtemplate->name);
         }
-	array_unshift($labs, "");
-	asort($labs);
+        array_unshift($labs, "");
+        asort($labs);
 
-	$options = array(
-	    'multiple' => false,
-	    //'noselectionstring' => get_string('selectname', 'crucible'),
-	    'placeholder' => get_string('selectname', 'crucible')
-	);
-	if ($config->autocomplete) {
+        $options = array(
+            'multiple' => false,
+            //'noselectionstring' => get_string('selectname', 'crucible'),
+            'placeholder' => get_string('selectname', 'crucible')
+        );
+        if ($config->autocomplete) {
             $mform->addElement('autocomplete', 'eventtemplateid', get_string('eventtemplate', 'crucible'), $labs, $options);
-	} else {
+        } else {
             $mform->addElement('select', 'eventtemplateid', get_string('eventtemplate', 'crucible'), $labs);
-	}
+        }
 
         $mform->addRule('eventtemplateid', null, 'required', null, 'client');
         $mform->addRule('eventtemplateid', 'You must choose an option', 'minlength', '2', 'client'); //why is this client?
@@ -93,7 +93,7 @@ class mod_crucible_mod_form extends moodleform_mod {
         //-------------------------------------------------------
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
-	$options = array('Display Link to Player', 'Embed VM App');
+        $options = array('Display Link to Player', 'Embed VM App');
         $mform->addElement('select', 'vmapp', get_string('vmapp', 'crucible'), $options);
         $mform->setDefault('vmapp', $config->vmapp);
         $mform->addHelpButton('vmapp', 'vmapp', 'crucible');
@@ -182,18 +182,19 @@ class mod_crucible_mod_form extends moodleform_mod {
     }
 
     function data_postprocessing(&$data) {
-	if (!$data->eventtemplateid) {
+        if (!$data->eventtemplateid) {
             echo "return to settings page<br>";
-	    exit;
+            exit;
         }
-	if (!$data->vmapp) {
-	    $data->vmapp = 0;
+        if (!$data->vmapp) {
+            $data->vmapp = 0;
         }
-	$index = array_search($data->eventtemplateid, array_column($this->eventtemplates, 'id'), true);
-	$data->name = $this->eventtemplates[$index]->name;
+        $index = array_search($data->eventtemplateid, array_column($this->eventtemplates, 'id'), true);
+        $data->name = $this->eventtemplates[$index]->name;
         $data->intro = $this->eventtemplates[$index]->description;
         $data->introeditor['format'] = FORMAT_PLAIN;
 
+        // TODO if grade method changed, update all grades
     }
 
 
