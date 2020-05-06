@@ -90,6 +90,9 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->setDefault('eventtemplateid', null);
         $mform->addHelpButton('eventtemplateid', 'eventtemplate', 'crucible');
 
+        $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'crucible'));
+        $mform->addHelpButton('extendevent', 'extendeventsetting', 'crucible');
+
         //-------------------------------------------------------
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 

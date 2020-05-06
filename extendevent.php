@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Skatch backgrounds.
+ * crucible module main user interface
  *
  * @package    mod_crucible
  * @copyright  2020 Carnegie Mellon University
@@ -33,26 +33,51 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-// This line protects the file from being accessed by a URL directly.
-defined('MOODLE_INTERNAL') || die();
+define('AJAX_SCRIPT', true);
 
-// This is the version of the plugin.
-$plugin->version = 2020050603;
+require_once(__DIR__ . '/../../config.php');
+require_once("$CFG->dirroot/mod/crucible/locallib.php");
 
-// This is the version of Moodle this plugin requires.
-$plugin->requires = 2018050800;
+require_login();
+require_sesskey();
 
-// This is the component name of the plugin - it always starts with 'component_'
-$plugin->component = 'mod_crucible';
+$id = required_param('id', PARAM_ALPHANUMEXT);
 
-// This is a list of plugins, this plugin depends on (and their versions).
-$plugin->dependencies = [
-];
+// Require the session key - want to make sure that this isn't called
+// maliciously to keep a session alive longer than intended.
+if (!confirm_sesskey()) {
+    header('HTTP/1.1 403 Forbidden');
+    print_error('invalidsesskey');
+}
 
-// This is a stable release.
-//$plugin->maturity = MATURITY_STABLE;
-$plugin->maturity = MATURITY_BETA;
+$response = array();
 
-// This is the named version.
-$plugin->release = '0.1.0';
+$system = setup_system();
+$event = get_event($system, $id);
+if (!$event) {
+    header('HTTP/1.1 500 Error');
+    $response['message'] = "error with get_event";
+} else {
+    $data = $event;
+    $response['oldtime'] = $event->expirationDate;
+    $timestamp = new DateTime($event->expirationDate);
+    $timestamp->add(new DateInterval('PT1H'));
+    $posttime = $timestamp->format('Y-m-d\TH:i:s.u\Z');
+    $response['posttime'] = $posttime;
+    $data->expirationDate = $posttime;
+    $result = extend_event($system, $data);
+    if (!$result) {
+        header('HTTP/1.1 500 Error');
+        $response['message'] = "error with extend_event";
+        $response['event'] = $event;
+        $response['data'] = $data;
+    } else {
+        header('HTTP/1.1 200 OK');
+        $response['message'] = "success";
+    }
+}
+$response['id'] = $id;
+
+echo json_encode($response);
+
 

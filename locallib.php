@@ -256,6 +256,28 @@ function run_task($client, $id) {
     return $r;
 }
 
+function extend_event($client, $data) {
+
+    if ($client == null) {
+        return;
+    }
+
+    // web request
+    $url = get_config('crucible', 'alloyapiurl') . "/implementations/" . $data->id;
+    $client->setHeader('Content-Type: application/json-patch+json');
+
+    $response = $client->put($url, json_encode($data));
+
+    if ($client->info['http_code']  !== 200) {
+        debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        return;
+    }
+
+    $r = json_decode($response);
+
+    return $r;
+}
+
 function get_event($client, $id) {
 
     if ($client == null) {

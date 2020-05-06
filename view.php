@@ -114,8 +114,7 @@ if ($attempt == true) {
 //TODO send instructor to a different page
 
 // handle start/stop form action
-if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
-{
+if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
     debugging("start request received", DEBUG_DEVELOPER);
 
     if ($attempt) { //&& (!$object->event !== null)
@@ -143,9 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start']))
             print_error("start_event failed");
         }
     }
-}
-else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop']))
-{
+} else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop'])) {
     debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->status == "Active") {
@@ -243,16 +240,21 @@ $renderer->display_form($url, $object->crucible->eventtemplateid);
 
 if ($object->event) {
 
+    $extend = false;
+    if ($object->systemauth && $crucible->extendevent) {
+        $extend = true;
+    }
+
     // TODO add mod setting to pick format
     if ($crucible->clock == 1) {
-        $renderer->display_clock($starttime, $endtime);
+        $renderer->display_clock($starttime, $endtime, $extend);
         $PAGE->requires->js_call_amd('mod_crucible/clock', 'countdown', array('endtime' => $endtime));
     } else if ($crucible->clock == 2) {
-        $renderer->display_clock($starttime, $endtime);
+        $renderer->display_clock($starttime, $endtime, $extent);
         $PAGE->requires->js_call_amd('mod_crucible/clock', 'countup', array('starttime' => $starttime));
     }
     // no matter what, start our session timer
-    $PAGE->requires->js_call_amd('mod_crucible/clock', 'init', array('endtime' => $endtime));
+    $PAGE->requires->js_call_amd('mod_crucible/clock', 'init', array('endtime' => $endtime, 'id' => $object->event->id));
 } else if ($showgrade) {
     $renderer->display_grade($crucible);
 }

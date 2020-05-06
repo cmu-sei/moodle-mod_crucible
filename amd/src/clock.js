@@ -18,11 +18,24 @@ subject to its own license:
 DM20-0196
  */
 
-define([], function() {
+define(['jquery', 'core/config', 'core/log'], function($, config, log) {
+
+    var eventid;
 
     return {
 
-        init: function(endtime) {
+        init: function(endtime, id) {
+
+            eventid = id;
+
+            var button = document.getElementById('extend-event');
+            if (button) {
+                button.onclick = function() {
+                    extend_event();
+                };
+                console.log('set event for extend-event button');
+            }
+
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
@@ -38,6 +51,10 @@ define([], function() {
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
+                if (remaining === 0) {
+                    console.log("timer expired, reloading page");
+                    window.location.replace(window.location.href);
+                }
 
                 var hours = Math.floor(remaining % (60 * 60 * 24) / (60 * 60));
                 var minutes = Math.floor(remaining % (60 * 60) / 60);
@@ -45,7 +62,7 @@ define([], function() {
 
                 var timer = document.getElementById('timer');
                 if (timer) {
-                    timer.innerHTML = hours.toString().padStart(2, '0') +
+                    timer.innerHTML = "Timer: " + hours.toString().padStart(2, '0') +
                             ":" + minutes.toString().padStart(2, '0') + ":" +
                             seconds.toString().padStart(2, '0');
                 }
@@ -64,11 +81,38 @@ define([], function() {
 
                 var timer = document.getElementById('timer');
                 if (timer) {
-                    timer.innerHTML = hours.toString().padStart(2, '0') +
+                    timer.innerHTML = "Timer: " +  hours.toString().padStart(2, '0') +
                         ":" + minutes.toString().padStart(2, '0') + ":" +
                         seconds.toString().padStart(2, '0');
                 }
             }, 1000);
         },
     };
+
+    function extend_event() {
+        $.ajax({
+            url: config.wwwroot + '/mod/crucible/extendevent.php',
+            type: 'POST',
+            data: {
+                'sesskey': config.sesskey,
+                'id': eventid
+            },
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Expires': '-1'
+            },
+            success: function(result) {
+                console.log('extended lab');
+                console.log(result);
+                window.location.replace(window.location.href);
+            },
+            error: function(request) {
+                console.log("extend-event request failed");
+                alert('extend-event request failed');
+                console.log(request);
+                log.debug('moodle-mod_crucible-extend-event: ' . request);
+            }
+        });
+
+    }
 });

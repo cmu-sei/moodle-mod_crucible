@@ -202,11 +202,14 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     }
 
-    function display_clock($starttime, $endtime) {
+    function display_clock($starttime, $endtime, $extend = false) {
 
         $data = new stdClass();
         $data->starttime = $starttime;
         $data->endtime = $endtime;
+        if ($extend) {
+            $data->extend = get_string('extendevent', 'mod_crucible');
+        }
 
         echo $this->render_from_template('mod_crucible/clock', $data);
     }

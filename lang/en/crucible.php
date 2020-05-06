@@ -80,6 +80,9 @@ $string['attemptaverage'] = 'Average of all attempts';
 $string['grademethod'] = 'Grading method';
 $string['grademethod_help'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
 $string['grademethoddesc'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
+$string['extendeventsetting'] = 'Extend Event';
+$string['extendeventsetting_help'] = 'Setting this allows the user to extend the lab by one hour increments.';
+
 // Time options
 $string['timing'] = 'Timing';
 $string['eventopen'] = 'Start Quiz';
@@ -122,6 +125,7 @@ $string['courseorinstanceid'] = 'Either a course id or an instance must be given
 $string['attemptalreadyexists'] = 'An open attempt already exists for this event';
 $string['overallgrade'] = 'Overall Grade: ';
 $string['fullscreen'] = "Fullscreen VM App";
+$string['extendevent'] = "Extend Event";
 
 // task
 $string['taskcloseattempt'] = 'Close expired Crucible attempts';

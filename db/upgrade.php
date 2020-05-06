@@ -317,6 +317,21 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020041307, 'crucible');
     }
 
+    if ($oldversion < 2020050602) {
+
+        // Define field extendevent to be added to crucible.
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('extendevent', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'clock');
+
+        // Conditionally launch add field extendevent.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020050602, 'crucible');
+    }
+
 
     return true;
 }
