@@ -171,6 +171,7 @@ class grade {
             foreach ($tasks as $task) {
                 if ($task->id == $result->dispatchTaskId) {
                     $values[$task->id] = $result->status;
+                    debugging("task " . $task->id . " status " . $result->status, DEBUG_DEVELOPER);
                 }
             }
         }

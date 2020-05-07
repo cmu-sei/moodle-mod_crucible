@@ -49,7 +49,14 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data->url = $url;
         $data->eventtemplate = $eventtemplate;
         echo $this->render_from_template('mod_crucible/form', $data);
+    }
 
+    function display_return_form($url, $id) {
+        $data = new stdClass();
+        $data->url = $url;
+        $data->id = $id;
+        $data->returntext = get_string('returntext', 'mod_crucible');;
+        echo $this->render_from_template('mod_crucible/returnform', $data);
     }
 
     function display_link_page($player_app_url, $exerciseid) {
@@ -81,32 +88,35 @@ class mod_crucible_renderer extends plugin_renderer_base {
         echo $this->render_from_template('mod_crucible/grade', $data);;
     }
 
-    function display_attempts($attempts, $showgrade) {
+    function display_attempts($attempts, $showgrade, $showuser = false) {
         $data = new stdClass();
 
+        if ($showuser) {
+            $data->tableheaders[] = get_string('username', 'mod_crucible');
+            $data->tableheaders[] = get_string('eventid', 'mod_crucible');
+        }
+        $data->tableheaders[] = get_string('timestart', 'mod_crucible');
+        $data->tableheaders[] = get_string('timefinish', 'mod_crucible');
+
         if ($showgrade) {
-            $data->tableheaders = [
-                get_string('eventid', 'mod_crucible'),
-                get_string('timestart', 'mod_crucible'),
-                get_string('timefinish', 'mod_crucible'),
-                get_string('score', 'mod_crucible'),
-            ];
-        } else {
-            $data->tableheaders = [
-                get_string('eventid', 'mod_crucible'),
-                get_string('timestart', 'mod_crucible'),
-                get_string('timefinish', 'mod_crucible'),
-            ];
+            $data->tableheaders[] = get_string('score', 'mod_crucible');
         }
 
         if ($attempts) {
             foreach ($attempts as $attempt) {
                 $rowdata = array();
-                $rowdata[] = $attempt->eventid;
-                //$rowdata[] = $attempt->getState();
+                if ($showuser) {
+                    global $DB;
+                    $user = $DB->get_record("user", array('id' => $attempt->userid));
+                    $rowdata[] = fullname($user);
+                    $rowdata[] = $attempt->eventid;
+                }
                 $rowdata[] = userdate($attempt->timestart);
-                $rowdata[] = userdate($attempt->timefinish);
-                //$rowdata[] = $attempt->tasks;
+                if ($attempt->state == \mod_crucible\crucible_attempt::FINISHED) {
+                    $rowdata[] = userdate($attempt->timefinish);
+                } else {
+                    $rowdata[] = null;
+                }
                 if ($showgrade) {
                     $rowdata[] = $attempt->score;
                 }

@@ -103,6 +103,7 @@ $string['timestart'] = 'Time Started';
 $string['timefinish'] = 'Time Finished';
 $string['tasks'] = 'Tasks';
 $string['score'] = 'Score';
+$string['username'] = 'Username';
 
 
 // events
@@ -126,6 +127,10 @@ $string['attemptalreadyexists'] = 'An open attempt already exists for this event
 $string['overallgrade'] = 'Overall Grade: ';
 $string['fullscreen'] = "Fullscreen VM App";
 $string['extendevent'] = "Extend Event";
+$string['reviewtext'] = "Review Student Attempts";
+
+// review
+$string['returntext'] = "Return to Lab";
 
 // task
 $string['taskcloseattempt'] = 'Close expired Crucible attempts';

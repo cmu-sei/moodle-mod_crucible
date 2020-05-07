@@ -79,12 +79,12 @@ class crucible {
         $this->context = \context_module::instance($cm->id);
         $PAGE->set_context($this->context);
 
+        $this->is_instructor();
+
         $this->systemauth = setup_system();
         $this->userauth = setup();
 
         $this->renderer = $PAGE->get_renderer('mod_crucible', $renderer_subtype);
-
-        //$this->renderer->init($this, $pageurl, $pagevars);
     }
 
 
@@ -190,8 +190,8 @@ class crucible {
         return true;
     }
 
-    public function getall_attempts($state = 'all') {
-        global $DB;
+    public function getall_attempts($state = 'all', $review = false) {
+        global $DB, $USER;
 
         $sqlparams = array();
         $where = array();
@@ -210,6 +210,12 @@ class crucible {
                 break;
             default:
                 // add no condition for state when 'all' or something other than open/closed
+        }
+
+        if ((!$review) || (!$this->is_instructor())) {
+            debugging("getall_attempts for user", DEBUG_DEVELOPER);
+            $where[] = 'userid = ?';
+            $sqlparams[] = $USER->id;
         }
 
         $wherestring = implode(' AND ', $where);

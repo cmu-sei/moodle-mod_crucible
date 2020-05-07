@@ -405,3 +405,24 @@ function crucible_get_user_grades($crucible, $userid = 0) {
             GROUP BY u.id, cg.grade, cg.timemodified", $params);
 }
 
+function crucible_extend_settings_navigation($settingsnav, $context) {
+    global $PAGE;
+
+    $keys = $context->get_children_key_list();
+    $beforekey = null;
+    $i = array_search('modedit', $keys);
+    if ($i === false and array_key_exists(0, $keys)) {
+        $beforekey = $keys[0];
+    } else if (array_key_exists($i + 1, $keys)) {
+        $beforekey = $keys[$i + 1];
+    }
+
+    if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
+        $url = new moodle_url('/mod/crucible/review.php', array('id' => $PAGE->cm->id));
+        $node = navigation_node::create(get_string('reviewtext', 'mod_crucible'),
+                new moodle_url($url),
+                navigation_node::TYPE_SETTING, null, 'mod_crucible_review', new pix_icon('i/report', 'grades'));
+        $context->add_node($node, $beforekey);
+    }
+}
+

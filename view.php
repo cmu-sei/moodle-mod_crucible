@@ -97,7 +97,6 @@ if ($object->eventtemplate) {
     $scenarioid = "";
 }
 
-
 // get current state of eventtemplate
 $access_token = get_token($object->userauth);
 $history = $object->list_events();
@@ -236,6 +235,7 @@ if ((int)$gradepass >0) {
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 $renderer->display_detail($crucible);
+
 $renderer->display_form($url, $object->crucible->eventtemplateid);
 
 if ($object->event) {
@@ -312,7 +312,7 @@ $info->player_app_url = $player_app_url;
 
 $PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$info]);
 
-$attempts = $object->getall_attempts('closed');
+$attempts = $object->getall_attempts('closed', $review = false);
 echo $renderer->display_attempts($attempts, $showgrade);
 //echo $renderer->display_history($history, $showfailed);
 
