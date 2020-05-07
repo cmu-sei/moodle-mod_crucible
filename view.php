@@ -278,9 +278,11 @@ if ($sessionid) {
 
     // start js to monitor task status
     $info = new stdClass();
-    $info->session = $sessionid;;
-    // have run task button hit a ajax script on server to run as system
+    $info->session = $sessionid;
+    $info->exercise = $exerciseid;
+    // have run task button hit an ajax script on server to run as system
     //$PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
+    //$PAGE->requires->js_call_amd('mod_crucible/customtasks', 'init', [$info]);
 
     $info->token = $access_token;
     $info->steamfitter_api = $steamfitter_api_url;

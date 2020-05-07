@@ -522,3 +522,66 @@ function crucible_start($cm, $context, $crucible) {
     $event->trigger();
 }
 
+// this functions returns all the vms in a view
+function get_allvms($systemauth, $id) {
+    if ($systemauth == null) {
+        echo 'error with systemauth<br>';
+        return;
+    }
+
+    if ($id == null) {
+        echo 'error with id<br>';
+        return;
+    }
+
+    // web request
+    $url = "https://s3vm.cyberforce.site/api/exercises/" . $id . "/vms";
+    //echo "GET $url<br>";
+
+    $response = $systemauth->get($url);
+    if (!$response) {
+        debugging("no response received by get_allvms $url", DEBUG_DEVELOPER);
+        return;
+    }
+    if ($systemauth->info['http_code']  !== 200) {
+        debugging('response code ' . $systemauth->info['http_code'], DEBUG_DEVELOPER);
+    }
+    //echo "response:<br><pre>$response</pre>";
+    if ($response === "[]") {
+        return;
+    }
+
+    $r = json_decode($response);
+    if (!$r) {
+        debugging("could not decode json", DEBUG_DEVELOPER);
+        return;
+    }
+    return $r;
+}
+
+// this function executes a custom task
+function create_and_exec_task($systemauth, $data) {
+    if ($systemauth == null) {
+        return;
+    }
+
+    // web request
+    $url = get_config('crucible', 'steamfitterapiurl') . "/dispatchtasks/execute";
+    $systemauth->setHeader('Content-Type: application/json');
+
+    $response = $systemauth->post($url, $data);
+    if ($systemauth->info['http_code']  !== 200) {
+        debugging('response code ' . $systemauth->info['http_code'] . " on $url", DEBUG_DEVELOPER);
+        return;
+    }
+
+    $r = json_decode($response);
+    if (is_null($r)) {
+        debugging("could not decode json response", DEBUG_DEVELOPER);
+        return;
+    }
+
+    debugging("successful task execution", DEBUG_DEVELOPER);
+    return $r;
+}
+
