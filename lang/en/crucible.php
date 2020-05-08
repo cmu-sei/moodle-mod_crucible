@@ -135,3 +135,8 @@ $string['returntext'] = "Return to Lab";
 // task
 $string['taskcloseattempt'] = 'Close expired Crucible attempts';
 
+// roles
+$string['crucible:manage'] = 'Manage Crucible activities';
+$string['crucible:view'] = 'View Crucible activity information';
+$string['crucible:addinstance'] = 'Add a new Crucible activties';
+
