@@ -88,12 +88,16 @@ class mod_crucible_renderer extends plugin_renderer_base {
         echo $this->render_from_template('mod_crucible/grade', $data);;
     }
 
-    function display_attempts($attempts, $showgrade, $showuser = false) {
+    function display_attempts($attempts, $showgrade, $showuser = false, $showdetail = false) {
+        global $DB;
         $data = new stdClass();
 
         if ($showuser) {
             $data->tableheaders[] = get_string('username', 'mod_crucible');
             $data->tableheaders[] = get_string('eventid', 'mod_crucible');
+        }
+        if ($showdetail) {
+            $data->tableheaders[] = get_string('eventtemplate', 'mod_crucible');
         }
         $data->tableheaders[] = get_string('timestart', 'mod_crucible');
         $data->tableheaders[] = get_string('timefinish', 'mod_crucible');
@@ -104,21 +108,34 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
         if ($attempts) {
             foreach ($attempts as $attempt) {
-                $rowdata = array();
+                $rowdata = new stdClass();
                 if ($showuser) {
-                    global $DB;
                     $user = $DB->get_record("user", array('id' => $attempt->userid));
-                    $rowdata[] = fullname($user);
-                    $rowdata[] = $attempt->eventid;
+                    $rowdata->username = fullname($user);
+                    if ($attempt->eventid) {
+                        $rowdata->eventguid = $attempt->eventid;
+                    } else {
+                        $rowdata->eventguid = "-";
+                    }
                 }
-                $rowdata[] = userdate($attempt->timestart);
+                if ($showdetail) {
+                    $crucible = $DB->get_record("crucible", array('id' => $attempt->crucibleid));
+                    $rowdata->name= $crucible->name;
+                    $rowdata->moduleurl = new moodle_url('/mod/crucible/view.php', array("c" => $crucible->id));
+                }
+                $rowdata->timestart = userdate($attempt->timestart);
                 if ($attempt->state == \mod_crucible\crucible_attempt::FINISHED) {
-                    $rowdata[] = userdate($attempt->timefinish);
+                    $rowdata->timefinish = userdate($attempt->timefinish);
                 } else {
-                    $rowdata[] = null;
+                    $rowdata->timefinish = null;
                 }
                 if ($showgrade) {
-                    $rowdata[] = $attempt->score;
+                    if ($attempt->score !== null) {
+                        $rowdata->score = $attempt->score;
+                        $rowdata->attempturl = new moodle_url('/mod/crucible/viewattempt.php', array("a" => $attempt->id));
+                    } else {
+                        $rowdata->score = "-";
+                    }
                 }
                 $data->tabledata[] = $rowdata;
             }

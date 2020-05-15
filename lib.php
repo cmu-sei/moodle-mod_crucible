@@ -424,5 +424,15 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
                 navigation_node::TYPE_SETTING, null, 'mod_crucible_review', new pix_icon('i/report', 'grades'));
         $context->add_node($node, $beforekey);
     }
+
+    if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
+        $url = new moodle_url('/mod/crucible/manage.php', array('c' => $PAGE->cm->course));
+        $node = navigation_node::create(get_string('managetext', 'mod_crucible'),
+                new moodle_url($url),
+                navigation_node::TYPE_SETTING, null, 'mod_crucible_manage', new pix_icon('i/report', 'grades'));
+        $context->add_node($node, $beforekey);
+    }
+
+
 }
 

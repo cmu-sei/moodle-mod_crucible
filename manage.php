@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Skatch backgrounds.
+ * crucible module main user interface
  *
  * @package    mod_crucible
  * @copyright  2020 Carnegie Mellon University
@@ -33,26 +34,53 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-// This line protects the file from being accessed by a URL directly.
-defined('MOODLE_INTERNAL') || die();
+use \mod_crucible\crucible;
 
-// This is the version of the plugin.
-$plugin->version = 2020051502;
+//require('../../config.php');
+require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once("$CFG->dirroot/mod/crucible/lib.php");
+require_once("$CFG->dirroot/mod/crucible/locallib.php");
+require_once($CFG->libdir . '/completionlib.php');
 
-// This is the version of Moodle this plugin requires.
-$plugin->requires = 2018050800;
+$c = optional_param('c', 0, PARAM_INT);
 
-// This is the component name of the plugin - it always starts with 'component_'
-$plugin->component = 'mod_crucible';
+try {
+    $course = $DB->get_record('course', array('id' => $c), '*', MUST_EXIST);
+} catch (Exception $e) {
+    print_error("invalid course id passed");
+}
 
-// This is a list of plugins, this plugin depends on (and their versions).
-$plugin->dependencies = [
-];
+$context = context_course::instance($course->id);
+require_capability('mod/crucible:manage', $context);
 
-// This is a stable release.
-//$plugin->maturity = MATURITY_STABLE;
-$plugin->maturity = MATURITY_BETA;
+// Print the page header.
+$url = new moodle_url ('/mod/crucible/manage.php');
 
-// This is the named version.
-$plugin->release = '0.1.0';
+$PAGE->set_url($url);
+$PAGE->set_context($context);
+$PAGE->set_title(format_string("Manage Crucible"));
+$PAGE->set_heading($course->fullname);
+
+// new crucible class
+$pageurl = $url;
+$pagevars = array();
+
+$isinstructor = has_capability('mod/crucible:manage', $context);
+
+if (!$isinstructor) {
+    print_error('you do not have access to the page');
+}
+
+$renderer = $PAGE->get_renderer('mod_crucible');
+echo $renderer->header();
+
+// get all attempts for all activities in this course
+
+$attempts = getall_course_attempts($course->id);
+//$attempts = getall_crucible_attempts();
+
+echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true, $showdetail = true);
+
+echo $renderer->footer();
+
 

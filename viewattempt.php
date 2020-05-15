@@ -40,37 +40,31 @@ use \mod_crucible\crucible;
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
-require_once($CFG->libdir . '/completionlib.php');
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
-$c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
+$a = required_param('a', PARAM_INT);  // attempt ID 
 
 try {
-    if ($id) {
-        $cm         = get_coursemodule_from_id('crucible', $id, 0, false, MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-        $crucible   = $DB->get_record('crucible', array('id' => $cm->instance), '*', MUST_EXIST);
-    } else if ($c) {
-        $crucible   = $DB->get_record('crucible', array('id' => $c), '*', MUST_EXIST);
+        $attempt    = $DB->get_record('crucible_attempts', array('id' => $a), '*', MUST_EXIST);
+        $crucible   = $DB->get_record('crucible', array('id' => $attempt->crucibleid), '*', MUST_EXIST);
         $course     = $DB->get_record('course', array('id' => $crucible->course), '*', MUST_EXIST);
         $cm         = get_coursemodule_from_instance('crucible', $crucible->id, $course->id, false, MUST_EXIST);
-    }
 } catch (Exception $e) {
-    print_error("invalid course module id passed");
+    print_error("invalid attempt id passed");
 }
 
 require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
+// TODO create review attempt capability
 require_capability('mod/crucible:view', $context);
 
+// TODO log event attempt views
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
     // Completion and trigger events.
-    crucible_view($crucible, $course, $cm, $context);
+    //crucible_view($crucible, $course, $cm, $context);
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/crucible/review.php', array ( 'id' => $cm->id ) );
-$returnurl = new moodle_url ( '/mod/crucible/view.php', array ( 'id' => $cm->id ) );
+$url = new moodle_url ( '/mod/crucible/view.php', array ( 'id' => $cm->id ) );
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -78,7 +72,7 @@ $PAGE->set_title(format_string($crucible->name));
 $PAGE->set_heading($course->fullname);
 
 // new crucible class
-$pageurl = $url;
+$pageurl = null;
 $pagevars = array();
 $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
 
@@ -92,19 +86,42 @@ if ($object->eventtemplate) {
     $crucible->name = $object->eventtemplate->name;
     $crucible->intro = $object->eventtemplate->description;
     $DB->update_record('crucible', $crucible);
+    // this generates lots of hvp module errors
+    //rebuild_course_cache($crucible->course);
 } else {
     $scenarioid = "";
 }
 
-if (!$object->is_instructor()) {
-    redirect($returnurl);
+//TODO send instructor to a different page where manual grading can occur
+
+$eventid = null;
+$exerciseid = null;
+$sessionid = null;
+$startime = null;
+$endtime = null;
+
+$grader = new \mod_crucible\utils\grade($object);
+$gradepass = $grader->get_grade_item_passing_grade();
+debugging("grade pass is $gradepass", DEBUG_DEVELOPER);
+
+// show grade only if a passing grade is set
+if ((int)$gradepass >0) {
+    $showgrade = true;
+} else {
+    $showgrade = false;
 }
 
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 $renderer->display_detail($crucible);
 
-$renderer->display_return_form($returnurl, $id);
+$renderer->display_form($url, $object->crucible->eventtemplateid);
+
+if ($showgrade) {
+    $renderer->display_grade($crucible);
+}
+
+// TODO loads tasks and results from the db
 
 if ($scenarioid) {
     // this is when we do not have an active session
@@ -115,11 +132,9 @@ if ($scenarioid) {
         // run as system account
         $tasks = filter_tasks(get_scenariotasks($object->systemauth, $scenarioid));
     }
+
     $renderer->display_tasks($tasks);
 }
-
-$attempts = $object->getall_attempts('all', $review = true);
-echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
 
 echo $renderer->footer();
 

@@ -50,9 +50,23 @@ DM20-0196
         <tbody>
             {{#tabledata}}
                 <tr>
-                    {{#.}}
-                        <td>{{.}}</td>
-                    {{/.}}
+                    {{#username}}
+                        <td>{{username}}</td>
+                    {{/username}}
+                    {{#eventguid}}
+                        <td>{{eventguid}}</td>
+                    {{/eventguid}}
+                    {{#moduleurl}}
+                        <td><a href="{{moduleurl}}">{{name}}</a></td>
+                    {{/moduleurl}}
+                    <td>{{timestart}}</td>
+                    <td>{{timefinish}}</td>
+                    {{#attempturl}}
+                        <td><a href="{{attempturl}}">{{score}}</a></td>
+                    {{/attempturl}}
+                    {{^attempturl}}
+                        <td>{{score}}</td>
+                    {{/attempturl}}
                 </tr>
             {{/tabledata}}
         </tbody>

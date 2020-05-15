@@ -585,3 +585,43 @@ function create_and_exec_task($systemauth, $data) {
     return $r;
 }
 
+function getall_course_attempts($course) {
+    global $DB, $USER;
+
+    $sqlparams = array();
+    $where = array();
+
+    $where[] = '{crucible}.course= ?';
+    $sqlparams[] = $course;
+
+    $wherestring = implode(' AND ', $where);
+
+    $sql = "SELECT {crucible_attempts}.* FROM {crucible_attempts} JOIN {crucible} ON {crucible_attempts}.crucibleid = {crucible}.id WHERE $wherestring";
+    $dbattempts = $DB->get_records_sql($sql, $sqlparams);
+
+    $attempts = array();
+    // create array of class attempts from the db entry
+    foreach ($dbattempts as $dbattempt) {
+        $attempts[] = new \mod_crucible\crucible_attempt($dbattempt);
+    }
+
+    return $attempts;
+
+}
+
+// not used yet
+function getall_crucible_attempts($course) {
+    global $DB, $USER;
+
+    $sql = "SELECT * FROM {crucible_attempts}";
+    $dbattempts = $DB->get_records_sql($sql);
+
+    $attempts = array();
+    // create array of class attempts from the db entry
+    foreach ($dbattempts as $dbattempt) {
+        $attempts[] = new \mod_crucible\crucible_attempt($dbattempt);
+    }
+
+    return $attempts;
+
+}

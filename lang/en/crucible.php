@@ -127,7 +127,8 @@ $string['attemptalreadyexists'] = 'An open attempt already exists for this event
 $string['overallgrade'] = 'Overall Grade: ';
 $string['fullscreen'] = "Fullscreen VM App";
 $string['extendevent'] = "Extend Event";
-$string['reviewtext'] = "Review Student Attempts";
+$string['reviewtext'] = "Review Activity Attempts";
+$string['managetext'] = "Review Site Attempts";
 
 // review
 $string['returntext'] = "Return to Lab";
