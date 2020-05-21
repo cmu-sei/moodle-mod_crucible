@@ -125,16 +125,22 @@ $string['eventwithoutattempt'] = 'Event exists but attempt does not exist in moo
 $string['courseorinstanceid'] = 'Either a course id or an instance must be given.';
 $string['attemptalreadyexists'] = 'An open attempt already exists for this event';
 $string['overallgrade'] = 'Overall Grade: ';
-$string['fullscreen'] = "Fullscreen VM App";
-$string['extendevent'] = "Extend Event";
-$string['reviewtext'] = "Review Activity Attempts";
-$string['managetext'] = "Review Site Attempts";
+$string['fullscreen'] = 'Fullscreen VM App';
+$string['extendevent'] = 'Extend Event';
+$string['reviewtext'] = 'Review Activity Attempts';
+$string['managetext'] = 'Review Course Attempts';
+$string['durationtext'] = 'Scheduled Duration';
 
 // review
-$string['returntext'] = "Return to Lab";
+$string['returntext'] = 'Return to Lab';
 
-// task
+// tasks
+$string['managetasks'] = 'Manage Tasks';
 $string['taskcloseattempt'] = 'Close expired Crucible attempts';
+$string['visible'] = 'Visible';
+$string['gradable'] = 'Gradable';
+$string['multiple'] = 'Multiple VMs';
+$string['points'] = 'Points';
 
 // roles
 $string['crucible:manage'] = 'Manage Crucible activities';

@@ -67,8 +67,5 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('crucible/steamfitterapiurl',
         get_string('steamfitterapiurl', 'crucible'), get_string('steamfitterapiurl', 'crucible'), "", PARAM_URL, 60));
 
-    $settings->add(new admin_setting_configcheckbox('crucible/showfailed',
-        get_string('showfailed', 'crucible'), get_string('configshowfailed', 'crucible'), 0, '1'));
-
 }
 

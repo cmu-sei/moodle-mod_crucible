@@ -61,7 +61,7 @@ class grade {
      * @param int                                $userid The userid to get the grade for
      * @return array($forgroupid, $number)
      */
-    protected function get_attempt_grade($attempt) {
+    public function get_attempt_grade($attempt) {
         return array($attempt->userid, $this->calculate_attempt_grade($attempt));
     }
 
@@ -140,26 +140,27 @@ class grade {
      * @return number The grade to save
      */
     public function calculate_attempt_grade($attempt) {
-    
+        global $DB;
+
         $totalpoints = 0;
         $totalslotpoints = 0;
 
         if (is_null($attempt)) {
             return $totalslotpoints;
         }
-
-        if ($this->crucible->openAttempt->sessionid) {
-            //$tasks = filter_tasks(get_sessiontasks($this->crucible->systemauth, $this->crucible->openAttempt->sessionid));
-            //$taskresults = get_taskresults($this->crucible->systemauth, $this->crucible->openAttempt->sessionid);
-            $tasks = filter_tasks(get_sessiontasks($this->crucible->userauth, $this->crucible->openAttempt->sessionid));
-            $taskresults = get_taskresults($this->crucible->userauth, $this->crucible->openAttempt->sessionid);
+/*
+        if ($this->crucible->openAttempt->scenarioid) {
+            //$tasks = filter_tasks(get_scenariotasks($this->crucible->systemauth, $this->crucible->openAttempt->scenarioid));
+            //$taskresults = get_taskresults($this->crucible->systemauth, $this->crucible->openAttempt->scenarioid);
+            $tasks = filter_tasks(get_scenariotasks($this->crucible->userauth, $this->crucible->openAttempt->scenarioid), $visible=0, $gradable=1);
+            $taskresults = get_taskresults($this->crucible->userauth, $this->crucible->openAttempt->scenarioid, $visible=0, $gradable=1);
         } else {
             debugging("attempt $attempt->id has no steamfitter tasks to grade", DEBUG_DEVELOPER);
             return $totalslotpoints;
         }
 
         if (empty($taskresults)) {
-            debugging("no taskresults found in session " . $this->crucible->openAttempt->sessionid, DEBUG_DEVELOPER);
+            debugging("no taskresults found in scenario " . $this->crucible->openAttempt->scenarioid, DEBUG_DEVELOPER);
             return $totalslotpoints;
         }
 
@@ -169,7 +170,7 @@ class grade {
         foreach ($taskresults as $result) {
             // find task in tasks and update the result
             foreach ($tasks as $task) {
-                if ($task->id == $result->dispatchTaskId) {
+                if ($task->id == $result->taskId) {
                     $values[$task->id] = $result->status;
                     debugging("task " . $task->id . " status " . $result->status, DEBUG_DEVELOPER);
                 }
@@ -181,8 +182,30 @@ class grade {
             }
         }
 
-        // TODO one day check attribute for whether the task is gradable or not
-        $totalpoints = count($tasks);
+*/
+        //get tasks from db
+        $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $this->crucible->crucible->id, "gradable" => "1"));
+        //$taskresults = get_records('crucible_task_results', array("attemptid" => $this->crucible->openAttempt->id);
+        $values = array();
+
+        foreach ($tasks as $task) {
+            // TODO multiple vm grading
+            //$totalpoints += $task->points;
+
+            $results = $DB->get_records('crucible_task_results', array("attemptid" => $this->crucible->openAttempt->id, "taskid" => $task->id));
+            if ($results === false) {
+                continue;
+            }
+            foreach ($results as $result) {
+                //TODO maybe sort by vm name and add a timefield to sort by and retrieve most recent per vm
+                $totalpoints += $task->points;
+                $totalslotpoints += $result->score;
+                debugging("task " . $task->id . " status " . $result->status, DEBUG_DEVELOPER);
+                debugging("task " . $task->id . " score " . $result->score, DEBUG_DEVELOPER);
+                debugging("task " . $task->id . " vmname " . $result->vmname, DEBUG_DEVELOPER);
+            }
+        }
+
         $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->crucible->crucible->grade;
         debugging("new score for $attempt->id is $scaledpoints", DEBUG_DEVELOPER);
 
@@ -208,7 +231,7 @@ class grade {
     /**
      * Applies the grading method chosen
      *
-     * @param array $grades The grades for each session for a particular user
+     * @param array $grades The grades for each attempts for a particular user
      * @return number
      * @throws \Exception When there is no valid scaletype throws new exception
      */
@@ -222,7 +245,7 @@ class grade {
 
                 break;
             case \mod_crucible\utils\scaletypes::crucible_LASTATTEMPT:
-                // take the last grade (there should only be one, as the last session was filtered out earlier)
+                // take the last grade (there should only be one, as the last attempt was filtered out earlier)
                 return end($grades);
 
                 break;
@@ -248,7 +271,7 @@ class grade {
 
                 break;
             default:
-                throw new \Exception('Invalid session grade method');
+                throw new \Exception('Invalid grade method');
                 break;
         }
     }

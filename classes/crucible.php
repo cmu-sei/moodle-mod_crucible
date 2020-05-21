@@ -121,7 +121,7 @@ class crucible {
         }
     }
 
-    // GET /definitions/{eventtemplateId}/implementations/mine -- Gets the user's Implementations for the indicated Definition
+    // GET /eventtemplates/{eventtemplateId}/events/mine -- Gets the user's Implementations for the indicated Definition
     function list_events() {
 
         if ($this->userauth == null) {
@@ -130,7 +130,7 @@ class crucible {
         }
 
         // web request
-        $url = get_config('crucible', 'alloyapiurl') . "/definitions/" . $this->crucible->eventtemplateid . "/implementations/mine";
+        $url = get_config('crucible', 'alloyapiurl') . "/eventtemplates/" . $this->crucible->eventtemplateid . "/events/mine";
         //echo "GET $url<br>";
 
         $response = $this->userauth->get($url);
@@ -173,8 +173,8 @@ class crucible {
         if ((!$this->openAttempt->eventid) && ($this->event->id)) {
             $this->openAttempt->eventid = $this->event->id;
         }
-        if ((!$this->openAttempt->sessionid) && ($this->event->sessionId)) {
-            $this->openAttempt->sessionid = $this->event->sessionId;
+        if ((!$this->openAttempt->scenarioid) && ($this->event->scenarioId)) {
+            $this->openAttempt->scenarioid = $this->event->scenarioId;
         }
 
         //TODO remove check for Z once API is updated
@@ -220,7 +220,7 @@ class crucible {
 
         $wherestring = implode(' AND ', $where);
 
-        $sql = "SELECT * FROM {crucible_attempts} WHERE $wherestring";
+        $sql = "SELECT * FROM {crucible_attempts} WHERE $wherestring ORDER BY timemodified DESC";
         $dbattempts = $DB->get_records_sql($sql, $sqlparams);
 
         $attempts = array();
@@ -257,8 +257,8 @@ class crucible {
         } else {
             $attempt->event->id = 0;
         }
-        if ($this->event->sessionId) {
-            $attempt->sessionid = 0;
+        if ($this->event->scenarioId) {
+            $attempt->scenarioid = 0;
         }
         //TODO remove check for Z once API is updated
         if (is_null($this->event->expirationDate)) {
@@ -271,8 +271,8 @@ class crucible {
         }
 
         // TODO get list of tasks from steamfitter
-        if ($this->event->sessionId) {
-            debugging("event has a sessionid", DEBUG_DEVELOPER);
+        if ($this->event->scenarioId) {
+            debugging("event has a scenarioid", DEBUG_DEVELOPER);
         }
         $attempt->tasks = "";
 
@@ -284,5 +284,36 @@ class crucible {
 
         //TODO call start attempt event class from here
         return true;
+    }
+
+    // filter for tasks the user can see and sort by name
+    function filter_scenario_tasks($tasks, $visible = 0, $gradable = 0) {
+
+        global $DB;
+        if (is_null($tasks)) {
+            return;
+        }
+        $filtered = array();
+        foreach ($tasks as $task) {
+            // TODO filter on a parentTask attribute if it becomes available
+            $rec = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
+                    . $DB->sql_compare_text('name') . ' = '
+                    . $DB->sql_compare_text(':name'), ['name' => $task->name]);
+
+            if ($rec === false) {
+                // do not display tasks we do not have in the db
+                debugging('could not find scenario task in db ' . $task->id, DEBUG_DEVELOPER);
+                continue;
+            }
+
+            if ($visible === (int)$rec->visible) {
+                $filtered[] = $task;
+                $task->points = $rec->points;
+            }
+        }
+
+        usort($filtered, "tasksort");
+        return $filtered;
+
     }
 }

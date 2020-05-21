@@ -20,20 +20,17 @@ DM20-0196
 
 define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
-    //var access_token;
-    var session_id;
-    //var steamfitter_api_url;
+    var scenario_id;
     var timeout;
+    var attempt;
 
     return {
-        //init: function(token, session, steamfitter_api) {
         init: function(info) {
 
-            console.log('session id ' + info.session);
+            console.log('scenario id ' + info.scenario);
 
-            //access_token = info.token;
-            session_id = info.session;
-            //steamfitter_api_url = info.steamfitter_api;
+            scenario_id = info.scenario;
+            attempt = info.attempt;
 
             get_results();
 
@@ -58,46 +55,6 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         }
     };
 
-/*
-    function get_results_sf() {
-
-        $.ajax({
-            url: steamfitter_api_url + '/sessions/' + session_id + '/dispatchtaskresults',
-            type: 'GET',
-            contentType: 'application/json',
-            dataType: 'json',
-            beforeSend : function(xhr) {
-                xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
-            },
-            success: function(response) {
-
-                // this will ensure the list is time sorted so that we get
-                // the most recent status displayed
-                response.sort(function(a, b) {
-                    return (a.statusDate > b.statusDate) ? 1 : -1;
-                });
-
-                $.each(response, function(index, value) {
-                    var result = document.getElementById('result-' + value.dispatchTaskId);
-                    if (result) {
-                        result.innerHTML = value.status;
-                    }
-                    // TODO push score to moodle for saving in the db
-                });
-            },
-            error: function(response) {
-                if (response.status == '401') {
-                    console.log('permission error, check token, reload page');
-                    alert('permission error, check token, reload page');
-                    clearTimeout(timeout);
-                } else {
-                    console.log(response);
-                    clearTimeout(timeout);
-                }
-            }
-        });
-    }
-*/
     function get_results() {
         $.ajax({
             url: config.wwwroot + '/mod/crucible/getresults.php',
@@ -106,7 +63,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             data: {
                 'sesskey': config.sesskey,
                 'time': $.now(),
-                'id': session_id
+                'id': scenario_id
             },
             headers: {
                 'Cache-Control': 'no-cache',
@@ -119,9 +76,13 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 });
 
                 $.each(response.parsed, function(index, value) {
-                    var result = document.getElementById('result-' + value.dispatchTaskId);
+                    var result = document.getElementById('result-' + value.taskId);
                     if (result) {
                         result.innerHTML = value.status;
+                    }
+                    var score = document.getElementById('score-' + value.taskId);
+                    if (score && value.score) {
+                        score.innerHTML = value.score;
                     }
                 });
             },
@@ -133,42 +94,6 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         });
     }
 
-/*
-    function exec_task_sf(id) {
-        console.log('exec task for ' + id);
-
-        $.ajax({
-            url: steamfitter_api_url + '/dispatchtasks/' + id + '/execute',
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json',
-            beforeSend : function(xhr) {
-                xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
-            },
-            success: function(response) {
-                $.each(response, function(index, value) {
-                    console.log(value.statusDate + ' task ' + value.dispatchTaskId + ' status ' + value.status);
-                    var result = document.getElementById('result-' + value.dispatchTaskId);
-                    if (result) {
-                        result.innerHTML = value.status;
-                    }
-                });
-            },
-            error: function(response) {
-                if (response.status == '401') {
-                    console.log('permission error, check token, reload page');
-                    alert('permission error, check token, reload page');
-                } else if (response.status == '400') {
-                    console.log(response.responseJSON);
-                    alert('Run Task command failed ' + response.responseJSON.detail);
-                } else if (response.status == '500') {
-                    console.log(response.responseJSON);
-                    alert('Run Task command failed ' + response.responseJSON.detail);
-                }
-            }
-        });
-    }
-*/
     function exec_task_mdl(id) {
         console.log('exec task for ' + id);
 
@@ -179,7 +104,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             data: {
                 'sesskey': config.sesskey,
                 'time': $.now(),
-                'id': id
+                'id': id,
+                'a': attempt
             },
             headers: {
                 'Cache-Control': 'no-cache',

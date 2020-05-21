@@ -25,7 +25,7 @@ DM20-0196
 }}
 
 {{!
-    @template mod_crucible/history
+    @template mod_crucible/tasks_form
 
     This template renders a table of data
 
@@ -40,49 +40,25 @@ DM20-0196
     <table class = "table table-striped">
         {{! Using a get_string helper }}
         <caption>
-            {{# str }} historycaption, mod_crucible {{/ str }}
+            {{# str }} taskcaption, mod_crucible {{/ str }}
         </caption>
         <thead>
             {{#tableheaders}}
-                    {{#username}}
-                        <th>{{username}}</th>
-                    {{/username}}
-                    {{#eventguid}}
-                        <th>{{eventguid}}</th>
-                    {{/eventguid}}
-                    {{#name}}
-                        <th>{{name}}</th>
-                    {{/name}}
-                    <th>{{timestart}}</th>
-                    <th>{{timefinish}}</th>
-                    {{#score}}
-                        <th>{{score}}</th>
-                    {{/score}}
+                <th>{{.}}</th>
             {{/tableheaders}}
         </thead>
         <tbody>
             {{#tabledata}}
                 <tr>
-                    {{#username}}
-                        <td>{{username}}</td>
-                    {{/username}}
-                    {{#eventguid}}
-                        <td>{{eventguid}}</td>
-                    {{/eventguid}}
-                    {{#moduleurl}}
-                        <td><a href="{{moduleurl}}">{{name}}</a></td>
-                    {{/moduleurl}}
-                    <td>{{timestart}}</td>
-                    <td>{{timefinish}}</td>
-                    {{#attempturl}}
-                        <td><a href="{{attempturl}}">{{score}}</a></td>
-                    {{/attempturl}}
-                    {{^attempturl}}
-                        <td>{{score}}</td>
-                    {{/attempturl}}
+                    {{#.}}
+                        <td>{{{.}}}</td>
+                    {{/.}}
                 </tr>
             {{/tabledata}}
         </tbody>
     </table>
 </div>
+
+
+
 

@@ -61,7 +61,7 @@ class mod_crucible_mod_form extends moodleform_mod {
         //-------------------------------------------------------
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-        // pull list of exercises/labs from alloy
+        // pull list from alloy
         $systemauth = setup();
         $this->eventtemplates = get_eventtemplates($systemauth);
         $labnames = array();
@@ -196,6 +196,8 @@ class mod_crucible_mod_form extends moodleform_mod {
         $data->name = $this->eventtemplates[$index]->name;
         $data->intro = $this->eventtemplates[$index]->description;
         $data->introeditor['format'] = FORMAT_PLAIN;
+
+        // TODO save tasks to the db
 
         // TODO if grade method changed, update all grades
     }

@@ -74,8 +74,8 @@ foreach ($result as $vm) {
 $request = new stdClass();
 $request->name = "Run VPL Check";
 $request->description = "Run task to get VPL score";
+$request->scenarioTemplateId = null;
 $request->scenarioId = null;
-$request->sessionId = null;
 $request->userId = null;
 $request->action = "guest_process_run";
 $request->vmMask = $vmguid;

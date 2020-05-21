@@ -26,7 +26,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
     return {
         init: function(info) {
 
-            view_id = info.exercise;
+            view_id = info.view;
 
             get_results();
 
@@ -72,7 +72,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 });
 
                 $.each(response.parsed, function(index, value) {
-                    var result = document.getElementById('result-' + value.dispatchTaskId);
+                    var result = document.getElementById('result-' + value.taskId);
                     if (result) {
                         result.innerHTML = value.status;
                     }

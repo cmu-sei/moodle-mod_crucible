@@ -332,6 +332,88 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020050602, 'crucible');
     }
 
+    if ($oldversion < 2020051801) {
+
+        // Define table crucible_tasks to be created.
+        $table = new xmldb_table('crucible_tasks');
+
+        // Adding fields to table crucible_tasks.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('crucibleid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('scenarioid', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('dispatchtaskid', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('name', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('description', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('gradable', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('visible', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('points', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('multiple', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+
+        // Adding keys to table crucible_tasks.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Conditionally launch create table for crucible_tasks.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020051801, 'crucible');
+    }
+
+
+    if ($oldversion < 2020051802) {
+
+        // Define table crucible_task_results to be created.
+        $table = new xmldb_table('crucible_task_results');
+
+        // Adding fields to table crucible_task_results.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('taskid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('attemptid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('vmname', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('status', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('score', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('comment', XMLDB_TYPE_TEXT, null, null, null, null, null);
+
+        // Adding keys to table crucible_task_results.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Conditionally launch create table for crucible_task_results.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020051802, 'crucible');
+    }
+
+    if ($oldversion < 2020052000) {
+
+        // Rename field sessionid on table crucible_attempts to scenarioid.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('sessionid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'crucibleid');
+
+        // Launch rename field sessionid.
+        $dbman->rename_field($table, $field, 'scenarioid');
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020052000, 'crucible');
+    }
+
+    if ($oldversion < 2020052001) {
+
+        // Rename field scenarioid on table crucible_tasks to scenariotemplateid.
+        $table = new xmldb_table('crucible_tasks');
+        $field = new xmldb_field('scenarioid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'crucibleid');
+
+        // Launch rename field scenariotemplateid.
+        $dbman->rename_field($table, $field, 'scenariotemplateid');
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020052001, 'crucible');
+    }
+
 
     return true;
 }

@@ -81,7 +81,7 @@ $object->eventtemplate = get_eventtemplate($object->userauth, $crucible->eventte
 
 // Update the database.
 if ($object->eventtemplate) {
-    $scenarioid = $object->eventtemplate->scenarioId;
+    $scenariotemplateid = $object->eventtemplate->scenarioTemplateId;
     // Update the database.
     $crucible->name = $object->eventtemplate->name;
     $crucible->intro = $object->eventtemplate->description;
@@ -89,14 +89,14 @@ if ($object->eventtemplate) {
     // this generates lots of hvp module errors
     //rebuild_course_cache($crucible->course);
 } else {
-    $scenarioid = "";
+    $scenariotemplateid = "";
 }
 
 //TODO send instructor to a different page where manual grading can occur
 
 $eventid = null;
-$exerciseid = null;
-$sessionid = null;
+$viewid = null;
+$scenarioid = null;
 $startime = null;
 $endtime = null;
 
@@ -113,7 +113,7 @@ if ((int)$gradepass >0) {
 
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
-$renderer->display_detail($crucible);
+$renderer->display_detail($crucible, $object->eventtemplate->durationHours);
 
 $renderer->display_form($url, $object->crucible->eventtemplateid);
 
@@ -122,18 +122,34 @@ if ($showgrade) {
 }
 
 // TODO loads tasks and results from the db
+global $DB;
 
-if ($scenarioid) {
-    // this is when we do not have an active session
-    $tasks = filter_tasks(get_scenariotasks($object->userauth, $scenarioid));
+$isinstructor = has_capability('mod/crucible:manage', $context);
 
-    // TODO it may be fine to leave this here
-    if (is_null($tasks)) {
-        // run as system account
-        $tasks = filter_tasks(get_scenariotasks($object->systemauth, $scenarioid));
+//get tasks from db
+if ($isinstructor) {
+    echo "Displaying all gradable tasks";
+    $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $crucible->id, "gradable" => "1"));
+} else {
+    echo "Displaying all visible and gradable tasks";
+    $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $crucible->id, "visible" => "1", "gradable" => "1"));
+}
+
+foreach ($tasks as $task) {
+    $results = $DB->get_records('crucible_task_results', array("attemptid" => $a, "taskid" => $task->id));
+    if ($results === false) {
+        continue;
     }
+    foreach ($results as $result) {
+        //$totalpoints += $task->points;
+        //$totalslotpoints += $result->score;
+        $task->score = $result->score;
+        $task->result = $result->status;
+    }
+}
 
-    $renderer->display_tasks($tasks);
+if ($tasks) {
+    $renderer->display_results($tasks);
 }
 
 echo $renderer->footer();

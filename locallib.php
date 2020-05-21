@@ -94,7 +94,7 @@ function get_eventtemplate($client, $id) {
     }
 
     // web request
-    $url = get_config('crucible', 'alloyapiurl') . "/definitions/" . $id;
+    $url = get_config('crucible', 'alloyapiurl') . "/eventtemplates/" . $id;
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -123,22 +123,35 @@ function tasksort($a, $b) {
 }
 
 // filter for tasks the user can see and sort by name
-function filter_tasks($tasks) {
+function filter_tasks($tasks, $visible = 0, $gradable = 0) {
+    global $DB;
     if (is_null($tasks)) {
         return;
     }
     $filtered = array();
     foreach ($tasks as $task) {
-        // TODO show automatic checks
-        //if ($task->gradable == "true") {
-        //    $filtered[] = $task;
-        //}
-        // show manual tasks only
+
+        $rec = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
+                . $DB->sql_compare_text('dispatchtaskid') . ' = '
+                . $DB->sql_compare_text(':dispatchtaskid'), ['dispatchtaskid' => $task->id]);
+
+        if ($rec === false) {
+            // do not display tasks we do not have in the db
+            // this will only show the tasks saved in the scenariotemplate
+            debugging('could not find task in db ' . $task->id, DEBUG_DEVELOPER);
+            continue;
+        }
+
+        if ($visible === (int)$rec->visible ) {
+            $task->points = $rec->points;
+            $filtered[] = $task;
+        }
+
+        // TODO show automatic checks or show manual tasks only?
         //if ($task->triggerCondition == "Manual") {
         //    $filtered[] = $task;
         //}
-        // TODO for now, show all
-        $filtered[] = $task;
+        //$filtered[] = $task;
     }
     // sort the array by name
     usort($filtered, "tasksort");
@@ -148,12 +161,12 @@ function filter_tasks($tasks) {
 function get_eventtemplates($client) {
 
     if ($client == null) {
-        debugging('error with client in get_eventtemplates', DEBUG_DEVELOPER);;
+        debugging('error with client in get_eventtemplates', DEBUG_DEVELOPER);
         return;
     }
 
     // web request
-    $url = get_config('crucible', 'alloyapiurl') . "/definitions";
+    $url = get_config('crucible', 'alloyapiurl') . "/eventtemplates";
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -182,7 +195,7 @@ function start_event($client, $id) {
     }
 
     // web request
-    $url = get_config('crucible', 'alloyapiurl') . "/definitions/" . $id . "/implementations";
+    $url = get_config('crucible', 'alloyapiurl') . "/eventtemplates/" . $id . "/events";
     //echo "POST $url<br>";
 
     $response = $client->post($url);
@@ -219,7 +232,7 @@ function stop_event($client, $id) {
     }
 
     // web request
-    $url = get_config('crucible', 'alloyapiurl') . "/implementations/" . $id . "/end";
+    $url = get_config('crucible', 'alloyapiurl') . "/events/" . $id . "/end";
     //echo "DELETE $url<br>";
 
     $response = $client->delete($url);
@@ -243,7 +256,7 @@ function run_task($client, $id) {
     }
 
     // web request
-    $url = get_config('crucible', 'steamfitterapiurl') . "/dispatchtasks/" . $id . "/execute";
+    $url = get_config('crucible', 'steamfitterapiurl') . "/tasks/" . $id . "/execute";
 
     $response = $client->post($url);
 
@@ -263,7 +276,7 @@ function extend_event($client, $data) {
     }
 
     // web request
-    $url = get_config('crucible', 'alloyapiurl') . "/implementations/" . $data->id;
+    $url = get_config('crucible', 'alloyapiurl') . "/events/" . $data->id;
     $client->setHeader('Content-Type: application/json-patch+json');
 
     $response = $client->put($url, json_encode($data));
@@ -291,7 +304,7 @@ function get_event($client, $id) {
     }
 
     // web request
-    $url = get_config('crucible', 'alloyapiurl') . "/implementations/" . $id;
+    $url = get_config('crucible', 'alloyapiurl') . "/events/" . $id;
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -315,6 +328,42 @@ function get_event($client, $id) {
     return;
 }
 
+function get_scenariotemplatetasks($client, $id) {
+
+    if ($client == null) {
+        debugging('error with client in get_scenariotemplatetasks', DEBUG_DEVELOPER);;
+        return;
+    }
+
+    if ($id == null) {
+        debugging('error with id in get_scenariotemplatetasks', DEBUG_DEVELOPER);;
+        return;
+    }
+
+    // web request
+    $url = get_config('crucible', 'steamfitterapiurl') . "/scenariotemplates/" . $id . "/tasks";
+    //echo "GET $url<br>";
+
+    $response = $client->get($url);
+    if (!$response) {
+        debugging('no response received by get_scenariotemplatetasks', DEBUG_DEVELOPER);
+        return;
+    }
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+    if (!$r) {
+        debugging("could not decode json", DEBUG_DEVELOPER);
+        return;
+    }
+
+    if ($client->info['http_code']  === 200) {
+        return $r;
+    } else {
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
+    }
+    return;
+}
+
 function get_scenariotasks($client, $id) {
 
     if ($client == null) {
@@ -328,7 +377,7 @@ function get_scenariotasks($client, $id) {
     }
 
     // web request
-    $url = get_config('crucible', 'steamfitterapiurl') . "/scenarios/" . $id . "/dispatchtasks";
+    $url = get_config('crucible', 'steamfitterapiurl') . "/scenarios/" . $id . "/tasks";
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -351,25 +400,25 @@ function get_scenariotasks($client, $id) {
     return;
 }
 
-function get_sessiontasks($client, $id) {
+function get_task($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in get_sessiontasks', DEBUG_DEVELOPER);;
+        debugging('error with client in get_tasks', DEBUG_DEVELOPER);;
         return;
     }
 
     if ($id == null) {
-        debugging('error with id in get_sessiontasks', DEBUG_DEVELOPER);;
+        debugging('error with id in get_tasks', DEBUG_DEVELOPER);;
         return;
     }
 
     // web request
-    $url = get_config('crucible', 'steamfitterapiurl') . "/sessions/" . $id . "/dispatchtasks";
+    $url = get_config('crucible', 'steamfitterapiurl') . "/tasks/" . $id;
     //echo "GET $url<br>";
 
     $response = $client->get($url);
     if (!$response) {
-        debugging('no response received by get_sessiontasks', DEBUG_DEVELOPER);
+        debugging('no response received by get_tasks', DEBUG_DEVELOPER);
         return;
     }
     //echo "response:<br><pre>$response</pre>";
@@ -400,7 +449,7 @@ function get_taskresults($client, $id) {
     }
 
     // web request
-    $url = get_config('crucible', 'steamfitterapiurl') . "/sessions/" . $id . "/dispatchtaskresults";
+    $url = get_config('crucible', 'steamfitterapiurl') . "/scenarios/" . $id . "/results";
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -535,7 +584,7 @@ function get_allvms($systemauth, $id) {
     }
 
     // web request
-    $url = "https://s3vm.cyberforce.site/api/exercises/" . $id . "/vms";
+    $url = "https://s3vm.cyberforce.site/api/views/" . $id . "/vms";
     //echo "GET $url<br>";
 
     $response = $systemauth->get($url);
@@ -566,7 +615,7 @@ function create_and_exec_task($systemauth, $data) {
     }
 
     // web request
-    $url = get_config('crucible', 'steamfitterapiurl') . "/dispatchtasks/execute";
+    $url = get_config('crucible', 'steamfitterapiurl') . "/tasks/execute";
     $systemauth->setHeader('Content-Type: application/json');
 
     $response = $systemauth->post($url, $data);

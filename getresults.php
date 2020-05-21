@@ -57,20 +57,33 @@ $response = array();
 if (!$results) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error";
+} else {
+
+    $data = array();
+    foreach ($results as $result) {
+
+        $task = get_task($system, $result->taskId);
+
+        $dbtask = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
+                . $DB->sql_compare_text('name') . ' = '
+                . $DB->sql_compare_text(':name'), ['name' => $task->name]);
+        if ($dbtask !== null) {
+            $object = new stdClass();
+            $object->statusDate = $result->statusDate;
+            $object->status = $result->status;
+            $object->taskId = $result->taskId;
+            if ($object->status === "succeeded") {
+            $object->score = $dbtask->points;
+            }
+            array_push($data, $object);
+        }
+    }
+
+    header('HTTP/1.1 200 OK');
+    $response['parsed'] = $data;
+    $response['message'] = "success";
 }
 
-$data = array();
-foreach ($results as $result) {
-    $object = new stdClass();
-    $object->statusDate = $result->statusDate;
-    $object->status = $result->status;
-    $object->dispatchTaskId = $result->dispatchTaskId;
-    array_push($data, $object);
-}
-
-header('HTTP/1.1 200 OK');
-$response['parsed'] = $data;
-$response['message'] = "success";
 $response['id'] = $id;
 
 echo json_encode($response);

@@ -36,12 +36,13 @@ defined('MOODLE_INTERNAL') || die();
 
 class mod_crucible_renderer extends plugin_renderer_base {
 
-    function display_detail ($crucible) {
+    function display_detail ($crucible, $duration) {
         $data = new stdClass();
         $data->name = $crucible->name;
         $data->intro = $crucible->intro;
+        $data->durationtext = get_string('durationtext', 'mod_crucible');
+        $data->duration = $duration;
         echo $this->render_from_template('mod_crucible/detail', $data);
-
     }
 
     function display_form($url, $eventtemplate) {
@@ -59,9 +60,9 @@ class mod_crucible_renderer extends plugin_renderer_base {
         echo $this->render_from_template('mod_crucible/returnform', $data);
     }
 
-    function display_link_page($player_app_url, $exerciseid) {
+    function display_link_page($player_app_url, $viewid) {
         $data = new stdClass();
-        $data->url =  $player_app_url . '/exercise-player/' .  $exerciseid;
+        $data->url =  $player_app_url . '/view-player/' .  $viewid;
         $data->playerlinktext = get_string('playerlinktext', 'mod_crucible');
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_crucible/link', $data);
@@ -91,19 +92,21 @@ class mod_crucible_renderer extends plugin_renderer_base {
     function display_attempts($attempts, $showgrade, $showuser = false, $showdetail = false) {
         global $DB;
         $data = new stdClass();
+        $data->tableheaders = new stdClass();
+        $data->tabledata[] = array();
 
         if ($showuser) {
-            $data->tableheaders[] = get_string('username', 'mod_crucible');
-            $data->tableheaders[] = get_string('eventid', 'mod_crucible');
+            $data->tableheaders->username = get_string('username', 'mod_crucible');
+            $data->tableheaders->eventguid = get_string('eventid', 'mod_crucible');
         }
         if ($showdetail) {
-            $data->tableheaders[] = get_string('eventtemplate', 'mod_crucible');
+            $data->tableheaders->name = get_string('eventtemplate', 'mod_crucible');
         }
-        $data->tableheaders[] = get_string('timestart', 'mod_crucible');
-        $data->tableheaders[] = get_string('timefinish', 'mod_crucible');
+        $data->tableheaders->timestart = get_string('timestart', 'mod_crucible');
+        $data->tableheaders->timefinish = get_string('timefinish', 'mod_crucible');
 
         if ($showgrade) {
-            $data->tableheaders[] = get_string('score', 'mod_crucible');
+            $data->tableheaders->score = get_string('score', 'mod_crucible');
         }
 
         if ($attempts) {
@@ -143,32 +146,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
         echo $this->render_from_template('mod_crucible/history', $data);
     }
 
-    function display_history($history, $showfailed) {
-        $data = new stdClass();
-        $data->tableheaders = [
-            get_string('id', 'mod_crucible'),
-            get_string('status', 'mod_crucible'),
-            get_string('launchdate', 'mod_crucible'),
-            get_string('enddate', 'mod_crucible'),
-
-        ];
-
-        if ($history) {
-            foreach ($history as $odx) {
-                if ((!$showfailed) && ($odx['status'] === 'Failed')) {
-                    continue;
-                }
-                $rowdata = array();
-                $rowdata[] = $odx['id'];
-                $rowdata[] = $odx['status'];
-                $rowdata[] = $odx['launchDate'];
-                $rowdata[] = $odx['endDate'];
-                $data->tabledata[] = $rowdata;
-            }
-        }
-        echo $this->render_from_template('mod_crucible/history', $data);
-    }
-
     function display_tasks($tasks) {
         if (is_null($tasks)) {
             return;
@@ -178,6 +155,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
             //get_string('taskid', 'mod_crucible'),
             get_string('taskname', 'mod_crucible'),
             get_string('taskdesc', 'mod_crucible'),
+            get_string('points', 'mod_crucible'),
         ];
 
         foreach ($tasks as $task) {
@@ -186,6 +164,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
             //$rowdata[] = $task->id;
             $rowdata[] = $task->name;
             $rowdata[] = $task->description;
+            $rowdata[] = $task->points;
             $data->tabledata[] = $rowdata;
         }
 
@@ -193,10 +172,54 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     }
 
+    function display_tasks_form($tasks) {
+        global $DB;
+        if (is_null($tasks)) {
+            return;
+        }
+        $data = new stdClass();
+        $data->tableheaders = [
+            get_string('taskid', 'mod_crucible'),
+            get_string('taskname', 'mod_crucible'),
+            get_string('taskdesc', 'mod_crucible'),
+            'vm mask',
+            'inputString',
+            'expectedOutput',
+            'gradable',
+            'visible',
+            'muliple',
+            'points'
+        ];
+
+        foreach ($tasks as $task) {
+            //var_dump($task);
+            $rowdata = array();
+            $rowdata[] = $task->id;
+            $rowdata[] = $task->name;
+            $rowdata[] = $task->description;
+            $rowdata[] = $task->vmMask ;
+            $rowdata[] = $task->inputString;
+            $rowdata[] = $task->expectedOutput;
+            // get task from db table
+            $rec = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
+                    . $DB->sql_compare_text('dispatchtaskid') . ' = '
+                    . $DB->sql_compare_text(':dispatchtaskid'), ['dispatchtaskid' => $task->id]);
+            $rowdata[] = $rec->gradable;
+            $rowdata[] = $rec->visible;
+            $rowdata[] = $rec->multiple;
+            $rowdata[] = $rec->points;
+            $data->tabledata[] = $rowdata;
+
+        }
+
+        echo $this->render_from_template('mod_crucible/tasks_form', $data);
+
+    }
+
     function display_results($tasks) {
         if (is_null($tasks)) {
             return;
-	}		
+        }
         $data = new stdClass();
         $data->tableheaders = [
             //get_string('taskid', 'mod_crucible'),
@@ -204,6 +227,8 @@ class mod_crucible_renderer extends plugin_renderer_base {
             get_string('taskdesc', 'mod_crucible'),
             get_string('taskaction', 'mod_crucible'),
             get_string('taskresult', 'mod_crucible'),
+            get_string('points', 'mod_crucible'),
+            get_string('score', 'mod_crucible')
         ];
 
         foreach ($tasks as $task) {
@@ -211,17 +236,15 @@ class mod_crucible_renderer extends plugin_renderer_base {
             $rowdata->id = $task->id;
             $rowdata->name = $task->name;
             $rowdata->desc = $task->description;
-            //if (defined($task->result->status)) {
-            //    $rowdata->result = $task->result->status;
-            //} else {
-                $rowdata->result = '';
-            //}
+            $rowdata->result = $task->result;
             // check whether we can execute the task
             if ($task->triggerCondition == "Manual") {
                 $rowdata->action = get_string('taskexecute', 'mod_crucible');
             } else {
                 $rowdata->action = get_string('tasknoexecute', 'mod_crucible');
             }
+            $rowdata->score = $task->score;
+            $rowdata->points = $task->points;
             $data->tabledata[] = $rowdata;
         }
 

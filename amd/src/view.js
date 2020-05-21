@@ -25,7 +25,7 @@ define(['jquery'], function($) {
     var access_token;
     var lab_status;
     var event_id;
-    var exercise_id;
+    var view_id;
     var alloy_api_url;
     var vm_app_url;
     var player_app_url;
@@ -35,7 +35,7 @@ define(['jquery'], function($) {
             access_token = info.token;
             lab_status = info.state;
             event_id = info.event;
-            exercise_id = info.exercise;
+            view_id = info.view;
             alloy_api_url = info.alloy_api_url;
             vm_app_url = info.vm_app_url;
             player_app_url = info.player_app_url;
@@ -66,7 +66,7 @@ define(['jquery'], function($) {
         if (event_id) {
             console.log('event id ' + event_id);
             $.ajax({
-                url: alloy_api_url + '/implementations/' + event_id,
+                url: alloy_api_url + '/events/' + event_id,
                 type: 'GET',
                 contentType: 'application/json',
                 dataType: 'json',
@@ -75,10 +75,10 @@ define(['jquery'], function($) {
                 },
                 success: function(response) {
                     $.each(response, function(index, value) {
-                        if (index == 'exerciseId') {
+                        if (index == 'viewId') {
                             if (value) {
-                                exercise_id = value;
-                                console.log('exercise_id ' + exercise_id);
+                                view_id = value;
+                                console.log('view_id ' + view_id);
                              }
                         }
                         if (index == 'status') {
@@ -109,8 +109,8 @@ define(['jquery'], function($) {
                         }
                         // TODO move this into a script that checks task
                         // results and handles clicking on execution button
-                        if (index == 'sessionid') {
-                            console.log('session id ' + value);
+                        if (index == 'scenarioid') {
+                            console.log('scenario id ' + value);
                         }
                     });
                 },
@@ -195,10 +195,10 @@ define(['jquery'], function($) {
         x.style.display = 'none';
         var x = document.getElementById('vm_or_link');
         if (x.getAttribute('src') !== null) {
-            x.setAttribute('src', vm_app_url + '/exercises/' + exercise_id);
+            x.setAttribute('src', vm_app_url + '/views/' + view_id);
         }
         if (x.getAttribute('href')) {
-            x.setAttribute('href', player_app_url + '/exercise-player/' + exercise_id);
+            x.setAttribute('href', player_app_url + '/view-player/' + view_id);
         }
         x.style.display = 'block';
         var x = document.getElementById('timerdiv');

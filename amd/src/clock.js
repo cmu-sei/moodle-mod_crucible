@@ -39,9 +39,12 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
-                if (remaining === 0) {
-                    console.log("timer expired, reloading page");
-                    window.location.replace(window.location.href);
+                if (remaining <= 0) {
+                    var timer = document.getElementById('timer');
+                    if (timer) {
+                        timer.innerHTML = "Your time has expired";
+                        timer.className = "alert alert-danger";
+                    }
                 }
             }, 1000);
         },
@@ -51,9 +54,9 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
-                if (remaining === 0) {
-                    console.log("timer expired, reloading page");
-                    window.location.replace(window.location.href);
+                if (remaining <= 0) {
+                    console.log("countdown timer expired");
+                    return;
                 }
 
                 var hours = Math.floor(remaining % (60 * 60 * 24) / (60 * 60));
@@ -62,6 +65,13 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
                 var timer = document.getElementById('timer');
                 if (timer) {
+                    if (remaining < 1800) {
+                        timer.className = "alert alert-warning";
+                    } else if (remaining < 300) {
+                        timer.className = "alert alert-danger";
+                    } else {
+                        timer.className = "alert alert-success";
+                    }
                     timer.innerHTML = "Timer: " + hours.toString().padStart(2, '0') +
                             ":" + minutes.toString().padStart(2, '0') + ":" +
                             seconds.toString().padStart(2, '0');
@@ -81,6 +91,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
                 var timer = document.getElementById('timer');
                 if (timer) {
+                    timer.className = "alert alert-success";
                     timer.innerHTML = "Timer: " +  hours.toString().padStart(2, '0') +
                         ":" + minutes.toString().padStart(2, '0') + ":" +
                         seconds.toString().padStart(2, '0');

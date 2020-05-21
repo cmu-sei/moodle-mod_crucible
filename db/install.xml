@@ -11,14 +11,14 @@
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="intro text format."/>
-        <FIELD NAME="eventtemplateid" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="eventtemplateid" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The is the gui"/>
         <FIELD NAME="vmapp" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="clock" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="extendevent" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="timeopen" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz opens. (0 = no restriction.)"/>
         <FIELD NAME="timeclose" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz closes. (0 = no restriction.)"/>
         <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The total that the quiz is scaled out of."/>
-        <FIELD NAME="grademethod" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The grading method for grading.  This only applies to grading with multiple sessions, not multiple attempts"/>
+        <FIELD NAME="grademethod" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The grading method for grading.  This applies to grading multiple attempts"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -45,8 +45,8 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="crucibleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the crucible lab for this attempt"/>
-        <FIELD NAME="sessionid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter session for this attempt"/>
-        <FIELD NAME="eventid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The alloy event for this attempt"/>
+        <FIELD NAME="scenarioid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter scenario guid for this attempt"/>
+        <FIELD NAME="eventid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The alloy event guid for this attempt"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The userid for this attempt"/>
         <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="inprogress" SEQUENCE="false" COMMENT="The current state of the attempts. 'inprogress', 'overdue', 'finished' or 'abandoned'."/>
         <FIELD NAME="tasks" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The tasks for this attempt"/>
@@ -55,6 +55,37 @@
         <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt began"/>
         <FIELD NAME="timefinish" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The time this attempt ended"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt was modified"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="crucible_tasks" COMMENT="The table to hold steamfitter tasks">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="crucibleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the crucible id"/>
+        <FIELD NAME="scenariotemplateid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter scenario template guid for this attempt"/>
+        <FIELD NAME="dispatchtaskid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter guid for this task"/>
+        <FIELD NAME="name" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The task name"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The task description"/>
+        <FIELD NAME="gradable" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Whether the task is gradable"/>
+        <FIELD NAME="visible" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Whether the task is visible"/>
+        <FIELD NAME="points" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The max points for this task"/>
+        <FIELD NAME="multiple" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Process multiple vms as separate tasks"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="crucible_task_results" COMMENT="The table to hold attempt task results for students">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the task"/>
+        <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the crucible attempt"/>
+        <FIELD NAME="vmname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The vm name for this result"/>
+        <FIELD NAME="status" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter task status"/>
+        <FIELD NAME="score" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Score given to the student"/>
+        <FIELD NAME="comment" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A comment added by a teacher"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

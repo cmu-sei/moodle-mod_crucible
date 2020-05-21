@@ -21,18 +21,18 @@ DM20-0196
 define(['jquery'], function($) {
 
     var access_token;
-    var session_id;
+    var scenario_id;
     var steamfitter_api_url;
     var timeout;
 
     return {
-        //init: function(token, session, steamfitter_api) {
+        //init: function(token, scenario, steamfitter_api) {
         init: function(info) {
 
-            console.log('session id ' + info.session);
+            console.log('scenario id ' + info.scenario);
 
             access_token = info.token;
-            session_id = info.session;
+            scenario_id = info.scenario;
             steamfitter_api_url = info.steamfitter_api;
 
             get_results();
@@ -62,7 +62,7 @@ define(['jquery'], function($) {
     function get_results() {
 
         $.ajax({
-            url: steamfitter_api_url + '/sessions/' + session_id + '/dispatchtaskresults',
+            url: steamfitter_api_url + '/scenarios/' + scenario_id + '/results',
             type: 'GET',
             contentType: 'application/json',
             dataType: 'json',
@@ -78,7 +78,7 @@ define(['jquery'], function($) {
                 });
 
                 $.each(response, function(index, value) {
-                    var result = document.getElementById('result-' + value.dispatchTaskId);
+                    var result = document.getElementById('result-' + value.taskId);
                     if (result) {
                         result.innerHTML = value.status;
                     }
@@ -102,7 +102,7 @@ define(['jquery'], function($) {
         console.log('exec task for ' + id);
 
         $.ajax({
-            url: steamfitter_api_url + '/dispatchtasks/' + id + '/execute',
+            url: steamfitter_api_url + '/tasks/' + id + '/execute',
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json',
@@ -111,8 +111,8 @@ define(['jquery'], function($) {
             },
             success: function(response) {
                 $.each(response, function(index, value) {
-                    console.log(value.statusDate + ' task ' + value.dispatchTaskId + ' status ' + value.status);
-                    var result = document.getElementById('result-' + value.dispatchTaskId);
+                    console.log(value.statusDate + ' task ' + value.taskId + ' status ' + value.status);
+                    var result = document.getElementById('result-' + value.taskId);
                     if (result) {
                         result.innerHTML = value.status;
                     }

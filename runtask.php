@@ -42,6 +42,7 @@ require_login();
 require_sesskey();
 
 $id = required_param('id', PARAM_ALPHANUMEXT);
+$a = required_param('a', PARAM_ALPHANUMEXT);
 
 // Require the session key - want to make sure that this isn't called
 // maliciously to keep a session alive longer than intended.
@@ -57,14 +58,54 @@ $response = array();
 if (!$result) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error";
+} else if (is_array($result)) {
+    global $DB;
+    header('HTTP/1.1 200 OK');
+    $response['status'] = $result[0]->status;
+    $response['message'] = "success";
 
+    $task = get_task($system, $id);
+
+    $dbtask = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
+            . $DB->sql_compare_text('name') . ' = '
+            . $DB->sql_compare_text(':name'), ['name' => $task->name]);
+
+    if ($dbtask !== false) {
+    // save results in the db
+/*
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the task"/>
+        <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the crucible attempt"/>
+        <FIELD NAME="vmname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The vm name for this result"/>
+        <FIELD NAME="status" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter task status"/>
+        <FIELD NAME="score" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Score given to the student"/>
+        <FIELD NAME="comment" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A comment added by a teacher"/>
+*/
+
+        foreach ($result as $res) {
+            $entry = new stdClass();
+            $entry->taskid = $dbtask->id;
+            $entry->attemptid = $a;
+            $entry->vmname = $res->vmName;
+            $entry->status = $res->status;
+            if ($res->status === "succeeded") {
+                $entry->score = $dbtask->points;
+                $response['score'] = $dbtask->points;
+            }
+            $rec = $DB->insert_record('crucible_task_results', $entry);
+            if ($rec === false) {
+                debugging("failed to insert task results record for " . $id, DEBUG_DEVELOPER);
+            }
+        }
+    }
+    //$response['raw'] = $result;
+} else {
+    header('HTTP/1.1 200 OK');
+    $response['detail'] = $result->detail;
+    $response['message'] = "error";
 }
-header('HTTP/1.1 200 OK');
-//TODO comment out raw response
-//$response['raw'] = $result;
-$response['status'] = $result[0]->status;
-$response['message'] = "success";
 $response['id'] = $id;
+$response['a'] = $a;
 
 echo json_encode($response);
 

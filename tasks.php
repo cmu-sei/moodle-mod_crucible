@@ -40,7 +40,6 @@ use \mod_crucible\crucible;
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
-require_once($CFG->libdir . '/completionlib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
@@ -61,20 +60,14 @@ try {
 
 require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
-require_capability('mod/crucible:view', $context);
-
-if ($_SERVER['REQUEST_METHOD'] == "GET") {
-    // Completion and trigger events.
-    crucible_view($crucible, $course, $cm, $context);
-}
+require_capability('mod/crucible:manage', $context);
 
 // Print the page header.
-$url = new moodle_url ( '/mod/crucible/review.php', array ( 'id' => $cm->id ) );
-$returnurl = new moodle_url ( '/mod/crucible/view.php', array ( 'id' => $cm->id ) );
+$url = new moodle_url ( '/mod/crucible/tasks.php', array ( 'id' => $cm->id ) );
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
-$PAGE->set_title(format_string($crucible->name));
+$PAGE->set_title(format_string("Manage Tasks"));
 $PAGE->set_heading($course->fullname);
 
 // new crucible class
@@ -87,39 +80,86 @@ $object->eventtemplate = get_eventtemplate($object->userauth, $crucible->eventte
 
 // Update the database.
 if ($object->eventtemplate) {
-    $scenariotemplateid = $object->eventtemplate->scenarioId;
+    $scenariotemplateid = $object->eventtemplate->scenarioTemplateId;
     // Update the database.
     $crucible->name = $object->eventtemplate->name;
     $crucible->intro = $object->eventtemplate->description;
     $DB->update_record('crucible', $crucible);
+    // this generates lots of hvp module errors
+    //rebuild_course_cache($crucible->course);
 } else {
-    $scenariotemplateid = "";
-}
-
-if (!$object->is_instructor()) {
-    redirect($returnurl);
+    print_error("invalid eventtemplate");
 }
 
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
-$renderer->display_detail($crucible);
 
-$renderer->display_return_form($returnurl, $id);
+$renderer->display_detail($crucible, $object->eventtemplate->durationHours);
 
-if ($scenariotemplateid) {
-    // this is when we do not have an active session
-    $tasks = filter_tasks(get_scenariotemplatetasks($object->userauth, $scenariotemplateid));
-
-    // TODO it may be fine to leave this here
-    if (is_null($tasks)) {
-        // run as system account
-        $tasks = filter_tasks(get_scenariotemplatetasks($object->systemauth, $scenariotemplateid));
-    }
-    $renderer->display_tasks($tasks);
+$tasks = get_scenariotemplatetasks($object->userauth, $scenariotemplateid);
+if (is_null($tasks)) {
+    $tasks = get_scenariotemplatetasks($object->systemauth, $scenariotemplateid);
 }
 
-$attempts = $object->getall_attempts('all', $review = true);
-echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
+$mform = new \mod_crucible\crucible_tasks_form(null, array('tasks' => $tasks, 'cm' => $cm));
+
+//Form processing and displaying is done here
+if ($mform->is_cancelled()) {
+    //Handle form cancel operation, if cancel button is present on form
+    redirect(new moodle_url('/mod/crucible/view.php', array("id" => $id)));
+} else if ($fromform = $mform->get_data()) {
+    //In this case you process validated data. $mform->get_data() returns data posted in form.
+
+    foreach ($fromform as $task) {
+        if (is_array($task)) {
+            // get task from db table
+            $rec = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
+                    . $DB->sql_compare_text('dispatchtaskid') . ' = '
+                    . $DB->sql_compare_text(':dispatchtaskid'), ['dispatchtaskid' => $task['dispatchtaskid']]);
+            if ($rec === false) {
+                $task['crucibleid'] = $crucible->id;
+                debugging("creating task record for " . $task['dispatchtaskid'], DEBUG_DEVELOPER);
+                $DB->insert_record('crucible_tasks', $task);
+            } else if ($rec) {
+                if ($task['visible']) {
+                    $rec->visible = $task['visible'];
+                } else {
+                    $rec->visible = 0;
+                }
+                if ($task['gradable']) {
+                    $rec->gradable = $task['gradable'];
+                    if ($task['points']) {
+                        $rec->points = $task['points'];
+                    } else {
+                        $rec->points = 1;
+                    }
+                } else {
+                    $rec->gradable = 0;
+                    $rec->points = 0;
+                }
+                if ($task['multiple']) {
+                    $rec->multiple = $task['multiple'];
+                } else {
+                    $rec->multiple = 0;
+                }
+                debugging("updating task record for " . $task['dispatchtaskid'], DEBUG_DEVELOPER);
+                $DB->update_record('crucible_tasks', $rec);
+            }
+        }
+    }
+
+    $mform->display();
+
+
+} else {
+    // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
+    // or on the first display of the form.
+    //Set default data (if any)
+    // we need to retrieve current settings from the db
+    //$mform->set_data($toform);
+    //displays the form
+    $mform->display();
+}
 
 echo $renderer->footer();
 

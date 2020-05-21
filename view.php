@@ -86,7 +86,7 @@ $object->eventtemplate = get_eventtemplate($object->userauth, $crucible->eventte
 
 // Update the database.
 if ($object->eventtemplate) {
-    $scenarioid = $object->eventtemplate->scenarioId;
+    $scenariotemplateid = $object->eventtemplate->scenarioTemplateId;
     // Update the database.
     $crucible->name = $object->eventtemplate->name;
     $crucible->intro = $object->eventtemplate->description;
@@ -94,7 +94,7 @@ if ($object->eventtemplate) {
     // this generates lots of hvp module errors
     //rebuild_course_cache($crucible->course);
 } else {
-    $scenarioid = "";
+    $scenariotemplateid = "";
 }
 
 // get current state of eventtemplate
@@ -179,8 +179,8 @@ if ((!$object->event) && ($attempt)) {
 
 if ($object->event) {
     $eventid = $object->event->id;
-    $exerciseid = $object->event->exerciseId;
-    $sessionid = $object->event->sessionId;
+    $viewid = $object->event->viewId;
+    $scenarioid = $object->event->scenarioId;
 
     // TODO remove this check once the steamfitter is updated
     if (strpos($object->event->launchDate, "Z")) {
@@ -200,8 +200,8 @@ if ($object->event) {
         $object->openAttempt->close_attempt();
     }
     $eventid = null;
-    $exerciseid = null;
-    $sessionid = null;
+    $viewid = null;
+    $scenarioid = null;
     $startime = null;
     $endtime = null;
 }
@@ -226,7 +226,7 @@ $gradepass = $grader->get_grade_item_passing_grade();
 debugging("grade pass is $gradepass", DEBUG_DEVELOPER);
 
 // show grade only if a passing grade is set
-if ((int)$gradepass >0) {
+if ((int)$gradepass > 0) {
     $showgrade = true;
 } else {
     $showgrade = false;
@@ -234,7 +234,8 @@ if ((int)$gradepass >0) {
 
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
-$renderer->display_detail($crucible);
+
+$renderer->display_detail($crucible, $object->eventtemplate->durationHours);
 
 $renderer->display_form($url, $object->crucible->eventtemplateid);
 
@@ -262,50 +263,62 @@ if ($object->event) {
 if ($vmapp == 1) {
     $renderer->display_embed_page($crucible);
 } else {
-    $renderer->display_link_page($player_app_url, $exerciseid);
+    $renderer->display_link_page($player_app_url, $viewid);
 }
 
 // TODO have a completely different view page for active labs
-if ($sessionid) {
-    $tasks = filter_tasks(get_sessiontasks($object->userauth, $sessionid));
+if ($scenarioid) {
 
+    $tasks = get_scenariotasks($object->userauth, $scenarioid);
     if (is_null($tasks)) {
-        // run as system account
-        $tasks = filter_tasks(get_sessiontasks($object->systemauth, $sessionid));
+        $tasks = get_scenariotasks($object->systemauth, $scenarioid);
     }
 
-    $renderer->display_results($tasks);
-
+    if ($tasks) {
+        // display tasks
+        $filtered = $object->filter_scenario_tasks($tasks, $visible=1);
+        $renderer->display_results($filtered);
+        $info = new stdClass();
+        $info->scenario = $scenarioid;
+        $info->view = $viewid;
+        $info->attempt = $object->openAttempt->id;
+        // have run task button hit an ajax script on server to run as system
+        $PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
+    }
+/*
     // start js to monitor task status
     $info = new stdClass();
-    $info->session = $sessionid;
-    $info->exercise = $exerciseid;
+    $info->scenario = $scenarioid;
+    $info->view = $viewid;
     // have run task button hit an ajax script on server to run as system
-    //$PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
+    $PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
     //$PAGE->requires->js_call_amd('mod_crucible/customtasks', 'init', [$info]);
 
-    $info->token = $access_token;
-    $info->steamfitter_api = $steamfitter_api_url;
+    //$info->token = $access_token;
+    //$info->steamfitter_api = $steamfitter_api_url;
     // have js run tasks as user from browser
-    $PAGE->requires->js_call_amd('mod_crucible/results', 'init', [$info]);
-} else if ($scenarioid) {
-    // this is when we do not have an active session
-    $tasks = filter_tasks(get_scenariotasks($object->userauth, $scenarioid));
-
-    // TODO it may be fine to leave this here
+    //$PAGE->requires->js_call_amd('mod_crucible/results', 'init', [$info]);
+*/
+} else if ($scenariotemplateid) {
+    // this is when we do not have an active scenario
+    $tasks = get_scenariotemplatetasks($object->userauth, $scenariotemplateid);
     if (is_null($tasks)) {
-        // run as system account
-        $tasks = filter_tasks(get_scenariotasks($object->systemauth, $scenarioid));
+        $tasks = get_scenariotemplatetasks($object->systemauth, $scenariotemplateid);
     }
 
-    $renderer->display_tasks($tasks);
+    if ($tasks) {
+        // run as system account
+        $filtered = filter_tasks($tasks, $visible=1);
+    }
+
+    $renderer->display_tasks($filtered);
 }
 
 $info = new stdClass();
 $info->token = $access_token;
 $info->state = $status;
 $info->event = $eventid;
-$info->exercise = $exerciseid;
+$info->view = $viewid;
 $info->alloy_api_url = $alloy_api_url;
 $info->vm_app_url = $vm_app_url;
 $info->player_app_url = $player_app_url;
@@ -314,7 +327,6 @@ $PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$info]);
 
 $attempts = $object->getall_attempts('closed', $review = false);
 echo $renderer->display_attempts($attempts, $showgrade);
-//echo $renderer->display_history($history, $showfailed);
 
 $jsoptions = ['keepaliveinterval' => 1];
 $PAGE->requires->js_call_amd('mod_crucible/keepalive', 'init', [$jsoptions]);
