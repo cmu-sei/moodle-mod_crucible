@@ -115,6 +115,14 @@ $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 $renderer->display_detail($crucible, $object->eventtemplate->durationHours);
 
+$isinstructor = has_capability('mod/crucible:manage', $context);
+
+if ($isinstructor) {
+    // TODO display attempt user with formatting
+    $user = $DB->get_record('user', array("id" => $attempt->userid));
+    echo fullname($user);
+}
+
 $renderer->display_form($url, $object->crucible->eventtemplateid);
 
 if ($showgrade) {
@@ -124,7 +132,6 @@ if ($showgrade) {
 // TODO loads tasks and results from the db
 global $DB;
 
-$isinstructor = has_capability('mod/crucible:manage', $context);
 
 //get tasks from db
 if ($isinstructor) {

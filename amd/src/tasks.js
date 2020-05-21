@@ -23,6 +23,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
     var scenario_id;
     var timeout;
     var attempt;
+    var cmid;
 
     return {
         init: function(info) {
@@ -31,6 +32,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             scenario_id = info.scenario;
             attempt = info.attempt;
+            cmid = info.cmid;
 
             get_results();
 
@@ -63,7 +65,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             data: {
                 'sesskey': config.sesskey,
                 'time': $.now(),
-                'id': scenario_id
+                'id': scenario_id,
+                'cmid': cmid
             },
             headers: {
                 'Cache-Control': 'no-cache',
@@ -89,7 +92,6 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             error: function(response) {
                 console.log('error');
                 console.log(response);
-                clearTimeout(timeout);
             }
         });
     }

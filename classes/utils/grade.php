@@ -148,44 +148,9 @@ class grade {
         if (is_null($attempt)) {
             return $totalslotpoints;
         }
-/*
-        if ($this->crucible->openAttempt->scenarioid) {
-            //$tasks = filter_tasks(get_scenariotasks($this->crucible->systemauth, $this->crucible->openAttempt->scenarioid));
-            //$taskresults = get_taskresults($this->crucible->systemauth, $this->crucible->openAttempt->scenarioid);
-            $tasks = filter_tasks(get_scenariotasks($this->crucible->userauth, $this->crucible->openAttempt->scenarioid), $visible=0, $gradable=1);
-            $taskresults = get_taskresults($this->crucible->userauth, $this->crucible->openAttempt->scenarioid, $visible=0, $gradable=1);
-        } else {
-            debugging("attempt $attempt->id has no steamfitter tasks to grade", DEBUG_DEVELOPER);
-            return $totalslotpoints;
-        }
 
-        if (empty($taskresults)) {
-            debugging("no taskresults found in scenario " . $this->crucible->openAttempt->scenarioid, DEBUG_DEVELOPER);
-            return $totalslotpoints;
-        }
-
-        //TODO make sure that results are time sorted first
-
-        $values = array();
-        foreach ($taskresults as $result) {
-            // find task in tasks and update the result
-            foreach ($tasks as $task) {
-                if ($task->id == $result->taskId) {
-                    $values[$task->id] = $result->status;
-                    debugging("task " . $task->id . " status " . $result->status, DEBUG_DEVELOPER);
-                }
-            }
-        }
-        foreach ($values as $value) {
-            if ($value === "succeeded") {
-                $totalslotpoints++;
-            }
-        }
-
-*/
         //get tasks from db
         $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $this->crucible->crucible->id, "gradable" => "1"));
-        //$taskresults = get_records('crucible_task_results', array("attemptid" => $this->crucible->openAttempt->id);
         $values = array();
 
         foreach ($tasks as $task) {

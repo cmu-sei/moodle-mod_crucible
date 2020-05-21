@@ -42,6 +42,16 @@ require_login();
 require_sesskey();
 
 $id = required_param('id', PARAM_ALPHANUMEXT);
+$cmid = required_param('cmid', PARAM_INT);
+
+if ($cmid) {
+    $cm         = get_coursemodule_from_id('crucible', $cmid, 0, false, MUST_EXIST);
+    $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    $crucible   = $DB->get_record('crucible', array('id' => $cm->instance), '*', MUST_EXIST);
+}
+
+$url = new moodle_url( '/mod/crucible/getresults.php', array('cmid' => $cm->id, 'id' => $id));
+$PAGE->set_url($url);
 
 // Require the session key - want to make sure that this isn't called
 // maliciously to keep a session alive longer than intended.
@@ -73,9 +83,15 @@ if (!$results) {
             $object->status = $result->status;
             $object->taskId = $result->taskId;
             if ($object->status === "succeeded") {
-            $object->score = $dbtask->points;
+                $object->score = $dbtask->points;
             }
             array_push($data, $object);
+
+            // update attempt grade
+            $object = new \mod_crucible\crucible($cm, $course, $crucible, $url);
+            $grader = new \mod_crucible\utils\grade($object);
+            // TODO get this to work
+            $grader->calculate_attempt_grade($object->openAttempt);
         }
     }
 

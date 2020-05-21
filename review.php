@@ -102,7 +102,7 @@ if (!$object->is_instructor()) {
 
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
-$renderer->display_detail($crucible);
+$renderer->display_detail($crucible, $object->eventtemplate->durationHours);
 
 $renderer->display_return_form($returnurl, $id);
 

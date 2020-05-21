@@ -282,6 +282,7 @@ if ($scenarioid) {
         $info->scenario = $scenarioid;
         $info->view = $viewid;
         $info->attempt = $object->openAttempt->id;
+        $info->cmid = $cm->id;
         // have run task button hit an ajax script on server to run as system
         $PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
     }
