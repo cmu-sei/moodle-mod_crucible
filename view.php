@@ -120,6 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
         //TODO this should also check that we dont have an attempt
         //print_error('attemptalreadyexists', 'crucible');
         debugging('closing attempt - not active', DEBUG_DEVELOPER);
+        $grader = new \mod_crucible\utils\grade($object);
+        $grader->process_attempt($object->openAttempt);
         $object->openAttempt->close_attempt();
     }
 
@@ -152,7 +154,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
 
             $grader = new \mod_crucible\utils\grade($object);
             $grader->process_attempt($object->openAttempt);
-
             $object->openAttempt->close_attempt();
 
             stop_event($object->userauth, $object->event->id);
@@ -174,6 +175,8 @@ if ($object->event) {
 if ((!$object->event) && ($attempt)) {
     debugging("active attempt with no event", DEBUG_DEVELOPER);
     //print_error('attemptalreadyexists', 'crucible');
+    $grader = new \mod_crucible\utils\grade($object);
+    $grader->process_attempt($object->openAttempt);
     $object->openAttempt->close_attempt();
 }
 
@@ -197,6 +200,8 @@ if ($object->event) {
     if ($attempt) {
         //print_error('attemptalreadyexists', 'crucible');
         debugging('closing attempt - not active', DEBUG_DEVELOPER);
+        $grader = new \mod_crucible\utils\grade($object);
+        $grader->process_attempt($object->openAttempt);
         $object->openAttempt->close_attempt();
     }
     $eventid = null;

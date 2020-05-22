@@ -189,7 +189,6 @@ function crucible_process_options($crucible) {
  */
 function crucible_delete_instance($id) {
     global $DB;
-echo "deleting $id<br>";
     $crucible = $DB->get_record('crucible', array('id' => $id), '*', MUST_EXIST);
 
     // delete calander events
