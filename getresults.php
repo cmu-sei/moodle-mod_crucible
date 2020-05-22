@@ -43,6 +43,7 @@ require_sesskey();
 
 $id = required_param('id', PARAM_ALPHANUMEXT);
 $cmid = required_param('cmid', PARAM_INT);
+$a = required_param('a', PARAM_INT);
 
 if ($cmid) {
     $cm         = get_coursemodule_from_id('crucible', $cmid, 0, false, MUST_EXIST);
@@ -60,10 +61,49 @@ if (!confirm_sesskey()) {
     print_error('invalidsesskey');
 }
 
-$system = setup_system();
-$results = get_taskresults($system, $id);
+//$system = setup_system();
+//$results = get_taskresults($system, $id);
 $response = array();
 
+$tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $crucible->id, "gradable" => "1"));
+if ($tasks) {
+    $data = array();
+    $details = array();
+    $index = 0;
+    foreach ($tasks as $task) {
+        $object = new stdClass();
+        debugging("$task->id is $task->dispatchtaskid", DEBUG_DEVELOPER);
+
+        $results = $DB->get_records('crucible_task_results', array("attemptid" => $a, "taskid" => $task->id), "timemodified ASC");
+        if ($results) {
+            foreach ($results as $result) {
+                $vmresults[$result->vmname] = array("score" => $result->score, "status" => $result->status);
+            }
+            $succeeded = 0;
+            foreach ($vmresults as $vmname => $vals) {
+                if ($vals["status"] === "succeeded") {
+                    $succeeded++;
+                }
+                $object->status = $vals['status'];
+            }
+            $object->taskscore = ($succeeded / count($vmresults)) * $task->points;
+            debugging("$task->dispatchtaskid has taskscore $object->taskscore = ($succeeded / " . count($vmresults) . ") * $task->points", DEBUG_DEVELOPER);
+
+        }
+        // TODO use id from db not from dispatcher
+        //$object->taskId = $task->id;
+        $object->taskId = $task->dispatchtaskid;
+        $object->taskIndex = $index;
+        $data[] = $object;
+        $index++;
+    }
+
+    $rec = $DB->get_record('crucible_attempts', array("id" => $a), 'score');
+    $response['score'] = get_string("attemptscore", "crucible") . $rec->score;
+}
+/*
+$system = setup_system();
+$results = get_taskresults($system, $id);
 if ($results) {
 
     $data = array();
@@ -85,14 +125,6 @@ if ($results) {
                 $object->score = 0;
             }
             array_push($data, $object);
-/*
-            // TODO insert/update into db
-            // update attempt grade
-            $object = new \mod_crucible\crucible($cm, $course, $crucible, $url);
-            $grader = new \mod_crucible\utils\grade($object);
-            // TODO get this to work
-            $grader->calculate_attempt_grade($object->openAttempt);
-*/
         }
     }
 
@@ -102,6 +134,10 @@ if ($results) {
 } else {
     $response['message'] = "success";
 }
+*/
+header('HTTP/1.1 200 OK');
+$response['parsed'] = $data;
+$response['message'] = "success";
 
 $response['id'] = $id;
 

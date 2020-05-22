@@ -170,22 +170,22 @@ class grade {
             $vmresults = array();
 
             foreach ($results as $result) {
-                //if ($result->status === "succeeded") {
                     $vmresults[$result->vmname] = $result->score;
                     $score = $result->score;
-                //}
             }
+            //TODO if multiple, we either need to treat points as a points per vm and be given the number of expected vms
+            // or we need to make score a float so that that we can give a percentage of points based on pass/fail for the vms
 
-            if ($task->multiple) {
-                debugging("grading multiple vms", DEBUG_DEVELOPER);
+            //if ($task->multiple) {
+            //    debugging("grading multiple vms", DEBUG_DEVELOPER);
                 //$points = count($vmresults) * $task->points;
-                foreach ($vmresults as $vmname => $vmscore) {
-                    $score += $vmscore;
-                    $points += $task->points;
-                }
-            } else {
+            //    foreach ($vmresults as $vmname => $vmscore) {
+            //        $score += $vmscore;
+            //        $points += $task->points;
+            //    }
+            //} else {
                 $points = $task->points;
-            }
+            //}
 
             $values[$task->id] = array($points, $score);
         }

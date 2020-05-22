@@ -66,7 +66,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 'sesskey': config.sesskey,
                 'time': $.now(),
                 'id': scenario_id,
-                'cmid': cmid
+                'cmid': cmid,
+                'a': attempt
             },
             headers: {
                 'Cache-Control': 'no-cache',
@@ -74,21 +75,32 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             },
             success: function(response) {
                 console.log(response);
+/*
                 if (response.parsed) {
                     response.parsed.sort(function(a, b) {
                         return (a.statusDate > b.statusDate) ? 1 : -1;
                     });
                 }
+*/
+                index = 0;
                 $.each(response.parsed, function(index, value) {
-                    var result = document.getElementById('result-' + value.taskId);
-                    if (result) {
+                    //var result = document.getElementById('result-' + value.taskId);
+                    var result = document.getElementsByClassName("result")[index];
+                    if (result && value.status) {
                         result.innerHTML = value.status;
                     }
-                    var score = document.getElementById('score-' + value.taskId);
-                    if (score) {
-                        score.innerHTML = value.score;
+                    //var score = document.getElementById('score-' + value.taskId);
+                    var score = document.getElementsByClassName('score')[index];
+                    if (score && (typeof value.taskscore !== 'undefined')) {
+                        score.innerHTML = value.taskscore;
                     }
+                    index++;
                 });
+                var score = document.getElementById('attempt-score');
+                if (score) {
+                    score.innerHTML = response.score;
+                }
+
             },
             error: function(response) {
                 console.log('error');
@@ -115,11 +127,11 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 'Cache-Control': 'no-cache',
                 'Expires': '-1'
             },
-            success: function(result) {
-                console.log(result);
+            success: function(response) {
+                console.log(response);
                 var score = document.getElementById('attempt-score');
                 if (score) {
-                    score.innerHTML = result.score;
+                    score.innerHTML = response.score;
                 }
             },
             error: function(request) {

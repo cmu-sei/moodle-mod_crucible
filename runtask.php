@@ -81,36 +81,41 @@ if (!$result) {
             . $DB->sql_compare_text(':name'), ['name' => $task->name]);
 
     if ($dbtask !== false) {
+        $succeeded =  0;
         // save results in the db
         foreach ($result as $res) {
             $entry = new stdClass();
             $entry->taskid = $dbtask->id;
             $entry->attemptid = $a;
+            debugging("received $res->status for $res->vmName and output $res->actualOutput", DEBUG_DEVELOPER);
             $entry->vmname = $res->vmName;
             $entry->status = $res->status;
             if ($res->status === "succeeded") {
                 $entry->score = $dbtask->points;
-                $response['score'] = $dbtask->points;
+                $succeeded++;
             } else {
                 $entry->score = 0;
-                $response['score'] = 0;
             }
             $entry->timemodified = time();
             $rec = $DB->insert_record('crucible_task_results', $entry);
             if ($rec === false) {
                 debugging("failed to insert task results record for " . $id, DEBUG_DEVELOPER);
-            } else {
-                // update attempt grade
-                $object = new \mod_crucible\crucible($cm, $course, $crucible, $url);
-                $object->get_open_attempt();
-                $grader = new \mod_crucible\utils\grade($object);
-                // TODO get this to work
-                $score = $grader->calculate_attempt_grade($object->openAttempt);
-                $response['score'] = get_string("attemptscore", "crucible") . $score;
-                debugging("grade " . $score, DEBUG_DEVELOPER);
             }
         }
+        // score should be a percentage of points based on how many vms passed
+        $taskscore = ($succeeded / count($vmresults)) * $dbtask->points;
+        $response['taskscore'] = $taskscore;
+        debugging("task score should be $taskscore", DEBUG_DEVELOPER);
     }
+
+    // update attempt grade
+    $object = new \mod_crucible\crucible($cm, $course, $crucible, $url);
+    $object->get_open_attempt();
+    $grader = new \mod_crucible\utils\grade($object);
+    $score = $grader->calculate_attempt_grade($object->openAttempt);
+    $response['score'] = get_string("attemptscore", "crucible") . $score;
+    debugging("grade " . $score, DEBUG_DEVELOPER);
+
     //$response['raw'] = $result;
 } else {
     header('HTTP/1.1 200 OK');

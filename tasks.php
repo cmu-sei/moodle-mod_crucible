@@ -101,6 +101,8 @@ if (is_null($tasks)) {
     $tasks = get_scenariotemplatetasks($object->systemauth, $scenariotemplateid);
 }
 
+usort($tasks, "tasksort");
+
 $mform = new \mod_crucible\crucible_tasks_form(null, array('tasks' => $tasks, 'cm' => $cm));
 
 //Form processing and displaying is done here

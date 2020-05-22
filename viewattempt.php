@@ -141,22 +141,20 @@ if ($isinstructor) {
     // create extra rows for each vm instead of giving a list
     $details = array();
     foreach ($tasks as $task) {
-
         $results = $DB->get_records('crucible_task_results', array("attemptid" => $a, "taskid" => $task->id), "timemodified ASC");
 
         foreach ($results as $result) {
-            $vmresults[$result->vmname] = array($result->score, $result->status);
-            $task->vmname = $result->vmname;
-            $task->score = $result->score;
-            $task->result = $result->status;
+            $vmresults[$result->vmname] = array("score" => $result->score, "status" => $result->status);
         }
         foreach ($vmresults as $vmname => $vals) {
-            $task->vmname = $vmname;
-            $task->score = $vals[0];
-            $task->result = $vals[1];
-            $details[] = $task;
+            $newtask = clone $task;
+            $newtask->vmname = $vmname;
+            $newtask->score = $vals["score"];
+            $newtask->result = $vals["status"];
+            $details[] = $newtask;
         }
     }
+
     $renderer->display_results_detail($details);
 
 } else {
