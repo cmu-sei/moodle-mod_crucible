@@ -86,7 +86,15 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data = new stdClass();
         $data->overallgrade = get_string('overallgrade', 'groupquiz');
         $data->grade = number_format($usergrade, 2);
-        echo $this->render_from_template('mod_crucible/grade', $data);;
+        echo $this->render_from_template('mod_crucible/grade', $data);
+    }
+
+    function display_score($attempt) {
+        global $USER;
+
+        $data = new stdClass();
+        $data->score = $attempt->score;
+        echo $this->render_from_template('mod_crucible/score', $data);
     }
 
     function display_attempts($attempts, $showgrade, $showuser = false, $showdetail = false) {
@@ -231,25 +239,70 @@ class mod_crucible_renderer extends plugin_renderer_base {
             get_string('score', 'mod_crucible')
         ];
 
-        foreach ($tasks as $task) {
-            $rowdata = new stdClass();
-            $rowdata->id = $task->id;
-            $rowdata->name = $task->name;
-            $rowdata->desc = $task->description;
-            $rowdata->result = $task->result;
-            // check whether we can execute the task
-            if ($task->triggerCondition == "Manual") {
-                $rowdata->action = get_string('taskexecute', 'mod_crucible');
-            } else {
-                $rowdata->action = get_string('tasknoexecute', 'mod_crucible');
+        if ($tasks) {
+
+            foreach ($tasks as $task) {
+                $rowdata = new stdClass();
+                $rowdata->id = $task->id;
+                $rowdata->name = $task->name;
+                $rowdata->desc = $task->description;
+                if (isset($task->result)) {
+                    $rowdata->result = $task->result;
+                }
+                // check whether we can execute the task
+                if ((isset($task->triggerCondition)) && ($task->triggerCondition === "Manual")) {
+                    $rowdata->action = get_string('taskexecute', 'mod_crucible');
+                } else {
+                    $rowdata->action = get_string('tasknoexecute', 'mod_crucible');
+                }
+                if (isset($task->score)) {
+                    $rowdata->score = $task->score;
+                }
+                $rowdata->points = $task->points;
+                $data->tabledata[] = $rowdata;
             }
-            $rowdata->score = $task->score;
-            $rowdata->points = $task->points;
-            $data->tabledata[] = $rowdata;
+
+            echo $this->render_from_template('mod_crucible/results', $data);
         }
+    }
 
-        echo $this->render_from_template('mod_crucible/results', $data);
+    function display_results_detail($tasks) {
+        if (is_null($tasks)) {
+            return;
+        }
+        $data = new stdClass();
+        $data->tableheaders = [
+            //get_string('taskid', 'mod_crucible'),
+            get_string('taskname', 'mod_crucible'),
+            get_string('taskdesc', 'mod_crucible'),
+            get_string('taskregrade', 'mod_crucible'),
+            get_string('vmname', 'mod_crucible'),
+            get_string('taskresult', 'mod_crucible'),
+            get_string('points', 'mod_crucible'),
+            get_string('score', 'mod_crucible')
+        ];
 
+        if ($tasks) {
+
+            foreach ($tasks as $task) {
+                $rowdata = new stdClass();
+                $rowdata->id = $task->id;
+                $rowdata->name = $task->name;
+                $rowdata->desc = $task->description;
+                if (isset($task->result)) {
+                    $rowdata->result = $task->result;
+                }
+                $rowdata->action = get_string('taskregrade', 'mod_crucible');
+                $rowdata->vmname = $task->vmname;
+                if (isset($task->score)) {
+                    $rowdata->score = $task->score;
+                }
+                $rowdata->points = $task->points;
+                $data->tabledata[] = $rowdata;
+            }
+
+            echo $this->render_from_template('mod_crucible/resultsdetail', $data);
+        }
     }
 
     function display_clock($starttime, $endtime, $extend = false) {

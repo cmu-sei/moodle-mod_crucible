@@ -43,6 +43,16 @@ require_sesskey();
 
 $id = required_param('id', PARAM_ALPHANUMEXT);
 $a = required_param('a', PARAM_ALPHANUMEXT);
+$cmid = required_param('cmid', PARAM_INT);
+
+if ($cmid) {
+    $cm         = get_coursemodule_from_id('crucible', $cmid, 0, false, MUST_EXIST);
+    $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    $crucible   = $DB->get_record('crucible', array('id' => $cm->instance), '*', MUST_EXIST);
+}
+
+$url = new moodle_url('/mod/crucible/getresults.php', array('cmid' => $cm->id, 'id' => $id));
+$PAGE->set_url($url);
 
 // Require the session key - want to make sure that this isn't called
 // maliciously to keep a session alive longer than intended.
@@ -71,17 +81,7 @@ if (!$result) {
             . $DB->sql_compare_text(':name'), ['name' => $task->name]);
 
     if ($dbtask !== false) {
-    // save results in the db
-/*
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the task"/>
-        <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the crucible attempt"/>
-        <FIELD NAME="vmname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The vm name for this result"/>
-        <FIELD NAME="status" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter task status"/>
-        <FIELD NAME="score" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Score given to the student"/>
-        <FIELD NAME="comment" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A comment added by a teacher"/>
-*/
-
+        // save results in the db
         foreach ($result as $res) {
             $entry = new stdClass();
             $entry->taskid = $dbtask->id;
@@ -91,10 +91,23 @@ if (!$result) {
             if ($res->status === "succeeded") {
                 $entry->score = $dbtask->points;
                 $response['score'] = $dbtask->points;
+            } else {
+                $entry->score = 0;
+                $response['score'] = 0;
             }
+            $entry->timemodified = time();
             $rec = $DB->insert_record('crucible_task_results', $entry);
             if ($rec === false) {
                 debugging("failed to insert task results record for " . $id, DEBUG_DEVELOPER);
+            } else {
+                // update attempt grade
+                $object = new \mod_crucible\crucible($cm, $course, $crucible, $url);
+                $object->get_open_attempt();
+                $grader = new \mod_crucible\utils\grade($object);
+                // TODO get this to work
+                $score = $grader->calculate_attempt_grade($object->openAttempt);
+                $response['score'] = get_string("attemptscore", "crucible") . $score;
+                debugging("grade " . $score, DEBUG_DEVELOPER);
             }
         }
     }

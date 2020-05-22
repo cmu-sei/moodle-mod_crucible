@@ -50,7 +50,7 @@ if ($cmid) {
     $crucible   = $DB->get_record('crucible', array('id' => $cm->instance), '*', MUST_EXIST);
 }
 
-$url = new moodle_url( '/mod/crucible/getresults.php', array('cmid' => $cm->id, 'id' => $id));
+$url = new moodle_url('/mod/crucible/getresults.php', array('cmid' => $cm->id, 'id' => $id));
 $PAGE->set_url($url);
 
 // Require the session key - want to make sure that this isn't called
@@ -64,10 +64,7 @@ $system = setup_system();
 $results = get_taskresults($system, $id);
 $response = array();
 
-if (!$results) {
-    header('HTTP/1.1 500 Error');
-    $response['message'] = "error";
-} else {
+if ($results) {
 
     $data = array();
     foreach ($results as $result) {
@@ -84,19 +81,25 @@ if (!$results) {
             $object->taskId = $result->taskId;
             if ($object->status === "succeeded") {
                 $object->score = $dbtask->points;
+            } else {
+                $object->score = 0;
             }
             array_push($data, $object);
-
+/*
+            // TODO insert/update into db
             // update attempt grade
             $object = new \mod_crucible\crucible($cm, $course, $crucible, $url);
             $grader = new \mod_crucible\utils\grade($object);
             // TODO get this to work
             $grader->calculate_attempt_grade($object->openAttempt);
+*/
         }
     }
 
     header('HTTP/1.1 200 OK');
     $response['parsed'] = $data;
+    $response['message'] = "success";
+} else {
     $response['message'] = "success";
 }
 

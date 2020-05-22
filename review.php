@@ -87,7 +87,7 @@ $object->eventtemplate = get_eventtemplate($object->userauth, $crucible->eventte
 
 // Update the database.
 if ($object->eventtemplate) {
-    $scenariotemplateid = $object->eventtemplate->scenarioId;
+    $scenariotemplateid = $object->eventtemplate->scenarioTemplateId;
     // Update the database.
     $crucible->name = $object->eventtemplate->name;
     $crucible->intro = $object->eventtemplate->description;

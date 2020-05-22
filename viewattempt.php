@@ -120,43 +120,63 @@ $isinstructor = has_capability('mod/crucible:manage', $context);
 if ($isinstructor) {
     // TODO display attempt user with formatting
     $user = $DB->get_record('user', array("id" => $attempt->userid));
-    echo fullname($user);
+    echo "Username: " . fullname($user);
 }
 
 $renderer->display_form($url, $object->crucible->eventtemplateid);
 
 if ($showgrade) {
     $renderer->display_grade($crucible);
+    $renderer->display_score($attempt);
 }
 
-// TODO loads tasks and results from the db
 global $DB;
-
 
 //get tasks from db
 if ($isinstructor) {
-    echo "Displaying all gradable tasks";
+    echo "<br>Instructor view: displaying all gradable tasks";
     $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $crucible->id, "gradable" => "1"));
+
+    // TODO allow the instructor to add a comment and override a task score
+    // create extra rows for each vm instead of giving a list
+    $details = array();
+    foreach ($tasks as $task) {
+
+        $results = $DB->get_records('crucible_task_results', array("attemptid" => $a, "taskid" => $task->id), "timemodified ASC");
+
+        foreach ($results as $result) {
+            $vmresults[$result->vmname] = array($result->score, $result->status);
+            $task->vmname = $result->vmname;
+            $task->score = $result->score;
+            $task->result = $result->status;
+        }
+        foreach ($vmresults as $vmname => $vals) {
+            $task->vmname = $vmname;
+            $task->score = $vals[0];
+            $task->result = $vals[1];
+            $details[] = $task;
+        }
+    }
+    $renderer->display_results_detail($details);
+
 } else {
-    echo "Displaying all visible and gradable tasks";
+    echo "<br>Student view: displaying all visible and gradable tasks";
     $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $crucible->id, "visible" => "1", "gradable" => "1"));
-}
 
-foreach ($tasks as $task) {
-    $results = $DB->get_records('crucible_task_results', array("attemptid" => $a, "taskid" => $task->id));
-    if ($results === false) {
-        continue;
+    foreach ($tasks as $task) {
+        $results = $DB->get_records('crucible_task_results', array("attemptid" => $a, "taskid" => $task->id), "timemodified ASC");
+        if ($results === false) {
+            continue;
+        }
+        // TODO handle multiple results
+        foreach ($results as $result) {
+            $task->score = $result->score;
+            $task->result = $result->status;
+        }
     }
-    foreach ($results as $result) {
-        //$totalpoints += $task->points;
-        //$totalslotpoints += $result->score;
-        $task->score = $result->score;
-        $task->result = $result->status;
+    if ($tasks) {
+        $renderer->display_results($tasks);
     }
-}
-
-if ($tasks) {
-    $renderer->display_results($tasks);
 }
 
 echo $renderer->footer();

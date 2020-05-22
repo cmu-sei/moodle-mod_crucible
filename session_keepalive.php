@@ -47,14 +47,14 @@ if (!confirm_sesskey()) {
     header('HTTP/1.1 403 Forbidden');
     print_error('invalidsesskey');
 } else {
-
-header('HTTP/1.1 200 OK');
-$response = array();
-$response['message'] = "success";
-
+    header('HTTP/1.1 200 OK');
+    $response = array();
+    $response['message'] = "success";
+    debugging("updating session for $USER->id", DEBUG_DEVELOPER);
 }
 
 echo json_encode($response);
 
 // Update the session.
 \core\session\manager::touch_session(session_id());
+

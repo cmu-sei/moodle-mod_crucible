@@ -414,6 +414,21 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020052001, 'crucible');
     }
 
+    if ($oldversion < 2020052200) {
+
+        // Define field timemodified to be added to crucible_task_results.
+        $table = new xmldb_table('crucible_task_results');
+        $field = new xmldb_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'comment');
+
+        // Conditionally launch add field timemodified.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020052200, 'crucible');
+    }
+
 
     return true;
 }

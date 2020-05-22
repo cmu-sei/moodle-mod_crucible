@@ -74,17 +74,18 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             },
             success: function(response) {
                 console.log(response);
-                response.parsed.sort(function(a, b) {
-                    return (a.statusDate > b.statusDate) ? 1 : -1;
-                });
-
+                if (response.parsed) {
+                    response.parsed.sort(function(a, b) {
+                        return (a.statusDate > b.statusDate) ? 1 : -1;
+                    });
+                }
                 $.each(response.parsed, function(index, value) {
                     var result = document.getElementById('result-' + value.taskId);
                     if (result) {
                         result.innerHTML = value.status;
                     }
                     var score = document.getElementById('score-' + value.taskId);
-                    if (score && value.score) {
+                    if (score) {
                         score.innerHTML = value.score;
                     }
                 });
@@ -107,7 +108,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 'sesskey': config.sesskey,
                 'time': $.now(),
                 'id': id,
-                'a': attempt
+                'a': attempt,
+                'cmid': cmid
             },
             headers: {
                 'Cache-Control': 'no-cache',
@@ -115,6 +117,10 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             },
             success: function(result) {
                 console.log(result);
+                var score = document.getElementById('attempt-score');
+                if (score) {
+                    score.innerHTML = result.score;
+                }
             },
             error: function(request) {
                 console.log("crucible task failed");

@@ -285,6 +285,8 @@ if ($scenarioid) {
         $info->cmid = $cm->id;
         // have run task button hit an ajax script on server to run as system
         $PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
+
+        $renderer->display_score($object->openAttempt->id);
     }
 /*
     // start js to monitor task status

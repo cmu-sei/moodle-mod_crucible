@@ -115,7 +115,7 @@ $string['taskcaption'] = 'Tasks';
 $string['taskid'] = 'Task ID';
 $string['taskdesc'] = 'Task Description';
 $string['taskname'] = 'Task Name';
-$string['taskresult'] = 'Task Result';
+$string['taskresult'] = 'Latest Task Result';
 $string['taskaction'] = 'Action';
 $string['taskexecute'] = 'Run Task';
 $string['tasknoexecute'] = 'No Action';
@@ -130,9 +130,12 @@ $string['extendevent'] = 'Extend Event';
 $string['reviewtext'] = 'Review Activity Attempts';
 $string['managetext'] = 'Review Course Attempts';
 $string['durationtext'] = 'Scheduled Duration';
+$string['attemptscore'] = 'Attempt Grade: ';
 
 // review
 $string['returntext'] = 'Return to Lab';
+$string['taskregrade'] = 'Regrade';
+$string['vmname'] = 'VM Name';
 
 // tasks
 $string['managetasks'] = 'Manage Tasks';

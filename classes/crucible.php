@@ -82,7 +82,7 @@ class crucible {
         $this->is_instructor();
 
         $this->systemauth = setup_system();
-        $this->userauth = setup();
+        $this->userauth = setup(); //fails when called by runtask
 
         $this->renderer = $PAGE->get_renderer('mod_crucible', $renderer_subtype);
     }
@@ -157,6 +157,14 @@ class crucible {
         return $r;
     }
 
+    public function get_attempt($attemptid) {
+        global $DB;
+
+        $dbattempt = $DB->get_record('crucible_attempts', array("id" => $attemptid));
+
+        return new crucible_attempt($dbattempt);
+    }
+
 
     public function get_open_attempt() {
         $attempts = $this->getall_attempts('open');
@@ -169,24 +177,26 @@ class crucible {
         // get the first (and only) value in the array
         $this->openAttempt = reset($attempts);
 
-        // update values if null in attempt but exist in event
-        if ((!$this->openAttempt->eventid) && ($this->event->id)) {
-            $this->openAttempt->eventid = $this->event->id;
-        }
-        if ((!$this->openAttempt->scenarioid) && ($this->event->scenarioId)) {
-            $this->openAttempt->scenarioid = $this->event->scenarioId;
-        }
+        if (isset($this->event)) {
+            // update values if null in attempt but exist in event
+            if ((!$this->openAttempt->eventid) && ($this->event->id)) {
+                $this->openAttempt->eventid = $this->event->id;
+            }
+            if ((!$this->openAttempt->scenarioid) && ($this->event->scenarioId)) {
+                $this->openAttempt->scenarioid = $this->event->scenarioId;
+            }
 
-        //TODO remove check for Z once API is updated
-        if (strpos($this->event->expirationDate, "Z")) {
-            $this->openAttempt->endtime = strtotime($this->event->expirationDate);
-        } else if (is_null($this->event->expirationDate)) {
-            debugging("event " . $this->event->id . " does not have expirationDate set");
-            $this->openAttempt->endtime = time() + 28800;
-        } else {
-            $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
+            //TODO remove check for Z once API is updated
+            if (strpos($this->event->expirationDate, "Z")) {
+                $this->openAttempt->endtime = strtotime($this->event->expirationDate);
+            } else if (is_null($this->event->expirationDate)) {
+                debugging("event " . $this->event->id . " does not have expirationDate set", DEBUG_DEVELOPER);
+                $this->openAttempt->endtime = time() + 28800;
+            } else {
+                $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
+            }
+            $this->openAttempt->save();
         }
-        $this->openAttempt->save();
         return true;
     }
 

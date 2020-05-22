@@ -146,6 +146,7 @@ class grade {
         $totalslotpoints = 0;
 
         if (is_null($attempt)) {
+            debugging("invalid attempt passed to calculate_attempt_grade", DEBUG_DEVELOPER);
             return $totalslotpoints;
         }
 
@@ -153,25 +154,51 @@ class grade {
         $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $this->crucible->crucible->id, "gradable" => "1"));
         $values = array();
 
-        foreach ($tasks as $task) {
-            // TODO multiple vm grading
-            //$totalpoints += $task->points;
+        if ($tasks === false) {
+            return $scaledpoints;
+        }
 
-            $results = $DB->get_records('crucible_task_results', array("attemptid" => $this->crucible->openAttempt->id, "taskid" => $task->id));
+        foreach ($tasks as $task) {
+            $results = $DB->get_records('crucible_task_results', array("attemptid" => $this->crucible->openAttempt->id, "taskid" => $task->id), $sort="timemodified ASC");
             if ($results === false) {
                 continue;
             }
+
+            $score = 0;
+            $points = 0;
+            $values[$task->id] = array();;
+            $vmresults = array();
+
             foreach ($results as $result) {
-                //TODO maybe sort by vm name and add a timefield to sort by and retrieve most recent per vm
-                $totalpoints += $task->points;
-                $totalslotpoints += $result->score;
-                debugging("task " . $task->id . " status " . $result->status, DEBUG_DEVELOPER);
-                debugging("task " . $task->id . " score " . $result->score, DEBUG_DEVELOPER);
-                debugging("task " . $task->id . " vmname " . $result->vmname, DEBUG_DEVELOPER);
+                //if ($result->status === "succeeded") {
+                    $vmresults[$result->vmname] = $result->score;
+                    $score = $result->score;
+                //}
             }
+
+            if ($task->multiple) {
+                debugging("grading multiple vms", DEBUG_DEVELOPER);
+                //$points = count($vmresults) * $task->points;
+                foreach ($vmresults as $vmname => $vmscore) {
+                    $score += $vmscore;
+                    $points += $task->points;
+                }
+            } else {
+                $points = $task->points;
+            }
+
+            $values[$task->id] = array($points, $score);
+        }
+
+        foreach ($values as $key => $vals) {
+            debugging("$key has points $vals[0] and score $vals[1]", DEBUG_DEVELOPER);
+            $totalpoints += $vals[0];
+            $totalslotpoints += $vals[1];
         }
 
         $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->crucible->crucible->grade;
+
+        debugging("$scaledpoints = ($totalslotpoints / $totalpoints) * " . $this->crucible->crucible->grade, DEBUG_DEVELOPER);
         debugging("new score for $attempt->id is $scaledpoints", DEBUG_DEVELOPER);
 
         $attempt->score = $scaledpoints;
