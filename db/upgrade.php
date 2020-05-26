@@ -429,7 +429,46 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020052200, 'crucible');
     }
 
+    if ($oldversion < 2020052202) {
 
+        // Changing type of field score on table crucible_attempts to number.
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('score', XMLDB_TYPE_NUMBER, '10', null, null, null, '0.00000', 'tasks');
+
+        // Launch change of type for field score.
+        $dbman->change_field_type($table, $field);
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020052202, 'crucible');
+    }
+
+    if ($oldversion < 2020052203) {
+
+        // Changing type of field score on table crucible_task_results to number.
+        $table = new xmldb_table('crucible_task_results');
+        $field = new xmldb_field('score', XMLDB_TYPE_NUMBER, '10', null, null, null, '0.00000', 'status');
+
+        // Launch change of type for field score.
+        $dbman->change_field_type($table, $field);
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020052203, 'crucible');
+    }
+
+    if ($oldversion < 2020052600) {
+
+        // Define field dispatchtaskid to be added to crucible_task_results.
+        $table = new xmldb_table('crucible_task_results');
+        $field = new xmldb_field('dispatchtaskid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'taskid');
+
+        // Conditionally launch add field dispatchtaskid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020052600, 'crucible');
+    }
     return true;
 }
 

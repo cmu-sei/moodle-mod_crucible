@@ -101,6 +101,9 @@ if ($tasks) {
     $rec = $DB->get_record('crucible_attempts', array("id" => $a), 'score');
     $response['score'] = get_string("attemptscore", "crucible") . $rec->score;
 }
+
+// TODO child task results will not be retrieved by runtask.php and must be checked here, if desired
+
 /*
 $system = setup_system();
 $results = get_taskresults($system, $id);

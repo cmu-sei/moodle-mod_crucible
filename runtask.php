@@ -62,16 +62,17 @@ if (!confirm_sesskey()) {
 }
 
 $system = setup_system();
-$result = run_task($system, $id);
+$results = run_task($system, $id);
 $response = array();
 
-if (!$result) {
+if (!$results) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error";
-} else if (is_array($result)) {
+} else if (is_array($results)) {
     global $DB;
     header('HTTP/1.1 200 OK');
-    $response['status'] = $result[0]->status;
+    // TODO status of first result is not indicative of succes on all vms
+    $response['status'] = $results[0]->status;
     $response['message'] = "success";
 
     $task = get_task($system, $id);
@@ -83,14 +84,16 @@ if (!$result) {
     if ($dbtask !== false) {
         $succeeded =  0;
         // save results in the db
-        foreach ($result as $res) {
+        foreach ($results as $result) {
+            // these results will not include child tasks
             $entry = new stdClass();
             $entry->taskid = $dbtask->id;
+            $entry->dispatchtaskid = $result->taskId;
             $entry->attemptid = $a;
-            debugging("received $res->status for $res->vmName and output $res->actualOutput", DEBUG_DEVELOPER);
-            $entry->vmname = $res->vmName;
-            $entry->status = $res->status;
-            if ($res->status === "succeeded") {
+            debugging("received $result->status for $result->vmName and output $result->actualOutput", DEBUG_DEVELOPER);
+            $entry->vmname = $result->vmName;
+            $entry->status = $result->status;
+            if ($result->status === "succeeded") {
                 $entry->score = $dbtask->points;
                 $succeeded++;
             } else {
@@ -102,8 +105,16 @@ if (!$result) {
                 debugging("failed to insert task results record for " . $id, DEBUG_DEVELOPER);
             }
         }
+        if ($succeeded === 0) {
+            $response['status'] = "failed";
+        } else if ($succeeded === count($results)) {
+            $response['status'] = "succeeded";
+        } else {
+            $response['status'] = "partial";
+        }
+
         // score should be a percentage of points based on how many vms passed
-        $taskscore = ($succeeded / count($vmresults)) * $dbtask->points;
+        $taskscore = ($succeeded / count($results)) * $dbtask->points;
         $response['taskscore'] = $taskscore;
         debugging("task score should be $taskscore", DEBUG_DEVELOPER);
     }
