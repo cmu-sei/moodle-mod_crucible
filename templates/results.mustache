@@ -53,6 +53,9 @@ DM20-0196
                     <td>{{name}}</td>
                     <td>{{desc}}</td>
                     <td><button id="{{id}}" class="btn btn-primary exec-task">{{action}}</button></td>
+                    {{#comment}}
+                        <td>{{comment}}</td>
+                    {{/comment}}
                     <td id="result-{{id}}" class="result">{{result}}</td>
                     <td>{{points}}</td>
                     <td id="score-{{id}}" class="score">{{score}}</td>

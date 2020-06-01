@@ -136,6 +136,7 @@ $string['attemptscore'] = 'Attempt Grade: ';
 $string['returntext'] = 'Return to Lab';
 $string['taskregrade'] = 'Edit Grade';
 $string['vmname'] = 'VM Name';
+$string['taskcomment'] = 'Comment';
 
 // tasks
 $string['managetasks'] = 'Manage Tasks';

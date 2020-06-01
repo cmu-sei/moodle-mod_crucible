@@ -224,20 +224,33 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     }
 
-    function display_results($tasks) {
+    function display_results($tasks, $review = false) {
         if (is_null($tasks)) {
             return;
         }
         $data = new stdClass();
-        $data->tableheaders = [
-            //get_string('taskid', 'mod_crucible'),
-            get_string('taskname', 'mod_crucible'),
-            get_string('taskdesc', 'mod_crucible'),
-            get_string('taskaction', 'mod_crucible'),
-            get_string('taskresult', 'mod_crucible'),
-            get_string('points', 'mod_crucible'),
-            get_string('score', 'mod_crucible')
-        ];
+        if ($review) {
+            $data->tableheaders = [
+                //get_string('taskid', 'mod_crucible'),
+                get_string('taskname', 'mod_crucible'),
+                get_string('taskdesc', 'mod_crucible'),
+                get_string('taskaction', 'mod_crucible'),
+                get_string('comment', 'mod_crucible'),
+                get_string('taskresult', 'mod_crucible'),
+                get_string('points', 'mod_crucible'),
+                get_string('score', 'mod_crucible')
+            ];
+        } else {
+            $data->tableheaders = [
+                //get_string('taskid', 'mod_crucible'),
+                get_string('taskname', 'mod_crucible'),
+                get_string('taskdesc', 'mod_crucible'),
+                get_string('taskaction', 'mod_crucible'),
+                get_string('taskresult', 'mod_crucible'),
+                get_string('points', 'mod_crucible'),
+                get_string('score', 'mod_crucible')
+            ];
+        }
 
         if ($tasks) {
 
@@ -254,6 +267,13 @@ class mod_crucible_renderer extends plugin_renderer_base {
                     $rowdata->action = get_string('taskexecute', 'mod_crucible');
                 } else {
                     $rowdata->action = get_string('tasknoexecute', 'mod_crucible');
+                }
+                if ($review) {
+                    if ($task->comment) {
+                        $rowdata->comment = $task->comment;
+                    } else {
+                        $rowdata->comment = "-";
+                    }
                 }
                 if (isset($task->score)) {
                     $rowdata->score = $task->score;
@@ -277,6 +297,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
             get_string('taskdesc', 'mod_crucible'),
             get_string('taskregrade', 'mod_crucible'),
             get_string('vmname', 'mod_crucible'),
+            get_string('comment', 'mod_crucible'),
             get_string('taskresult', 'mod_crucible'),
             get_string('points', 'mod_crucible'),
             get_string('score', 'mod_crucible')
@@ -294,6 +315,11 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 }
                 $rowdata->action = get_string('taskregrade', 'mod_crucible');
                 $rowdata->vmname = $task->vmname;
+                if (!is_null($task->comment)) {
+                    $rowdata->comment = $task->comment;
+                } else {
+                     $rowdata->comment = "-";
+                }
                 if (isset($task->score)) {
                     $rowdata->score = $task->score;
                 }

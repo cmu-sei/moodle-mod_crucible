@@ -151,6 +151,9 @@ if ($isinstructor) {
             $newtask->vmname = $vmname;
             $newtask->score = $vals["score"];
             $newtask->result = $vals["status"];
+            if (!is_null($result->comment)) {
+                $task->comment = $result->comment;
+            }
             $details[] = $newtask;
         }
     }
@@ -170,10 +173,13 @@ if ($isinstructor) {
         foreach ($results as $result) {
             $task->score = $result->score;
             $task->result = $result->status;
+            if (!is_null($result->comment)) {
+                $task->comment = $result->comment;
+            }
         }
     }
     if ($tasks) {
-        $renderer->display_results($tasks);
+        $renderer->display_results($tasks, $review = true);
     }
 }
 
