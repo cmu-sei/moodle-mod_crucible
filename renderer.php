@@ -235,7 +235,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 get_string('taskname', 'mod_crucible'),
                 get_string('taskdesc', 'mod_crucible'),
                 get_string('taskaction', 'mod_crucible'),
-                get_string('comment', 'mod_crucible'),
+                get_string('taskcomment', 'mod_crucible'),
                 get_string('taskresult', 'mod_crucible'),
                 get_string('points', 'mod_crucible'),
                 get_string('score', 'mod_crucible')
@@ -297,7 +297,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
             get_string('taskdesc', 'mod_crucible'),
             get_string('taskregrade', 'mod_crucible'),
             get_string('vmname', 'mod_crucible'),
-            get_string('comment', 'mod_crucible'),
+            get_string('taskcomment', 'mod_crucible'),
             get_string('taskresult', 'mod_crucible'),
             get_string('points', 'mod_crucible'),
             get_string('score', 'mod_crucible')

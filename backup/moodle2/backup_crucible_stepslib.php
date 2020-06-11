@@ -47,8 +47,9 @@ class backup_crucible_activity_structure_step extends backup_activity_structure_
 
         // Define each element separated
         $crucible = new backup_nested_element('crucible', array('id'), array(
-            'name', 'intro', 'eventtemplate', 'vmapp',
-            'timecreated', 'timemodified'));
+            'name', 'intro', 'introformat', 'eventtemplateid', 'vmapp',
+            'clock', 'extendevent', 'timeopen', 'timeclose', 'grade',
+            'grademethod', 'timecreated', 'timemodified'));
 
 
         // Build the tree
