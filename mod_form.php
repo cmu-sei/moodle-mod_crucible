@@ -109,12 +109,10 @@ class mod_crucible_mod_form extends moodleform_mod {
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
 
-        $mform->removeElement('grade');
-
+	$mform->removeElement('grade');
+        $currentgrade = 0;
         if (property_exists($this->current, 'grade')) {
             $currentgrade = $this->current->grade;
-        } else {
-            $currentgrade = 0;
         }
 
         $mform->addElement('text', 'grade', get_string('grade'), $currentgrade);
@@ -126,6 +124,7 @@ class mod_crucible_mod_form extends moodleform_mod {
             \mod_crucible\utils\scaletypes::get_display_types());
         $mform->setType('grademethod', PARAM_INT);
         $mform->addHelpButton('grademethod', 'grademethod', 'crucible');
+        //$mform->hideIf('grademethod', 'grade', 'eq', '0');
 
         // -------------------------------------------------------------------------------
         $mform->addElement('header', 'timing', get_string('timing', 'crucible'));
@@ -157,6 +156,7 @@ class mod_crucible_mod_form extends moodleform_mod {
             $errors['timeclose'] = get_string('closebeforeopen', 'quiz');
         }
 
+
         if (array_key_exists('completion', $data) && $data['completion'] == COMPLETION_TRACKING_AUTOMATIC) {
             $completionpass = isset($data['completionpass']) ? $data['completionpass'] : $this->current->completionpass;
 
@@ -172,11 +172,7 @@ class mod_crucible_mod_form extends moodleform_mod {
     }
 
     function data_preprocessing(&$data) {
-/*
-        if (isset($toform['grade'])) {
-            $toform['grade'] = $toform['grade'] + 0;
-        }
-*/
+
         // Completion settings check.
         if (empty($toform['completionusegrade'])) {
             $toform['completionpass'] = 0; // Forced unchecked.
@@ -196,8 +192,6 @@ class mod_crucible_mod_form extends moodleform_mod {
         $data->name = $this->eventtemplates[$index]->name;
         $data->intro = $this->eventtemplates[$index]->description;
         $data->introeditor['format'] = FORMAT_PLAIN;
-
-        // TODO save tasks to the db
 
         // TODO if grade method changed, update all grades
     }

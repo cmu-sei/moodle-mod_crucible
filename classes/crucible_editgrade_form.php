@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Skatch backgrounds.
+ * This is a one page wonder table manager
  *
  * @package    mod_crucible
  * @copyright  2020 Carnegie Mellon University
@@ -33,26 +33,51 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-// This line protects the file from being accessed by a URL directly.
-defined('MOODLE_INTERNAL') || die();
+namespace mod_crucible;
 
-// This is the version of the plugin.
-$plugin->version = 2020080301;
+require_once('../../config.php');
+require_login();
+require_once($CFG->libdir . '/formslib.php');
 
-// This is the version of Moodle this plugin requires.
-$plugin->requires = 2018050800;
+/**
+ * Define a form that acts on just one field, e.g "name", in an existing table
+ */
+class crucible_editgrade_form extends \moodleform {
 
-// This is the component name of the plugin - it always starts with 'component_'
-$plugin->component = 'mod_crucible';
+    /**
+     * Defines forms elements
+     */
+    public function definition() {
+        global $CFG;
 
-// This is a list of plugins, this plugin depends on (and their versions).
-$plugin->dependencies = [
-];
+        $mform = $this->_form;
 
-// This is a stable release.
-//$plugin->maturity = MATURITY_STABLE;
-$plugin->maturity = MATURITY_BETA;
+        $fieldname = "comment";
+        $mform->addElement('text', $fieldname, $fieldname,
+                array('size' => '64'));
+        $mform->setType($fieldname, PARAM_TEXT);
+        $mform->addRule($fieldname, null, 'required', null, 'client');
+        $mform->addRule($fieldname, get_string('maximumchars', '', 255),
+                'maxlength', 255, 'client');
 
-// This is the named version.
-$plugin->release = '0.1.0';
+        $fieldname = "score";
+        $mform->addElement('text', $fieldname, $fieldname,
+                array('size' => '64'));
+        $mform->setType($fieldname, PARAM_FLOAT);
+        $mform->addRule($fieldname, null, 'required', null, 'client');
+        $mform->addRule($fieldname, get_string('maximumchars', '', 255),
+                'maxlength', 255, 'client');
+
+        $mform->addElement('hidden', 'action', 'update');
+        $mform->setType('action', PARAM_TEXT);
+
+        $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
+
+        $mform->addElement('hidden', 'attemptid');
+        $mform->setType('attemptid', PARAM_INT);
+
+        $this->add_action_buttons();
+    }
+}
 

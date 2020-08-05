@@ -55,7 +55,6 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
                 if (remaining <= 0) {
-                    console.log("countdown timer expired");
                     return;
                 }
 

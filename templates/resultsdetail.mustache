@@ -52,7 +52,12 @@ DM20-0196
                 <tr>
                     <td>{{name}}</td>
                     <td>{{desc}}</td>
-                    <td><button id="{{id}}" class="btn btn-primary exec-task">{{action}}</button></td>
+                    {{#action}}
+                        <td><a href="{{{url}}}" id="{{id}}" class="btn btn-primary exec-task">{{action}}</a></td>
+                    {{/action}}
+                    {{^action}}
+                        <td></td>
+                    {{/action}}
                     <td>{{vmname}}</td>
                     {{#comment}}
                         <td>{{comment}}</td>

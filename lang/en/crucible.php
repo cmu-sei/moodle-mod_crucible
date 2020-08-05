@@ -82,6 +82,7 @@ $string['grademethod_help'] = 'The grading method defines how the grade for a si
 $string['grademethoddesc'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
 $string['extendeventsetting'] = 'Extend Event';
 $string['extendeventsetting_help'] = 'Setting this allows the user to extend the lab by one hour increments.';
+$string['grade_help'] = 'This setting specifies the maximum grade for the lab. If set to 0, the lesson does not appear in the grades pages.';
 
 // Time options
 $string['timing'] = 'Timing';

@@ -52,12 +52,13 @@ function setup_system() {
         $client = \core\oauth2\api::get_system_oauth_client($issuer);
     } catch (Exception $e) {
         debugging("get_system_oauth_client failed with $e->errorcode", DEBUG_NORMAL);
+        $client = false;
     }
     if ($client === false) {
         debugging('Cannot connect as system account', DEBUG_NORMAL);
         $details = 'Cannot connect as system account';
-        throw new \Exception($details);
-        return;
+        //throw new \Exception($details);
+        return false;
     }
     return $client;
 }
@@ -79,8 +80,10 @@ function setup() {
 
     if ($client) {
         if (!$client->is_logged_in()) {
+            // TODO this doesnt actually work
             debugging('not logged in', DEBUG_DEVELOPER);
             redirect($client->get_login_url());
+            //print_error('please re-authenticate your session');
         }
     }
 

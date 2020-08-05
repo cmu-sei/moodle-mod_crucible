@@ -65,31 +65,41 @@ if (!confirm_sesskey()) {
 //$results = get_taskresults($system, $id);
 $response = array();
 
-$tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $crucible->id, "gradable" => "1"));
+$tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $crucible->id/*, "gradable" => "1"*/));
 if ($tasks) {
     $data = array();
     $details = array();
     $index = 0;
     foreach ($tasks as $task) {
         $object = new stdClass();
-        debugging("$task->id is $task->dispatchtaskid", DEBUG_DEVELOPER);
-
+/*
         $results = $DB->get_records('crucible_task_results', array("attemptid" => $a, "taskid" => $task->id), "timemodified ASC");
         if ($results) {
             foreach ($results as $result) {
-                $vmresults[$result->vmname] = array("score" => $result->score, "status" => $result->status);
-            }
-            $succeeded = 0;
-            foreach ($vmresults as $vmname => $vals) {
-                if ($vals["status"] === "succeeded") {
-                    $succeeded++;
+                if ($result->vmname === "SUMMARY") {
+                    $object->taskscore = $result->score;
+                    $succeeded = 0;
+                    $object->status = $result->status;
                 }
-                $object->status = $vals['status'];
             }
-            $object->taskscore = ($succeeded / count($vmresults)) * $task->points;
-            debugging("$task->dispatchtaskid has taskscore $object->taskscore = ($succeeded / " . count($vmresults) . ") * $task->points", DEBUG_DEVELOPER);
+            debugging("$task->dispatchtaskid has taskscore $object->taskscore", DEBUG_DEVELOPER);
 
         }
+*/
+        $summary = $DB->get_record_sql('SELECT * from {crucible_task_results} WHERE '
+                . 'taskid = ' . $task->id . ' AND '
+                . 'attemptid = ' . $a . ' AND '
+                . $DB->sql_compare_text('vmname') . ' = '
+                . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
+        if ($summary) {
+            $object->taskscore = $summary->score;
+            $object->status = $summary->status;
+            debugging("$task->id $task->dispatchtaskid has taskscore $object->taskscore", DEBUG_DEVELOPER);
+        } else {
+            debugging("no summary task result for $task->id", DEBUG_DEVELOPER);
+        }
+
+
         // TODO use id from db not from dispatcher
         //$object->taskId = $task->id;
         $object->taskId = $task->dispatchtaskid;
@@ -98,8 +108,10 @@ if ($tasks) {
         $index++;
     }
 
-    $rec = $DB->get_record('crucible_attempts', array("id" => $a), 'score');
-    $response['score'] = get_string("attemptscore", "crucible") . $rec->score;
+    $rec = $DB->get_record('crucible_attempts', array("id" => $a));
+    $maxgrade = $DB->get_field("crucible", "grade", array('id' => $rec->crucibleid));
+    debugging("retrieved grade of $rec->score for attempt $a maxgrade $maxgrade crucibleid $rec->crucibleid", DEBUG_DEVELOPER);
+    $response['score'] = get_string("attemptscore", "crucible") . "$rec->score / $maxgrade";
 }
 
 // TODO child task results will not be retrieved by runtask.php and must be checked here, if desired

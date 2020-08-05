@@ -77,23 +77,32 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     }
 
-    function display_grade($crucible) {
+    function display_grade($crucible, $user = null) {
         global $USER;
 
-        $usergrades = \mod_crucible\utils\grade::get_user_grade($crucible, $USER->id);
+        if (is_null($user)) {
+            $user = $USER->id;
+        }
+
+        $usergrades = \mod_crucible\utils\grade::get_user_grade($crucible, $user);
         // should only be 1 grade, but we'll always get end just in case
         $usergrade = end($usergrades);
         $data = new stdClass();
         $data->overallgrade = get_string('overallgrade', 'groupquiz');
         $data->grade = number_format($usergrade, 2);
+        $data->maxgrade = $crucible->grade;
         echo $this->render_from_template('mod_crucible/grade', $data);
     }
 
     function display_score($attempt) {
         global $USER;
+        global $DB;
+
+        $rec = $DB->get_record("crucible_attempts", array("id" => $attempt));
 
         $data = new stdClass();
-        $data->score = $attempt->score;
+        $data->score = $rec->score;
+        $data->maxgrade = $DB->get_field("crucible", "grade", array('id' => $rec->crucibleid));
         echo $this->render_from_template('mod_crucible/score', $data);
     }
 
@@ -286,7 +295,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
         }
     }
 
-    function display_results_detail($tasks) {
+    function display_results_detail($a, $tasks) {
         if (is_null($tasks)) {
             return;
         }
@@ -313,9 +322,18 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 if (isset($task->result)) {
                     $rowdata->result = $task->result;
                 }
-                $rowdata->action = get_string('taskregrade', 'mod_crucible');
-                $rowdata->vmname = $task->vmname;
-                if (!is_null($task->comment)) {
+                if ($task->vmname == NULL) {
+                    $rowdata->action = get_string('taskregrade', 'mod_crucible');
+                    $rowdata->url = new moodle_url('/mod/crucible/viewattempt.php', array("a" => $a, "id" => $task->id, "action" => "edit"));
+                    $rowdata->vmname = "-";
+                } else if ($task->vmname === "SUMMARY") {
+                    $rowdata->action = get_string('taskregrade', 'mod_crucible');
+                    $rowdata->url = new moodle_url('/mod/crucible/viewattempt.php', array("a" => $a, "id" => $task->id, "action" => "edit"));
+                    $rowdata->vmname = $task->vmname;
+                } else {
+                    $rowdata->vmname = $task->vmname;
+		}
+                if (isset($task->comment)) {
                     $rowdata->comment = $task->comment;
                 } else {
                      $rowdata->comment = "-";

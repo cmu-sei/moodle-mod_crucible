@@ -34,7 +34,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="crucibleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the crucible id"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The userid that this grade is for"/>
-        <FIELD NAME="grade" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0.00000" SEQUENCE="false" DECIMALS="5" COMMENT="The grade for this user, for this crucible lab"/>
+        <FIELD NAME="grade" TYPE="number" LENGTH="6" NOTNULL="true" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="The grade for this user, for this crucible lab"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time created/modified for this grade"/>
       </FIELDS>
       <KEYS>
@@ -50,7 +50,7 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The userid for this attempt"/>
         <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="inprogress" SEQUENCE="false" COMMENT="The current state of the attempts. 'inprogress', 'overdue', 'finished' or 'abandoned'."/>
         <FIELD NAME="tasks" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The tasks for this attempt"/>
-        <FIELD NAME="score" TYPE="number" LENGTH="10" NOTNULL="false" DEFAULT="0.00000" SEQUENCE="false" COMMENT="The score for this attempt"/>
+        <FIELD NAME="score" TYPE="number" LENGTH="6" NOTNULL="false" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="The score for this attempt"/>
         <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The expirationDate of the event"/>
         <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt began"/>
         <FIELD NAME="timefinish" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The time this attempt ended"/>
@@ -85,7 +85,7 @@
         <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the crucible attempt"/>
         <FIELD NAME="vmname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The vm name for this result"/>
         <FIELD NAME="status" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter task status"/>
-        <FIELD NAME="score" TYPE="number" LENGTH="10" NOTNULL="false" DEFAULT="0.00000" SEQUENCE="false" COMMENT="Score given to the student"/>
+        <FIELD NAME="score" TYPE="number" LENGTH="6" NOTNULL="false" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="Score given to the student"/>
         <FIELD NAME="comment" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A comment added by a teacher"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The time this result was modified"/>
       </FIELDS>

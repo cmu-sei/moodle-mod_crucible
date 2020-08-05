@@ -256,7 +256,7 @@ if ($object->event) {
         $renderer->display_clock($starttime, $endtime, $extend);
         $PAGE->requires->js_call_amd('mod_crucible/clock', 'countdown', array('endtime' => $endtime));
     } else if ($crucible->clock == 2) {
-        $renderer->display_clock($starttime, $endtime, $extent);
+        $renderer->display_clock($starttime, $endtime, $extend);
         $PAGE->requires->js_call_amd('mod_crucible/clock', 'countup', array('starttime' => $starttime));
     }
     // no matter what, start our session timer
@@ -281,7 +281,7 @@ if ($scenarioid) {
 
     if ($tasks) {
         // display tasks
-        $filtered = $object->filter_scenario_tasks($tasks, $visible=1);
+        $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
         $renderer->display_results($filtered);
         $info = new stdClass();
         $info->scenario = $scenarioid;
@@ -316,7 +316,7 @@ if ($scenarioid) {
 
     if ($tasks) {
         // run as system account
-        $filtered = filter_tasks($tasks, $visible=1);
+        $filtered = filter_tasks($tasks, $visible = 1);
     }
 
     $renderer->display_tasks($filtered);

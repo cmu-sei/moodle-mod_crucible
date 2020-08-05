@@ -286,6 +286,22 @@ class crucible {
         }
         $attempt->tasks = "";
 
+        $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $this->crucible->id));
+
+        if ($tasks) {
+            foreach ($tasks as $task) {
+                $data = new \stdClass();
+                $data->taskid = $task->id;
+                $data->dispatchtaskid = $task->dispatchtaskid;
+                $data->attemptid = $attempt->id;
+                $data->vmname = "SUMMARY";
+                $data->timemodified = time();
+
+                $rec = $DB->insert_record("crucible_task_results", $data);
+
+	    }
+        }
+
         if ($attempt->save()) {
             $this->openAttempt = $attempt;
         } else {

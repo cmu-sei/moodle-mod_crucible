@@ -85,13 +85,8 @@ $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevar
 // get eventtemplate info
 $object->eventtemplate = get_eventtemplate($object->userauth, $crucible->eventtemplateid);
 
-// Update the database.
 if ($object->eventtemplate) {
     $scenariotemplateid = $object->eventtemplate->scenarioTemplateId;
-    // Update the database.
-    $crucible->name = $object->eventtemplate->name;
-    $crucible->intro = $object->eventtemplate->description;
-    $DB->update_record('crucible', $crucible);
 } else {
     $scenariotemplateid = "";
 }
@@ -103,19 +98,15 @@ if (!$object->is_instructor()) {
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 $renderer->display_detail($crucible, $object->eventtemplate->durationHours);
-
 $renderer->display_return_form($returnurl, $id);
 
 if ($scenariotemplateid) {
-    // this is when we do not have an active session
-    $tasks = filter_tasks(get_scenariotemplatetasks($object->userauth, $scenariotemplateid));
+    global $DB;
 
-    // TODO it may be fine to leave this here
-    if (is_null($tasks)) {
-        // run as system account
-        $tasks = filter_tasks(get_scenariotemplatetasks($object->systemauth, $scenariotemplateid));
+    $tasks = $DB->get_records("crucible_tasks", array("crucibleid" => $crucible->id));
+    if (!is_null($tasks)) {
+        $renderer->display_tasks($tasks);
     }
-    $renderer->display_tasks($tasks);
 }
 
 $attempts = $object->getall_attempts('all', $review = true);

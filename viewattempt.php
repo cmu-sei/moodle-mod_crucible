@@ -41,7 +41,13 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 
-$a = required_param('a', PARAM_INT);  // attempt ID 
+$a = optional_param('a', '', PARAM_INT);  // attempt ID 
+$action = optional_param('action', 'list', PARAM_TEXT);
+$actionitem = optional_param('id', 0, PARAM_INT);
+
+if (!$a) {
+    $a = required_param('attemptid', PARAM_INT);  // attempt ID
+}
 
 try {
         $attempt    = $DB->get_record('crucible_attempts', array('id' => $a), '*', MUST_EXIST);
@@ -64,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/crucible/view.php', array ( 'id' => $cm->id ) );
+$url = new moodle_url ( '/mod/crucible/viewattempt.php', array ( 'a' => $a ) );
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -115,6 +121,7 @@ $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 $renderer->display_detail($crucible, $object->eventtemplate->durationHours);
 
+
 $isinstructor = has_capability('mod/crucible:manage', $context);
 
 if ($isinstructor) {
@@ -125,42 +132,97 @@ if ($isinstructor) {
 
 $renderer->display_form($url, $object->crucible->eventtemplateid);
 
-if ($showgrade) {
-    $renderer->display_grade($crucible);
-    $renderer->display_score($attempt);
-}
-
 global $DB;
+
+
 
 //get tasks from db
 if ($isinstructor) {
+
+    if ($showgrade) {
+        $renderer->display_grade($crucible, $attempt->userid);
+        $renderer->display_score($attempt->id);
+    }
+
+    // Get the editgrade form.
+    $mform = new \mod_crucible\crucible_editgrade_form();
+
+    // If the cancel button was pressed, we are out of here.
+    if ($mform->is_cancelled()) {
+        redirect($PAGE->url, get_string('cancelled'), 2);
+        exit;
+    }
+
+    // If we have data, then our job here is to save it and return.
+    if ($data = $mform->get_data()) {
+        $data->vmname = "SUMMARY";
+        debugging("updating crucible_task_results", DEBUG_DEVELOPER);
+        $DB->update_record('crucible_task_results', $data);
+        $attempt = $object->get_attempt($a);
+	$score = $grader->calculate_attempt_grade($attempt);
+	$response['score'] = get_string("attemptscore", "crucible") . $score;
+	debugging("grade " . $score, DEBUG_DEVELOPER);
+
+        redirect($PAGE->url, get_string('updated', 'core', 'grade item; new grade ' . $score), 2);
+    }
+
+
+    // If the action is specified as "edit" then we show the edit form.
+    if ($action == "edit") {
+        // Create some data for our form and set it to the form.
+        $data = new stdClass();
+        // get task from db table
+        $data = $DB->get_record_sql('SELECT * from {crucible_task_results} WHERE '
+                . 'taskid = ' . $actionitem . ' AND '
+                . 'attemptid = ' . $a . ' AND '
+                . $DB->sql_compare_text('vmname') . ' = '
+                . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
+
+        if (!$data) { // In case there isn't any data in your chosen table.
+            print_error("this should not happen");
+        }
+
+        $mform->set_data($data);
+        // Header for the page.
+
+        echo $renderer->heading('Edit Task Grade', 3);
+
+        // Output page and form.
+        $mform->display();
+    }
+
     echo "<br>Instructor view: displaying all gradable tasks";
     $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $crucible->id, "gradable" => "1"));
 
-    // TODO allow the instructor to add a comment and override a task score
-    // create extra rows for each vm instead of giving a list
     $details = array();
     foreach ($tasks as $task) {
+        $task_results = array();
         $results = $DB->get_records('crucible_task_results', array("attemptid" => $a, "taskid" => $task->id), "timemodified ASC");
-
         foreach ($results as $result) {
-            $vmresults[$result->vmname] = array("score" => $result->score, "status" => $result->status);
-        }
-        foreach ($vmresults as $vmname => $vals) {
             $newtask = clone $task;
-            $newtask->vmname = $vmname;
-            $newtask->score = $vals["score"];
-            $newtask->result = $vals["status"];
-            if (!is_null($result->comment)) {
-                $task->comment = $result->comment;
+            $newtask->vmname = $result->vmname;
+            $newtask->score = $result->score;
+            $newtask->result = $result->status;
+            if (isset($result->comment)) {
+                $newtask->comment = $result->comment;
             }
-            $details[] = $newtask;
-        }
+            if ($newtask->vmname === 'SUMMARY') {
+                array_unshift($task_results, $newtask);
+            } else {
+                $task_results[] = $newtask;
+            }
+	}
+        $details = array_merge($details, $task_results);
     }
 
-    $renderer->display_results_detail($details);
+    $renderer->display_results_detail($a, $details);
 
 } else {
+
+    if ($showgrade) {
+        $renderer->display_grade($crucible);
+        $renderer->display_score($attempt->id);
+    }
     echo "<br>Student view: displaying all visible and gradable tasks";
     $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $crucible->id, "visible" => "1", "gradable" => "1"));
 
@@ -170,6 +232,7 @@ if ($isinstructor) {
             continue;
         }
         // TODO handle multiple results
+        // TODO show vm summary task only
         foreach ($results as $result) {
             $task->score = $result->score;
             $task->result = $result->status;
@@ -178,11 +241,9 @@ if ($isinstructor) {
             }
         }
     }
+
     if ($tasks) {
         $renderer->display_results($tasks, $review = true);
     }
 }
-
-echo $renderer->footer();
-
 

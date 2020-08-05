@@ -138,11 +138,7 @@ function crucible_update_instance(stdClass $crucible, $mform) {
         return $result;
     }
     // Get the current value, so we can see what changed.
-    $oldcrucible = $DB->get_record('crucible', array('id' => $crucible->instance));
-
-    // We need two values from the existing DB record that are not in the form,
-    // in some of the function calls below.
-    $crucible->grade = $oldcrucible->grade;
+   // $oldcrucible = $DB->get_record('crucible', array('id' => $crucible->instance));
 
     // Update the database.
     $crucible->id = $crucible->instance;
@@ -201,8 +197,6 @@ function crucible_delete_instance($id) {
 
     // delete grade from database
     crucible_grade_item_delete($crucible);
-
-
 
     // note: all context files are deleted automatically
 
@@ -332,7 +326,6 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
  * @return int 0 if ok, error code otherwise
  */
 function crucible_grade_item_update($crucible, $grades = null) {
-
     global $CFG, $OUTPUT;
     require_once($CFG->libdir . '/gradelib.php');
 

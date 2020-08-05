@@ -157,35 +157,31 @@ class grade {
         if ($tasks === false) {
             return $scaledpoints;
         }
+	debugging("checking " . count($tasks) . " tasks", DEBUG_DEVELOPER);
 
         foreach ($tasks as $task) {
-            $results = $DB->get_records('crucible_task_results', array("attemptid" => $this->crucible->openAttempt->id, "taskid" => $task->id), $sort="timemodified ASC");
-            if ($results === false) {
+            //$results = $DB->get_records('crucible_task_results', array("attemptid" => $attempt->id, "taskid" => $task->id), $sort="timemodified ASC");
+            $result = $DB->get_record_sql('SELECT * from {crucible_task_results} WHERE '
+                . 'taskid = ' . $task->id . ' AND '
+                . 'attemptid = ' . $attempt->id . ' AND '
+                . $DB->sql_compare_text('vmname') . ' = '
+                . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
+            if ($result === false) {
+		debugging("result is false", DEBUG_DEVELOPER);
                 continue;
-            }
+            } else if (is_null($result)) {
+		debugging("result is null", DEBUG_DEVELOPER);
+                continue;
+	    }
 
             $score = 0;
             $points = 0;
             $values[$task->id] = array();;
             $vmresults = array();
 
-            foreach ($results as $result) {
-                    $vmresults[$result->vmname] = $result->score;
-                    $score = $result->score;
-            }
-            //TODO if multiple, we either need to treat points as a points per vm and be given the number of expected vms
-            // or we need to make score a float so that that we can give a percentage of points based on pass/fail for the vms
-
-            //if ($task->multiple) {
-            //    debugging("grading multiple vms", DEBUG_DEVELOPER);
-                //$points = count($vmresults) * $task->points;
-            //    foreach ($vmresults as $vmname => $vmscore) {
-            //        $score += $vmscore;
-            //        $points += $task->points;
-            //    }
-            //} else {
-                $points = $task->points;
-            //}
+            $vmresults[$result->vmname] = $result->score;
+            $score = $result->score;
+            $points = $task->points;
 
             $values[$task->id] = array($points, $score);
         }

@@ -469,6 +469,41 @@ function xmldb_crucible_upgrade($oldversion) {
         // Crucible savepoint reached.
         upgrade_mod_savepoint(true, 2020052600, 'crucible');
     }
+
+    if ($oldversion < 2020080300) {
+
+        // Changing precision of field score on table crucible_attempts to (6, 2).
+        $table = new xmldb_table('crucible_attempts');
+        $field = new xmldb_field('score', XMLDB_TYPE_NUMBER, '6, 2', null, null, null, '0.00', 'tasks');
+
+        // Launch change of precision for field score.
+        $dbman->change_field_precision($table, $field);
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020080300, 'crucible');
+    }
+
+    if ($oldversion < 2020080301) {
+
+        // Changing precision of field grade on table crucible_grades to (6, 2).
+        $table = new xmldb_table('crucible_grades');
+        $field = new xmldb_field('grade', XMLDB_TYPE_NUMBER, '6, 2', null, XMLDB_NOTNULL, null, '0.00', 'userid');
+
+        // Launch change of precision for field grade.
+        $dbman->change_field_precision($table, $field);
+
+        // Changing precision of field score on table crucible_task_results to (6, 2).
+        $table = new xmldb_table('crucible_task_results');
+        $field = new xmldb_field('score', XMLDB_TYPE_NUMBER, '6, 2', null, null, null, '0.00', 'status');
+
+        // Launch change of precision for field score.
+        $dbman->change_field_precision($table, $field);
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2020080301, 'crucible');
+    }
+
+
     return true;
 }
 
