@@ -20,14 +20,17 @@ jobs:
           owner: sei-mmcdonough
           repo: moodle-mod_crucible
           excludes: prerelease, draft
-          
+        
+      - name: package
+        run: |
+          echo $steps.crucible.outputs.release
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: 2020101201 #${{ env.artifact_version }}
-          release_name: mod_crucible_2020101201 #${{ env.artifact_name }}
+          tag_name: 2020101202 #${{ env.artifact_version }}
+          release_name: mod_crucible_2020101202 #${{ env.artifact_name }}
           draft: false
           prerelease: false
