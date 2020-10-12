@@ -21,7 +21,7 @@ jobs:
         uses: thebritican/fetch-latest-release@v2.0.0
         with:
           # A Github token for the repo, usually `{{ github.token }}`.
-          github_token: # optional, default is ${{ github.token }}
+          github_token: ${{ github.token }}
           # Provide a "owner/repo" string for fetching from a different repo.
           repo_path: # optional
           
