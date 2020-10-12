@@ -15,7 +15,7 @@ jobs:
           path: ./mod_crucibe
 
       - id: crucible
-        uses: pozetroninc/github-action-get-latest-release@master
+        uses: pozetroninc/github-action-get-latest-release@2b51d48e904071035d6632715d41966f516711dd
         with:
           owner: sei-mmcdonough
           repo: moodle-mod_crucible
