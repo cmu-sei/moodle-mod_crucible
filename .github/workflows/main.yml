@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          path: ./crucible
+          path: './crucible'
 
       - id: crucible
         uses: pozetroninc/github-action-get-latest-release@v0.5.0
