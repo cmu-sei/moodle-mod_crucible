@@ -24,7 +24,7 @@ jobs:
       - name: package
         run: |
           OLDVERSION=${{ steps.crucible.outputs.release }}
-          
+          OLDDATE=`echo $OLDVERSION | cut -b 1-8`          
       
       - name: Create Release
         id: create_release
