@@ -34,6 +34,7 @@ jobs:
               let NEWVERS=(OLDVERS + 1)
               NEWVERSION=$OLDDATE`printf %02d $NEWVERS`
           fi
+          PREVIOUSVERSION=$(grep "plugin->version" crucible/version.php | sed -e "s/.*= \(.*\);.*/\1/")
           echo $NEWVERSION          
       
       - name: Create Release
