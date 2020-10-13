@@ -35,7 +35,10 @@ jobs:
               NEWVERSION=$OLDDATE`printf %02d $NEWVERS`
           fi
           PREVIOUSVERSION=$(grep "plugin->version" crucible/version.php | sed -e "s/.*= \(.*\);.*/\1/")
-          echo $NEWVERSION          
+          sed -i "s#$PREVIOUSVERSION#$NEWVERSION#" crucible/version.php
+          zip -r mod_crucible_$NEWVERSION.zip crucible/ -x  "crucible/*.git*" -x "crucible/node_modules/\*"
+          echo ::set-env name=artifact_version::$NEWVERSION
+          echo ::set-env name=artifact_name::mod_groupquiz_$NEWVERSION
       
       - name: Create Release
         id: create_release
@@ -43,7 +46,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: 2020101302 #${{ env.artifact_version }}
-          release_name: mod_crucible_2020101302 #${{ env.artifact_name }}
+          tag_name: ${{ env.artifact_version }}
+          release_name: ${{ env.artifact_name }}
           draft: false
           prerelease: false
