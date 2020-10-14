@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: './crucible'
+
+      - id: crucible
+        uses: pozetroninc/github-action-get-latest-release@v0.5.0
+        with:
+          owner: cmu-sei
+          repo: moodle-mod_crucible
+          excludes: prerelease, draft
+        
+      - name: package
+        run: |
+          OLDVERSION=${{ steps.crucible.outputs.release }}
+          OLDDATE=`echo $OLDVERSION | cut -b 1-8`
+          NEWDATE=`date +%Y%m%d`
+          if [ $OLDDATE -ne $NEWDATE ]; then
+              NEWVERSION=$NEWDATE\01
+          else
+              OLDVERS=`echo $OLDVERSION | cut -b 9-10`
+              OLDVERS=${OLDVERS#0}
+              let NEWVERS=(OLDVERS + 1)
+              NEWVERSION=$OLDDATE`printf %02d $NEWVERS`
+          fi
+          PREVIOUSVERSION=$(grep "plugin->version" crucible/version.php | sed -e "s/.*= \(.*\);.*/\1/")
+          sed -i "s#$PREVIOUSVERSION#$NEWVERSION#" crucible/version.php
+          zip -r mod_crucible_$NEWVERSION.zip crucible/ -x  "crucible/*.git*" -x "crucible/node_modules/\*"
+          echo ::set-env name=artifact_version::$NEWVERSION
+          echo ::set-env name=artifact_name::mod_crucible_$NEWVERSION
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.artifact_version }}
+          release_name: ${{ env.artifact_name }}
+          draft: false
+          prerelease: false
+    
+      - name: Upload a Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{env.artifact_name}}.zip
+          asset_name: ${{env.artifact_name}}.zip
+          asset_content_type: application/zip
