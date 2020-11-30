@@ -47,7 +47,9 @@ function setup_system() {
         return;
     }
     $issuer = \core\oauth2\api::get_issuer($issuerid);
-
+    
+    // Define $client for use below
+    $client = false;
     try {
         $client = \core\oauth2\api::get_system_oauth_client($issuer);
     } catch (Exception $e) {
