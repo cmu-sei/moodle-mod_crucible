@@ -306,7 +306,7 @@ function xmldb_crucible_upgrade($oldversion) {
 
         // Define field endtime to be added to crucible_attempts.
         $table = new xmldb_table('crucible_attempts');
-        $field = new xmldb_field('endtime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 1586788681, 'score');
+        $field = new xmldb_field('endtime', XMLDB_TYPE_INTEGER, '10', null, null, null, 1586788681, 'score');
 
         // Conditionally launch add field endtime.
         if (!$dbman->field_exists($table, $field)) {
