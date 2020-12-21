@@ -260,7 +260,6 @@ class crucible {
         $attempt->timestart = time();
         $attempt->timefinish = null;
         $attempt->crucibleid = $this->crucible->id;
-        $attempt->setState('inprogress');
         $attempt->score = 0;
         if ($this->event->id) {
             $attempt->eventid = $this->event->id;
@@ -278,7 +277,9 @@ class crucible {
             $attempt->endtime = strtotime($this->event->expirationDate);
         } else {
             $attempt->endtime = strtotime($this->event->expirationDate . 'Z');
-        }
+        }	    
+	    
+        $attempt->setState('inprogress');
 
         // TODO get list of tasks from steamfitter
         if ($this->event->scenarioId) {
