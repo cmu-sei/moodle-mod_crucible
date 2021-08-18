@@ -20,7 +20,6 @@ DM20-0196
  */
 
 define(['jquery'], function($) {
-
     var timeout;
     var access_token;
     var lab_status;
@@ -128,87 +127,68 @@ define(['jquery'], function($) {
     }
 
     function show_wait() {
-        var x = document.getElementById('launch_button');
-        x.style.display = 'none';
-        var x = document.getElementById('end_button');
-        x.style.display = 'none';
-        var x = document.getElementById('wait');
-        x.style.display = 'block';
-        var x = document.getElementById('vm_or_link');
-        x.style.display = 'none';
-        var x = document.getElementById('failed');
-        x.style.display = 'none';
-        var x = document.getElementById('crucible-container');
-        x.style.display = 'none';
-        var x = document.getElementById('enable-fullscreen');
-        x.style.display = 'none';
+        console.log('wait');
+        editStyle('launch_button', 'display', 'none');
+        editStyle('end_button', 'display', 'none');
+        editStyle('wait', 'display', 'block');
+        editStyle('vm_or_link', 'display', 'none');
+        editStyle('failed', 'display', 'none');
+        editStyle('crucible-container', 'display', 'none');
+        editStyle('enable-fullscreen', 'display', 'none');
     }
 
     function show_ended() {
-        var x = document.getElementById('launch_button');
-        x.style.display = 'block';
-        var x = document.getElementById('end_button');
-        x.style.display = 'none';
-        var x = document.getElementById('wait');
-        x.style.display = 'none';
-        var x = document.getElementById('vm_or_link');
-        x.style.display = 'none';
-        var x = document.getElementById('failed');
-        x.style.display = 'none';
-        var x = document.getElementById('timerdiv');
-        if (x) {
-            x.style.display = 'none';
-        }
-        var x = document.getElementById('crucible-container');
-        x.style.display = 'none';
-        var x = document.getElementById('enable-fullscreen');
-        x.style.display = 'none';
+        console.log('ended');
+        editStyle('launch_button', 'display', 'block');
+        editStyle('end_button', 'display', 'none');
+        editStyle('wait', 'display', 'none');
+        editStyle('vm_or_link', 'display', 'none');
+        editStyle('failed', 'display', 'none');
+        editStyle('timerdiv', 'display', 'none');
+        editStyle('crucible-container', 'display', 'none');
+        editStyle('enable-fullscreen', 'display', 'none');
     }
 
     function show_failed() {
-        var x = document.getElementById('launch_button');
-        x.style.display = 'none';
-        var x = document.getElementById('end_button');
-        x.style.display = 'none';
-        var x = document.getElementById('wait');
-        x.style.display = 'none';
-        var x = document.getElementById('vm_or_link');
-        x.style.display = 'none';
-        var x = document.getElementById('failed');
-        x.style.display = 'block';
-        var x = document.getElementById('crucible-container');
-        x.style.display = 'none';
-        var x = document.getElementById('enable-fullscreen');
-        x.style.display = 'none';
+        console.log('failed');
+        editStyle('launch_button', 'display', 'none');
+        editStyle('end_button', 'display', 'none');
+        editStyle('wait', 'display', 'none');
+        editStyle('vm_or_link', 'display', 'none');
+        editStyle('failed', 'display', 'block');
+        editStyle('crucible-container', 'display', 'none');
+        editStyle('enable-fullscreen', 'display', 'none');
     }
 
     function show_active() {
-        var x = document.getElementById('launch_button');
-        x.style.display = 'none';
-        var x = document.getElementById('end_button');
-        x.style.display = 'block';
-        var x = document.getElementById('event');
-        x.style.value = event_id;
-        var x = document.getElementById('wait');
-        x.style.display = 'none';
-        var x = document.getElementById('failed');
-        x.style.display = 'none';
+        console.log('active');
+        editStyle('launch_button', 'display', 'none');
+        editStyle('end_button', 'display', 'block');
+        editStyle('event', 'value', event_id);
+        editStyle('wait', 'display', 'none');
+        editStyle('failed', 'display', 'none');
+        editStyle('timerdiv', 'display', 'block');
+        editStyle('crucible-container', 'display', 'block');
+        editStyle('enable-fullscreen', 'display', 'inline-block');
+
         var x = document.getElementById('vm_or_link');
-        if (x.getAttribute('src') !== null) {
-            x.setAttribute('src', vm_app_url + '/views/' + view_id);
-        }
-        if (x.getAttribute('href')) {
-            x.setAttribute('href', player_app_url + '/view-player/' + view_id);
-        }
-        x.style.display = 'block';
-        var x = document.getElementById('timerdiv');
         if (x) {
+            if (x.getAttribute('src') !== null) {
+                x.setAttribute('src', vm_app_url + '/views/' + view_id);
+            }
+            if (x.getAttribute('href')) {
+                x.setAttribute('href', player_app_url + '/view/' + view_id);
+            }
             x.style.display = 'block';
         }
-        var x = document.getElementById('crucible-container');
-        x.style.display = 'block';
-        var x = document.getElementById('enable-fullscreen');
-        x.style.display = 'inline-block';
+   }
+
+   function editStyle(elementId, styleName, styleValue) {
+       var x = document.getElementById(elementId);
+
+       if (x) {
+           x.style[styleName] = styleValue;
+       }
    }
 
     function run_loop() {
@@ -222,4 +202,3 @@ define(['jquery'], function($) {
     }
 
 });
-

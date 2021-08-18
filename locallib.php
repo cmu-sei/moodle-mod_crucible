@@ -367,6 +367,42 @@ function get_scenariotemplatetasks($client, $id) {
     return;
 }
 
+function get_scenario($client, $id) {
+
+    if ($client == null) {
+        debugging('error with client in get_scenario', DEBUG_DEVELOPER);;
+        return;
+    }
+
+    if ($id == null) {
+        debugging('error with id in get_scenario', DEBUG_DEVELOPER);;
+        return;
+    }
+
+    // web request
+    $url = get_config('crucible', 'steamfitterapiurl') . "/scenarios/" . $id;
+    //echo "GET $url<br>";
+
+    $response = $client->get($url);
+    if (!$response) {
+        debugging('no response received by get_scenario', DEBUG_DEVELOPER);
+        return;
+    }
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+    if (!$r) {
+        debugging("could not decode json", DEBUG_DEVELOPER);
+        return;
+    }
+
+    if ($client->info['http_code']  === 200) {
+        return $r;
+    } else {
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
+    }
+    return;
+}
+
 function get_scenariotasks($client, $id) {
 
     if ($client == null) {

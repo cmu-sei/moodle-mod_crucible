@@ -277,8 +277,8 @@ class crucible {
             $attempt->endtime = strtotime($this->event->expirationDate);
         } else {
             $attempt->endtime = strtotime($this->event->expirationDate . 'Z');
-        }	    
-	    
+        }
+
         $attempt->setState('inprogress');
 
         // TODO get list of tasks from steamfitter
@@ -322,20 +322,9 @@ class crucible {
         }
         $filtered = array();
         foreach ($tasks as $task) {
-            // TODO filter on a parentTask attribute if it becomes available
-            $rec = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
-                    . $DB->sql_compare_text('name') . ' = '
-                    . $DB->sql_compare_text(':name'), ['name' => $task->name]);
-
-            if ($rec === false) {
-                // do not display tasks we do not have in the db
-                debugging('could not find scenario task in db ' . $task->id, DEBUG_DEVELOPER);
-                continue;
-            }
-
-            if ($visible === (int)$rec->visible) {
+            if ($task->userExecutable) {
                 $filtered[] = $task;
-                $task->points = $rec->points;
+                $task->points = $task->totalScore;
             }
         }
 

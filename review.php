@@ -101,11 +101,15 @@ $renderer->display_detail($crucible, $object->eventtemplate->durationHours);
 $renderer->display_return_form($returnurl, $id);
 
 if ($scenariotemplateid) {
-    global $DB;
+    $tasks = get_scenariotemplatetasks($object->systemauth, $scenariotemplateid);
 
-    $tasks = $DB->get_records("crucible_tasks", array("crucibleid" => $crucible->id));
+    if ($tasks) {
+        // run as system account
+        $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
+    }
+
     if (!is_null($tasks)) {
-        $renderer->display_tasks($tasks);
+        $renderer->display_tasks($filtered);
     }
 }
 
@@ -113,5 +117,3 @@ $attempts = $object->getall_attempts('all', $review = true);
 echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
 
 echo $renderer->footer();
-
-

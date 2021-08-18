@@ -291,7 +291,7 @@ if ($scenarioid) {
         // have run task button hit an ajax script on server to run as system
         $PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
 
-        $renderer->display_score($object->openAttempt->id);
+       $renderer->display_score($object->openAttempt->id);
     }
 /*
     // start js to monitor task status
@@ -316,7 +316,7 @@ if ($scenarioid) {
 
     if ($tasks) {
         // run as system account
-        $filtered = filter_tasks($tasks, $visible = 1);
+        $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
     }
 
     $renderer->display_tasks($filtered);
@@ -341,5 +341,3 @@ $PAGE->requires->js_call_amd('mod_crucible/keepalive', 'init', [$jsoptions]);
 
 
 echo $renderer->footer();
-
-

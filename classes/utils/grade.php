@@ -140,67 +140,29 @@ class grade {
      * @return number The grade to save
      */
     public function calculate_attempt_grade($attempt) {
-        global $DB;
-
-        $totalpoints = 0;
-        $totalslotpoints = 0;
+        $score = 0;
 
         if (is_null($attempt)) {
             debugging("invalid attempt passed to calculate_attempt_grade", DEBUG_DEVELOPER);
-            return $totalslotpoints;
+            return $score;
         }
 
-        //get tasks from db
-        $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $this->crucible->crucible->id, "gradable" => "1"));
-        $values = array();
-
-        if ($tasks === false) {
-            return $scaledpoints;
-        }
-	debugging("checking " . count($tasks) . " tasks", DEBUG_DEVELOPER);
-
-        foreach ($tasks as $task) {
-            //$results = $DB->get_records('crucible_task_results', array("attemptid" => $attempt->id, "taskid" => $task->id), $sort="timemodified ASC");
-            $result = $DB->get_record_sql('SELECT * from {crucible_task_results} WHERE '
-                . 'taskid = ' . $task->id . ' AND '
-                . 'attemptid = ' . $attempt->id . ' AND '
-                . $DB->sql_compare_text('vmname') . ' = '
-                . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
-            if ($result === false) {
-		debugging("result is false", DEBUG_DEVELOPER);
-                continue;
-            } else if (is_null($result)) {
-		debugging("result is null", DEBUG_DEVELOPER);
-                continue;
-	    }
-
-            $score = 0;
-            $points = 0;
-            $values[$task->id] = array();;
-            $vmresults = array();
-
-            $vmresults[$result->vmname] = $result->score;
-            $score = $result->score;
-            $points = $task->points;
-
-            $values[$task->id] = array($points, $score);
+        if (is_null($attempt->scenarioid)) {
+            debugging("no scenarioid passed to calculate_attempt_grade", DEBUG_DEVELOPER);
+            return $score;
         }
 
-        foreach ($values as $key => $vals) {
-            debugging("$key has points $vals[0] and score $vals[1]", DEBUG_DEVELOPER);
-            $totalpoints += $vals[0];
-            $totalslotpoints += $vals[1];
-        }
+        $system = setup_system();
+        $scenario = get_scenario($system, $attempt->scenarioid);
 
-        $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->crucible->crucible->grade;
+        $score = $scenario->scoreEarned;
 
-        debugging("$scaledpoints = ($totalslotpoints / $totalpoints) * " . $this->crucible->crucible->grade, DEBUG_DEVELOPER);
-        debugging("new score for $attempt->id is $scaledpoints", DEBUG_DEVELOPER);
+        debugging("new score for $attempt->id is $score", DEBUG_DEVELOPER);
 
-        $attempt->score = $scaledpoints;
+        $attempt->score = $score;
         $attempt->save();
 
-        return $scaledpoints;
+        return $score;
     }
 
     /**
@@ -251,7 +213,7 @@ class grade {
                 // find the highest grade
                 $highestgrade = 0;
                 foreach ($grades as $grade) {
-                    if ($grade > $highestgrade) {
+                    if (is_numeric($grade) and $grade > $highestgrade) {
                         $highestgrade = $grade;
                     }
                 }

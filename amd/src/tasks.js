@@ -84,15 +84,15 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 */
                 index = 0;
                 $.each(response.parsed, function(index, value) {
-                    //var result = document.getElementById('result-' + value.taskId);
-                    var result = document.getElementsByClassName("result")[index];
+                    var result = document.getElementById('result-' + value.taskId);
+                    //var result = document.getElementsByClassName("result")[index];
                     if (result && value.status) {
                         result.innerHTML = value.status;
                     }
-                    //var score = document.getElementById('score-' + value.taskId);
-                    var score = document.getElementsByClassName('score')[index];
-                    if (score && (typeof value.taskscore !== 'undefined')) {
-                        score.innerHTML = value.taskscore;
+                    var score = document.getElementById('score-' + value.taskId);
+                    //var score = document.getElementsByClassName('score')[index];
+                    if (score && (typeof value.score != null)) {
+                        score.innerHTML = value.score;
                     }
                     index++;
                 });
@@ -129,10 +129,6 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             },
             success: function(response) {
                 console.log(response);
-                var score = document.getElementById('attempt-score');
-                if (score) {
-                    score.innerHTML = response.score;
-                }
             },
             error: function(request) {
                 console.log("crucible task failed");
