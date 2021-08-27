@@ -297,7 +297,7 @@ function mod_crucible_core_calendar_provide_event_action(calendar_event $event,
  * @param int $userid specific user only, 0 means all users.
  * @param bool $nullifnone If a single user is specified and $nullifnone is true a grade item with a null rawgrade will be inserted
  */
-function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
+function crucible_update_grades($crucible, $userid = 0, $nullifnone = true, $grade) {
     global $CFG, $DB;
     require_once($CFG->libdir . '/gradelib.php');
 
@@ -307,11 +307,19 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
     } else if ($grades =  crucible_get_user_grades($crucible, $userid)) {
 
         $status = crucible_grade_item_update($crucible, $grades);
-    } else if ($userid && $nullifnone) {
-        $grade = new stdClass();
-        $grade->userid = $userid;
-        $grade->rawgrade = null;
-        crucible_grade_item_update($crucible, $grade);
+    } else if ($userid) {
+        $grd = new stdClass();
+        $grd->userid = $userid;
+
+        if ($nullifnone) {
+            $grd->rawgrade = null;
+        } else if ($grade) {
+            $grd->rawgrade = $grade;
+        } else {
+            $grd->rawgrade = null;
+        }
+
+        crucible_grade_item_update($crucible, $grd);
     } else {
         crucible_grade_item_update($crucible);
     }
@@ -435,4 +443,3 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
 
 
 }
-

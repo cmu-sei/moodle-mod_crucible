@@ -42,6 +42,8 @@ class crucible {
 
     public $event;
 
+    public $events;
+
     public $crucible;
 
     public $openAttempt;
@@ -130,7 +132,7 @@ class crucible {
         }
 
         // web request
-        $url = get_config('crucible', 'alloyapiurl') . "/eventtemplates/" . $this->crucible->eventtemplateid . "/events/mine";
+        $url = get_config('crucible', 'alloyapiurl') . "/eventtemplates/" . $this->crucible->eventtemplateid . "/events/mine?includeInvites=true";
         //echo "GET $url<br>";
 
         $response = $this->userauth->get($url);
@@ -166,8 +168,22 @@ class crucible {
     }
 
 
-    public function get_open_attempt() {
+    public function get_open_attempt($attemptid) {
+        global $USER;
+
         $attempts = $this->getall_attempts('open');
+
+        $attempts = array_filter(
+            $attempts,
+            function ($attempt) use ($USER, $attemptid) {
+                if ($attemptid == 0) {
+                    return $attempt->userid == $USER->id;
+                }
+
+                return $attempt->id == $attemptid;
+            }
+        );
+
         if (count($attempts) !== 1) {
             debugging("could not find a single open attempt", DEBUG_DEVELOPER);
             return false;
@@ -176,6 +192,17 @@ class crucible {
 
         // get the first (and only) value in the array
         $this->openAttempt = reset($attempts);
+
+        if (isset($this->events) && !isset($this->event)) {
+            $event = array_filter(
+                $this->events,
+                function ($event) {
+                    return $event->id == $this->openAttempt->eventid;
+                }
+            );
+
+            $this->event = reset($event);
+        }
 
         if (isset($this->event)) {
             // update values if null in attempt but exist in event
@@ -200,8 +227,14 @@ class crucible {
         return true;
     }
 
-    public function getall_attempts($state = 'all', $review = false) {
+    public function getall_attempts($state = 'all', $review = false, $userid = 0) {
         global $DB, $USER;
+
+        $user = $USER->id;
+
+        if ($userid) {
+            $user = $userid;
+        }
 
         $sqlparams = array();
         $where = array();
@@ -224,13 +257,15 @@ class crucible {
 
         if ((!$review) || (!$this->is_instructor())) {
             debugging("getall_attempts for user", DEBUG_DEVELOPER);
-            $where[] = 'userid = ?';
-            $sqlparams[] = $USER->id;
+            $where[] = '({crucible_attempts}.userid = ? OR {crucible_attempt_users}.userid = ?)';
+            $sqlparams[] = $user;
+            $sqlparams[] = $user;
         }
 
         $wherestring = implode(' AND ', $where);
 
-        $sql = "SELECT * FROM {crucible_attempts} WHERE $wherestring ORDER BY timemodified DESC";
+        $sql = "SELECT {crucible_attempts}.* FROM {crucible_attempts} LEFT JOIN {crucible_attempt_users}
+        ON {crucible_attempts}.id = {crucible_attempt_users}.attemptid WHERE $wherestring ORDER BY timemodified DESC";
         $dbattempts = $DB->get_records_sql($sql, $sqlparams);
 
         $attempts = array();
@@ -245,7 +280,7 @@ class crucible {
     public function init_attempt() {
         global $DB, $USER;
 
-        $attempt = $this->get_open_attempt();
+        $attempt = $this->get_open_attempt(0);
         if ($attempt === true) {
             debugging("init_attempt found " . $this->openAttempt->id, DEBUG_DEVELOPER);
             return true;
@@ -331,5 +366,119 @@ class crucible {
         usort($filtered, "tasksort");
         return $filtered;
 
+    }
+
+    public function get_all_attempts_for_form() {
+        global $DB, $USER;
+
+        $attempts = $this->getall_attempts('open');
+
+        $attempts = array_filter(
+            $attempts,
+            function($attempt) use($USER) {
+                return $attempt->userid != $USER->id;
+            }
+        );
+
+        foreach ($attempts as $attempt) {
+            $sql = "select username from {user} where id = ?";
+            $sqlparams = [$attempt->userid];
+            $username = $DB->get_records_sql($sql, $sqlparams);
+
+            $attempt->username = reset($username)->username;
+        }
+
+        return $attempts;
+    }
+
+    public function get_all_users_for_attempt($attempt) {
+        global $DB;
+
+        $sqlparams = array();
+        $where = array();
+
+        $where[] = 'attemptid = ?';
+        $sqlparams[] = $attempt->id;
+
+        $wherestring = implode(' AND ', $where);
+
+        $sql = "SELECT userid FROM {crucible_attempt_users} WHERE $wherestring";
+        $dbattemptusers = $DB->get_records_sql($sql, $sqlparams);
+
+        $userids = array_column($dbattemptusers, 'userid');
+        array_push($userids, $attempt->userid);
+
+        return $userids;
+    }
+
+
+    // GET /events/{eventId}/invite - generate a sharecode for the event
+    function generate_sharecode() {
+
+        if ($this->userauth == null) {
+            echo 'error with userauth<br>';
+            return;
+        }
+
+        // web request
+        $url = get_config('crucible', 'alloyapiurl') . "/events/" . $this->event->id . "/invite";
+        //echo "GET $url<br>";
+
+        $response = $this->userauth->post($url);
+
+        if ($this->userauth->info['http_code']  !== 201) {
+            debugging('response code ' . $this->userauth->info['http_code'] . " $url", DEBUG_DEVELOPER);
+            return;
+        }
+
+        //echo "response:<br><pre>$response</pre>";
+        if (!$response) {
+            debugging("no response received by list_events $url", DEBUG_DEVELOPER);
+            return;
+        }
+
+        $r = json_decode($response, true);
+
+        if (!$r) {
+            debugging("could not decode json $url", DEBUG_DEVELOPER);
+            return;
+        }
+
+        return $r;
+    }
+
+    // GET /events/enlist({code} - join an existing event
+    function enlist($code) {
+
+        if ($this->userauth == null) {
+            echo 'error with userauth<br>';
+            return;
+        }
+
+        // web request
+        $url = get_config('crucible', 'alloyapiurl') . "/events/enlist/" . $code;
+        //echo "GET $url<br>";
+
+        $response = $this->userauth->post($url);
+
+        if ($this->userauth->info['http_code']  !== 201) {
+            debugging('response code ' . $this->userauth->info['http_code'] . " $url", DEBUG_DEVELOPER);
+            return;
+        }
+
+        //echo "response:<br><pre>$response</pre>";
+        if (!$response) {
+            debugging("no response received by list_events $url", DEBUG_DEVELOPER);
+            return;
+        }
+
+        $r = json_decode($response, true);
+
+        if (!$r) {
+            debugging("could not decode json $url", DEBUG_DEVELOPER);
+            return;
+        }
+
+        return $r;
     }
 }

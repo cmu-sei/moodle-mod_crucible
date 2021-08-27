@@ -96,16 +96,20 @@ class grade {
         $grades = array();
         $attemptsgrades = array();
 
-        // TODO should we be processing just one user here?
-        $attempts = $this->crucible->getall_attempts('');
+        // get all users in attempt
+        $userids = $this->crucible->get_all_users_for_attempt($attempt);
 
-        foreach ($attempts as $attempt) {
-            array_push($attemptsgrades, $attempt->score);
+        foreach ($userids as $userid) {
+            $attempts = $this->crucible->getall_attempts('', false, $userid);
+
+            foreach ($attempts as $attempt) {
+                array_push($attemptsgrades, $attempt->score);
+            }
+
+            $grade = $this->apply_grading_method($attemptsgrades);
+            $grades[$userid] = $grade;
+            debugging("new grade for $userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
         }
-
-        $grade = $this->apply_grading_method($attemptsgrades);
-        $grades[$attempt->userid] = $grade;
-        debugging("new grade for $attempt->userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
 
         // run the whole thing on a transaction (persisting to our table and gradebook updates).
         $transaction = $DB->start_delegated_transaction();
@@ -115,10 +119,12 @@ class grade {
         $this->persist_grades($grades, $transaction);
 
         // update grades to gradebookapi.
-        $updated = crucible_update_grades($this->crucible->crucible, $attempt->userid, $grade);
+        foreach ($userids as $userid) {
+            $updated = crucible_update_grades($this->crucible->crucible, $userid, false, $grades[$userid]);
 
-        if ($updated === GRADE_UPDATE_FAILED) {
-            $transaction->rollback(new \Exception('Unable to save grades to gradebook'));
+            if ($updated === GRADE_UPDATE_FAILED) {
+                $transaction->rollback(new \Exception('Unable to save grades to gradebook'));
+            }
         }
 
         // Allow commit if we get here
@@ -126,7 +132,6 @@ class grade {
 
         // if everything passes to here return true
         return true;
-
     }
 
     /**

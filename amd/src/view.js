@@ -127,7 +127,6 @@ define(['jquery'], function($) {
     }
 
     function show_wait() {
-        console.log('wait');
         editStyle('launch_button', 'display', 'none');
         editStyle('end_button', 'display', 'none');
         editStyle('wait', 'display', 'block');
@@ -135,10 +134,13 @@ define(['jquery'], function($) {
         editStyle('failed', 'display', 'none');
         editStyle('crucible-container', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
+        editStyle('enable-fullscreen', 'display', 'none');
+        editStyle('invite_button', 'display', 'none');
+        editStyle('return-button', 'display', 'none');
+        editStyle('join-form', 'display', 'none');
     }
 
     function show_ended() {
-        console.log('ended');
         editStyle('launch_button', 'display', 'block');
         editStyle('end_button', 'display', 'none');
         editStyle('wait', 'display', 'none');
@@ -147,10 +149,12 @@ define(['jquery'], function($) {
         editStyle('timerdiv', 'display', 'none');
         editStyle('crucible-container', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
+        editStyle('invite_button', 'display', 'none');
+        editStyle('return-button', 'display', 'block');
+        editStyle('join-form', 'display', 'block');
     }
 
     function show_failed() {
-        console.log('failed');
         editStyle('launch_button', 'display', 'none');
         editStyle('end_button', 'display', 'none');
         editStyle('wait', 'display', 'none');
@@ -158,10 +162,12 @@ define(['jquery'], function($) {
         editStyle('failed', 'display', 'block');
         editStyle('crucible-container', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
+        editStyle('invite_button', 'display', 'none');
+        editStyle('return-button', 'display', 'none');
+        editStyle('join-form', 'display', 'none');
     }
 
     function show_active() {
-        console.log('active');
         editStyle('launch_button', 'display', 'none');
         editStyle('end_button', 'display', 'block');
         editStyle('event', 'value', event_id);
@@ -170,6 +176,9 @@ define(['jquery'], function($) {
         editStyle('timerdiv', 'display', 'block');
         editStyle('crucible-container', 'display', 'block');
         editStyle('enable-fullscreen', 'display', 'inline-block');
+        editStyle('invite_button', 'display', 'block');
+        editStyle('return-button', 'display', 'block');
+        editStyle('join-form', 'display', 'block');
 
         var x = document.getElementById('vm_or_link');
         if (x) {
@@ -200,5 +209,8 @@ define(['jquery'], function($) {
             }
         }, 5000);
     }
-
 });
+
+function copy_link(link) {
+    navigator.clipboard.writeText(link);
+}

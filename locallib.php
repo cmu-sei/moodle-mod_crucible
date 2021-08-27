@@ -527,15 +527,20 @@ function launchDate($a, $b) {
     return strnatcmp($a['launchDate'], $b['launchDate']);
 }
 
-function get_active_event($history) {
+function get_active_events($history) {
     if ($history == null) {
         return null;
     }
+
+    $active_events = array();
+
     foreach ($history as $odx) {
         if (($odx['status'] == "Active") || ($odx['status'] == "Creating") || ($odx['status'] == "Planning") ||($odx['status'] == "Applying") || ($odx['status'] == "Ending")) {
-            return (object)$odx;
+            array_push($active_events, (object)$odx);
         }
     }
+
+    return $active_events;
 }
 
 function get_token($client) {
@@ -712,4 +717,58 @@ function getall_crucible_attempts($course) {
 
     return $attempts;
 
+}
+
+function ensure_added_to_event_attempts($events) {
+    global $DB, $USER;
+
+    foreach ($events as $event) {
+        $sqlparams = array();
+        $where = array();
+
+        $where[] = '{crucible_attempts}.eventid = ?';
+        $sqlparams[] = $event->id;
+
+        $wherestring = implode(' AND ', $where);
+
+        $sql = "SELECT {crucible_attempts}.* FROM {crucible_attempts} WHERE $wherestring";
+
+        $dbattempts = $DB->get_records_sql($sql, $sqlparams);
+
+        $attempts = array();
+
+        // create array of class attempts from the db entry
+        foreach ($dbattempts as $dbattempt) {
+            $attempts[] = new \mod_crucible\crucible_attempt($dbattempt);
+        }
+
+        foreach ($attempts as $attempt) {
+            if ($attempt->userid == $USER->id) {
+                continue;
+            }
+
+            $sqlparams = array();
+            $where = array();
+
+            $where[] = '{crucible_attempt_users}.attemptid = ?';
+            $sqlparams[] = $attempt->id;
+
+            $where[] = '{crucible_attempt_users}.userid = ?';
+            $sqlparams[] = $USER->id;
+
+            $wherestring = implode(' AND ', $where);
+            $sql = "SELECT * FROM {crucible_attempt_users} WHERE $wherestring";
+
+            $dbattemptusers = $DB->get_records_sql($sql, $sqlparams);
+
+            // add user to attempt is not already joined
+            if (empty($dbattemptusers)) {
+                $attemptuser = new stdClass();
+                $attemptuser->attemptid = $attempt->id;
+                $attemptuser->userid = $USER->id;
+
+                $DB->insert_record('crucible_attempt_users', $attemptuser);
+            }
+        }
+    }
 }
