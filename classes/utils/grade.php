@@ -102,11 +102,17 @@ class grade {
         foreach ($userids as $userid) {
             $attempts = $this->crucible->getall_attempts('', false, $userid);
 
-            foreach ($attempts as $attempt) {
-                array_push($attemptsgrades, $attempt->score);
+            foreach ($attempts as $atmpt) {
+                array_push($attemptsgrades, $atmpt->score);
             }
 
-            $grade = $this->apply_grading_method($attemptsgrades);
+            $finishedattempts = array_filter($attempts, function($atmpt) {
+                return $atmpt->timefinish != null;
+            });
+
+            usort($finishedattempts, 'timefinish');
+
+            $grade = $this->apply_grading_method($attemptsgrades, $attempt->score, end($finishedattempts)->score);
             $grades[$userid] = $grade;
             debugging("new grade for $userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
         }
@@ -190,18 +196,15 @@ class grade {
      * @return number
      * @throws \Exception When there is no valid scaletype throws new exception
      */
-    protected function apply_grading_method($grades) {
+    protected function apply_grading_method($grades, $mostrecentgrade, $firstgrade) {
         debugging("grade method is " . $this->crucible->crucible->grademethod . " for " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
         switch ($this->crucible->crucible->grademethod) {
             case \mod_crucible\utils\scaletypes::crucible_FIRSTATTEMPT:
-                // take the first record (as there should only be one since it was filtered out earlier)
-                reset($grades);
-                return current($grades);
+                return $firstgrade;
 
                 break;
             case \mod_crucible\utils\scaletypes::crucible_LASTATTEMPT:
-                // take the last grade (there should only be one, as the last attempt was filtered out earlier)
-                return end($grades);
+                return $mostrecentgrade;
 
                 break;
             case \mod_crucible\utils\scaletypes::crucible_ATTEMPTAVERAGE:

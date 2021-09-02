@@ -273,8 +273,8 @@ class crucible {
         foreach ($dbattempts as $dbattempt) {
             $attempts[] = new crucible_attempt($dbattempt);
         }
-        return $attempts;
 
+        return $attempts;
     }
 
     public function init_attempt() {

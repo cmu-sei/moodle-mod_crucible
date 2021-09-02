@@ -212,5 +212,22 @@ define(['jquery'], function($) {
 });
 
 function copy_link(link) {
-    navigator.clipboard.writeText(link);
+    // navigator clipboard api needs a secure context (https)
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(link);
+    } else {
+        let textArea = document.createElement("textarea");
+        textArea.value = link;
+        // make the textarea out of viewport
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        return new Promise((res, rej) => {
+            document.execCommand('copy') ? res() : rej();
+            textArea.remove();
+        });
+    }
 }
