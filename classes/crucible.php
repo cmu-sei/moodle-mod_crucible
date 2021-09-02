@@ -437,7 +437,7 @@ class crucible {
             return;
         }
 
-        $r = json_decode($response, true);
+        $r = json_decode($response);
 
         if (!$r) {
             debugging("could not decode json $url", DEBUG_DEVELOPER);
@@ -472,7 +472,7 @@ class crucible {
             return;
         }
 
-        $r = json_decode($response, true);
+        $r = json_decode($response);
 
         if (!$r) {
             debugging("could not decode json $url", DEBUG_DEVELOPER);
@@ -480,5 +480,13 @@ class crucible {
         }
 
         return $r;
+    }
+
+    function isEnded() {
+        if ($this->event && ($this->event->status == "Ended" || $this->event->status == "Ending")) {
+            return true;
+        }
+
+        return false;
     }
 }

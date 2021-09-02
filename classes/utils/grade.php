@@ -110,9 +110,9 @@ class grade {
                 return $atmpt->timefinish != null;
             });
 
-            usort($finishedattempts, 'timefinish');
+            usort($finishedattempts, function($a, $b) { return $a->timefinish - $b->timefinish; });
 
-            $grade = $this->apply_grading_method($attemptsgrades, $attempt->score, end($finishedattempts)->score);
+            $grade = $this->apply_grading_method($attemptsgrades, $attempt->score, reset($finishedattempts)->score);
             $grades[$userid] = $grade;
             debugging("new grade for $userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
         }

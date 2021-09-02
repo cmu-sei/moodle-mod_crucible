@@ -136,8 +136,8 @@ define(['jquery'], function($) {
         editStyle('enable-fullscreen', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
         editStyle('invite_button', 'display', 'none');
-        editStyle('return-button', 'display', 'none');
-        editStyle('join-form', 'display', 'none');
+        editStyle('return-button', 'display', 'block');
+        editStyle('join-form', 'display', 'block');
     }
 
     function show_ended() {
