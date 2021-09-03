@@ -65,108 +65,106 @@ $system = setup_system();
 $results = run_task($system, $id);
 $response = array();
 
-if (!$results) {
-    header('HTTP/1.1 500 Error');
-    $response['message'] = "error";
-} else if (is_array($results)) {
-    global $DB;
-    header('HTTP/1.1 200 OK');
-    // TODO status of first result is not indicative of succes on all vms
-    $response['status'] = $results[0]->status;
-    $response['message'] = "success";
+// if (!$results) {
+//     header('HTTP/1.1 500 Error');
+//     $response['message'] = "error";
+// } else if (is_array($results)) {
+//     global $DB;
+//     header('HTTP/1.1 200 OK');
+//     // TODO status of first result is not indicative of succes on all vms
+//     $response['status'] = $results[0]->status;
+//     $response['message'] = "success";
 
-    $task = get_task($system, $id);
+//     $task = get_task($system, $id);
 
-    $dbtask = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
-            . $DB->sql_compare_text('name') . ' = '
-            . $DB->sql_compare_text(':name'), ['name' => $task->name]);
+//     $dbtask = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
+//             . $DB->sql_compare_text('name') . ' = '
+//             . $DB->sql_compare_text(':name'), ['name' => $task->name]);
 
-    if ($dbtask !== false) {
-        $succeeded =  0;
-        // save results in the db
-        foreach ($results as $result) {
-            // these results will not include child tasks
-            $entry = new stdClass();
-            $entry->taskid = $dbtask->id;
-            $entry->dispatchtaskid = $result->taskId;
-            $entry->attemptid = $a;
-            debugging("received $result->status for $result->vmName and output $result->actualOutput", DEBUG_DEVELOPER);
-            $entry->vmname = $result->vmName;
-            $entry->status = $result->status;
-            if ($result->status === "succeeded") {
-                $entry->score = $dbtask->points;
-                $succeeded++;
-            } else {
-                $entry->score = 0;
-            }
-            $entry->timemodified = time();
-            $rec = $DB->insert_record('crucible_task_results', $entry);
-            if ($rec === false) {
-                debugging("failed to insert task results record for " . $id, DEBUG_DEVELOPER);
-            }
-            if ($succeeded === 0) {
-                $response['status'] = "failed";
-            } else if ($succeeded === count($results)) {
-                $response['status'] = "succeeded";
-            } else {
-                $response['status'] = "partial";
-            }
+//     if ($dbtask !== false) {
+//         $succeeded =  0;
+//         // save results in the db
+//         foreach ($results as $result) {
+//             // these results will not include child tasks
+//             $entry = new stdClass();
+//             $entry->taskid = $dbtask->id;
+//             $entry->dispatchtaskid = $result->taskId;
+//             $entry->attemptid = $a;
+//             debugging("received $result->status for $result->vmName and output $result->actualOutput", DEBUG_DEVELOPER);
+//             $entry->vmname = $result->vmName;
+//             $entry->status = $result->status;
+//             if ($result->status === "succeeded") {
+//                 $entry->score = $dbtask->points;
+//                 $succeeded++;
+//             } else {
+//                 $entry->score = 0;
+//             }
+//             $entry->timemodified = time();
+//             $rec = $DB->insert_record('crucible_task_results', $entry);
+//             if ($rec === false) {
+//                 debugging("failed to insert task results record for " . $id, DEBUG_DEVELOPER);
+//             }
+//             if ($succeeded === 0) {
+//                 $response['status'] = "failed";
+//             } else if ($succeeded === count($results)) {
+//                 $response['status'] = "succeeded";
+//             } else {
+//                 $response['status'] = "partial";
+//             }
 
-            // score should be a percentage of points based on how many vms passed
-            $taskscore = ($succeeded / count($results)) * $dbtask->points;
-	    // check for existing record for this task
-            //$summary = $DB->get_record("crucible_task_results", array("taskid" => $dbtask->id, "attemptid" => $a, "vmname" => "SUMMARY"));
-            $summary = $DB->get_record_sql('SELECT * from {crucible_task_results} WHERE '
-                    . 'taskid = ' . $dbtask->id . ' AND '
-                    . 'attemptid = ' . $a . ' AND '
-                    . $DB->sql_compare_text('vmname') . ' = '
-                    . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
+//             // score should be a percentage of points based on how many vms passed
+//             $taskscore = ($succeeded / count($results)) * $dbtask->points;
+// 	    // check for existing record for this task
+//             //$summary = $DB->get_record("crucible_task_results", array("taskid" => $dbtask->id, "attemptid" => $a, "vmname" => "SUMMARY"));
+//             $summary = $DB->get_record_sql('SELECT * from {crucible_task_results} WHERE '
+//                     . 'taskid = ' . $dbtask->id . ' AND '
+//                     . 'attemptid = ' . $a . ' AND '
+//                     . $DB->sql_compare_text('vmname') . ' = '
+//                     . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
 
-            if (is_null($summary) || $summary === false) {
-                debugging("we are missing a summary task result", DEBUG_DEVELOPER);
-/*
-                $entry = new stdClass();
-                $entry->taskid = $dbtask->id;
-                $entry->dispatchtaskid = $id;;
-                $entry->attemptid = $a;
-                $entry->status = $response['status'];
-                $entry->score = $taskscore;
-                $entry->vmname = "SUMMARY";
-                $entry->timemodified = time();
-                $rec = $DB->insert_record('crucible_task_results', $entry);
-*/
-            } else {
-                $summary->status = $response['status'];
-                $summary->score = $taskscore;
-                $summary->timemodified = time();
-                $rec = $DB->update_record('crucible_task_results', $summary);
-            }
-            if ($rec === false) {
-                debugging("failed to insert master task results record for " . $id, DEBUG_DEVELOPER);
-            }
+//             if (is_null($summary) || $summary === false) {
+//                 debugging("we are missing a summary task result", DEBUG_DEVELOPER);
+// /*
+//                 $entry = new stdClass();
+//                 $entry->taskid = $dbtask->id;
+//                 $entry->dispatchtaskid = $id;;
+//                 $entry->attemptid = $a;
+//                 $entry->status = $response['status'];
+//                 $entry->score = $taskscore;
+//                 $entry->vmname = "SUMMARY";
+//                 $entry->timemodified = time();
+//                 $rec = $DB->insert_record('crucible_task_results', $entry);
+// */
+//             } else {
+//                 $summary->status = $response['status'];
+//                 $summary->score = $taskscore;
+//                 $summary->timemodified = time();
+//                 $rec = $DB->update_record('crucible_task_results', $summary);
+//             }
+//             if ($rec === false) {
+//                 debugging("failed to insert master task results record for " . $id, DEBUG_DEVELOPER);
+//             }
 
-            $response['taskscore'] = $taskscore;
-            debugging("task score should be $taskscore", DEBUG_DEVELOPER);
-        }
-    }
+//             $response['taskscore'] = $taskscore;
+//             debugging("task score should be $taskscore", DEBUG_DEVELOPER);
+//         }
+//     }
 
-    // update attempt grade
-    $object = new \mod_crucible\crucible($cm, $course, $crucible, $url);
-    $object->get_open_attempt();
-    $grader = new \mod_crucible\utils\grade($object);
-    $score = $grader->calculate_attempt_grade($object->openAttempt);
-    $response['score'] = get_string("attemptscore", "crucible") . $score;
-    debugging("grade " . $score, DEBUG_DEVELOPER);
+//     // update attempt grade
+//     $object = new \mod_crucible\crucible($cm, $course, $crucible, $url);
+//     $object->get_open_attempt();
+//     $grader = new \mod_crucible\utils\grade($object);
+//     $score = $grader->calculate_attempt_grade($object->openAttempt);
+//     $response['score'] = get_string("attemptscore", "crucible") . $score;
+//     debugging("grade " . $score, DEBUG_DEVELOPER);
 
-    //$response['raw'] = $result;
-} else {
-    header('HTTP/1.1 200 OK');
-    $response['detail'] = $results->detail;
-    $response['message'] = "error";
-}
+//     //$response['raw'] = $result;
+// } else {
+//     header('HTTP/1.1 200 OK');
+//     $response['detail'] = $results->detail;
+//     $response['message'] = "error";
+// }
 $response['id'] = $id;
 $response['a'] = $a;
 
 echo json_encode($response);
-
-

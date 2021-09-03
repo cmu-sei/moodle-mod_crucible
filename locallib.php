@@ -367,6 +367,42 @@ function get_scenariotemplatetasks($client, $id) {
     return;
 }
 
+function get_scenario($client, $id) {
+
+    if ($client == null) {
+        debugging('error with client in get_scenario', DEBUG_DEVELOPER);;
+        return;
+    }
+
+    if ($id == null) {
+        debugging('error with id in get_scenario', DEBUG_DEVELOPER);;
+        return;
+    }
+
+    // web request
+    $url = get_config('crucible', 'steamfitterapiurl') . "/scenarios/" . $id;
+    //echo "GET $url<br>";
+
+    $response = $client->get($url);
+    if (!$response) {
+        debugging('no response received by get_scenario', DEBUG_DEVELOPER);
+        return;
+    }
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+    if (!$r) {
+        debugging("could not decode json", DEBUG_DEVELOPER);
+        return;
+    }
+
+    if ($client->info['http_code']  === 200) {
+        return $r;
+    } else {
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
+    }
+    return;
+}
+
 function get_scenariotasks($client, $id) {
 
     if ($client == null) {
@@ -491,15 +527,20 @@ function launchDate($a, $b) {
     return strnatcmp($a['launchDate'], $b['launchDate']);
 }
 
-function get_active_event($history) {
+function get_active_events($history) {
     if ($history == null) {
         return null;
     }
+
+    $active_events = array();
+
     foreach ($history as $odx) {
         if (($odx['status'] == "Active") || ($odx['status'] == "Creating") || ($odx['status'] == "Planning") ||($odx['status'] == "Applying") || ($odx['status'] == "Ending")) {
-            return (object)$odx;
+            array_push($active_events, (object)$odx);
         }
     }
+
+    return $active_events;
 }
 
 function get_token($client) {
@@ -676,4 +717,58 @@ function getall_crucible_attempts($course) {
 
     return $attempts;
 
+}
+
+function ensure_added_to_event_attempts($events) {
+    global $DB, $USER;
+
+    foreach ($events as $event) {
+        $sqlparams = array();
+        $where = array();
+
+        $where[] = '{crucible_attempts}.eventid = ?';
+        $sqlparams[] = $event->id;
+
+        $wherestring = implode(' AND ', $where);
+
+        $sql = "SELECT {crucible_attempts}.* FROM {crucible_attempts} WHERE $wherestring";
+
+        $dbattempts = $DB->get_records_sql($sql, $sqlparams);
+
+        $attempts = array();
+
+        // create array of class attempts from the db entry
+        foreach ($dbattempts as $dbattempt) {
+            $attempts[] = new \mod_crucible\crucible_attempt($dbattempt);
+        }
+
+        foreach ($attempts as $attempt) {
+            if ($attempt->userid == $USER->id) {
+                continue;
+            }
+
+            $sqlparams = array();
+            $where = array();
+
+            $where[] = '{crucible_attempt_users}.attemptid = ?';
+            $sqlparams[] = $attempt->id;
+
+            $where[] = '{crucible_attempt_users}.userid = ?';
+            $sqlparams[] = $USER->id;
+
+            $wherestring = implode(' AND ', $where);
+            $sql = "SELECT * FROM {crucible_attempt_users} WHERE $wherestring";
+
+            $dbattemptusers = $DB->get_records_sql($sql, $sqlparams);
+
+            // add user to attempt is not already joined
+            if (empty($dbattemptusers)) {
+                $attemptuser = new stdClass();
+                $attemptuser->attemptid = $attempt->id;
+                $attemptuser->userid = $USER->id;
+
+                $DB->insert_record('crucible_attempt_users', $attemptuser);
+            }
+        }
+    }
 }

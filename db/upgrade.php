@@ -503,7 +503,30 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020080301, 'crucible');
     }
 
+    if ($oldversion < 2021082301) {
+
+        // Define table crucible_attempt_users to be created.
+        $table = new xmldb_table('crucible_attempt_users');
+
+        // Adding fields to table crucible_attempt_users.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('attemptid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table crucible_attempt_users.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Adding indexes to table crucible_attempt_users.
+        $table->add_index('attemptid-userid', XMLDB_INDEX_UNIQUE, ['attemptid', 'userid']);
+
+        // Conditionally launch create table for crucible_attempt_users.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2021082301, 'crucible');
+    }
 
     return true;
 }
-

@@ -44,6 +44,8 @@ require_once($CFG->libdir . '/completionlib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
+$attemptid = optional_param('attempt', 0, PARAM_INT);
+$code = optional_param('code', '', PARAM_TEXT);
 
 try {
     if ($id) {
@@ -81,6 +83,11 @@ $pageurl = null;
 $pagevars = array();
 $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
 
+// enlist if code in url
+if ($code != null) {
+    $object->enlist($code);
+}
+
 // get eventtemplate info
 $object->eventtemplate = get_eventtemplate($object->userauth, $crucible->eventtemplateid);
 
@@ -100,10 +107,12 @@ if ($object->eventtemplate) {
 // get current state of eventtemplate
 $access_token = get_token($object->userauth);
 $history = $object->list_events();
-$object->event = get_active_event($history);
+$object->events = get_active_events($history);
+
+ensure_added_to_event_attempts($object->events);
 
 // get active attempt for user: true/false
-$attempt = $object->get_open_attempt();
+$attempt = $object->get_open_attempt($attemptid);
 if ($attempt == true) {
     debugging("get_open_attempt returned " . $object->openAttempt->id, DEBUG_DEVELOPER);
 } else if ($attempt == false) {
@@ -119,10 +128,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
     if ($attempt) { //&& (!$object->event !== null)
         //TODO this should also check that we dont have an attempt
         //print_error('attemptalreadyexists', 'crucible');
-        debugging('closing attempt - not active', DEBUG_DEVELOPER);
-        $grader = new \mod_crucible\utils\grade($object);
-        $grader->process_attempt($object->openAttempt);
-        $object->openAttempt->close_attempt();
+        if ($object->event && $object->isEnded()) {
+            debugging('closing attempt - not active', DEBUG_DEVELOPER);
+            $grader = new \mod_crucible\utils\grade($object);
+            $grader->process_attempt($object->openAttempt);
+            $object->openAttempt->close_attempt();
+        }
     }
 
     // check not started already
@@ -242,7 +253,19 @@ echo $renderer->header();
 
 $renderer->display_detail($crucible, $object->eventtemplate->durationHours);
 
-$renderer->display_form($url, $object->crucible->eventtemplateid);
+$form_attempts = $object->get_all_attempts_for_form();
+
+$shareCode = '';
+
+if ($object->openAttempt && $object->openAttempt->userid == $USER->id) {
+    if ($object->event->shareCode == null) {
+        $object->event = $object->generate_sharecode();
+    }
+
+    $shareCode = $object->event->shareCode;
+}
+
+$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $form_attempts, $shareCode);
 
 if ($object->event) {
 
@@ -291,7 +314,7 @@ if ($scenarioid) {
         // have run task button hit an ajax script on server to run as system
         $PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
 
-        $renderer->display_score($object->openAttempt->id);
+       $renderer->display_score($object->openAttempt->id);
     }
 /*
     // start js to monitor task status
@@ -316,7 +339,7 @@ if ($scenarioid) {
 
     if ($tasks) {
         // run as system account
-        $filtered = filter_tasks($tasks, $visible = 1);
+        $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
     }
 
     $renderer->display_tasks($filtered);
@@ -341,5 +364,3 @@ $PAGE->requires->js_call_amd('mod_crucible/keepalive', 'init', [$jsoptions]);
 
 
 echo $renderer->footer();
-
-

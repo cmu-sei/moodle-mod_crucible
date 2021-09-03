@@ -96,16 +96,26 @@ class grade {
         $grades = array();
         $attemptsgrades = array();
 
-        // TODO should we be processing just one user here?
-        $attempts = $this->crucible->getall_attempts('');
+        // get all users in attempt
+        $userids = $this->crucible->get_all_users_for_attempt($attempt);
 
-        foreach ($attempts as $attempt) {
-            array_push($attemptsgrades, $attempt->score);
+        foreach ($userids as $userid) {
+            $attempts = $this->crucible->getall_attempts('', false, $userid);
+
+            foreach ($attempts as $atmpt) {
+                array_push($attemptsgrades, $atmpt->score);
+            }
+
+            $finishedattempts = array_filter($attempts, function($atmpt) {
+                return $atmpt->timefinish != null;
+            });
+
+            usort($finishedattempts, function($a, $b) { return $a->timefinish - $b->timefinish; });
+
+            $grade = $this->apply_grading_method($attemptsgrades, $attempt->score, reset($finishedattempts)->score);
+            $grades[$userid] = $grade;
+            debugging("new grade for $userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
         }
-
-        $grade = $this->apply_grading_method($attemptsgrades);
-        $grades[$attempt->userid] = $grade;
-        debugging("new grade for $attempt->userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
 
         // run the whole thing on a transaction (persisting to our table and gradebook updates).
         $transaction = $DB->start_delegated_transaction();
@@ -115,10 +125,12 @@ class grade {
         $this->persist_grades($grades, $transaction);
 
         // update grades to gradebookapi.
-        $updated = crucible_update_grades($this->crucible->crucible, $attempt->userid, $grade);
+        foreach ($userids as $userid) {
+            $updated = crucible_update_grades($this->crucible->crucible, $userid, false, $grades[$userid]);
 
-        if ($updated === GRADE_UPDATE_FAILED) {
-            $transaction->rollback(new \Exception('Unable to save grades to gradebook'));
+            if ($updated === GRADE_UPDATE_FAILED) {
+                $transaction->rollback(new \Exception('Unable to save grades to gradebook'));
+            }
         }
 
         // Allow commit if we get here
@@ -126,7 +138,6 @@ class grade {
 
         // if everything passes to here return true
         return true;
-
     }
 
     /**
@@ -140,67 +151,29 @@ class grade {
      * @return number The grade to save
      */
     public function calculate_attempt_grade($attempt) {
-        global $DB;
-
-        $totalpoints = 0;
-        $totalslotpoints = 0;
+        $score = 0;
 
         if (is_null($attempt)) {
             debugging("invalid attempt passed to calculate_attempt_grade", DEBUG_DEVELOPER);
-            return $totalslotpoints;
+            return $score;
         }
 
-        //get tasks from db
-        $tasks = $DB->get_records('crucible_tasks', array("crucibleid" => $this->crucible->crucible->id, "gradable" => "1"));
-        $values = array();
-
-        if ($tasks === false) {
-            return $scaledpoints;
-        }
-	debugging("checking " . count($tasks) . " tasks", DEBUG_DEVELOPER);
-
-        foreach ($tasks as $task) {
-            //$results = $DB->get_records('crucible_task_results', array("attemptid" => $attempt->id, "taskid" => $task->id), $sort="timemodified ASC");
-            $result = $DB->get_record_sql('SELECT * from {crucible_task_results} WHERE '
-                . 'taskid = ' . $task->id . ' AND '
-                . 'attemptid = ' . $attempt->id . ' AND '
-                . $DB->sql_compare_text('vmname') . ' = '
-                . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
-            if ($result === false) {
-		debugging("result is false", DEBUG_DEVELOPER);
-                continue;
-            } else if (is_null($result)) {
-		debugging("result is null", DEBUG_DEVELOPER);
-                continue;
-	    }
-
-            $score = 0;
-            $points = 0;
-            $values[$task->id] = array();;
-            $vmresults = array();
-
-            $vmresults[$result->vmname] = $result->score;
-            $score = $result->score;
-            $points = $task->points;
-
-            $values[$task->id] = array($points, $score);
+        if (is_null($attempt->scenarioid)) {
+            debugging("no scenarioid passed to calculate_attempt_grade", DEBUG_DEVELOPER);
+            return $score;
         }
 
-        foreach ($values as $key => $vals) {
-            debugging("$key has points $vals[0] and score $vals[1]", DEBUG_DEVELOPER);
-            $totalpoints += $vals[0];
-            $totalslotpoints += $vals[1];
-        }
+        $system = setup_system();
+        $scenario = get_scenario($system, $attempt->scenarioid);
 
-        $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->crucible->crucible->grade;
+        $score = $scenario->scoreEarned;
 
-        debugging("$scaledpoints = ($totalslotpoints / $totalpoints) * " . $this->crucible->crucible->grade, DEBUG_DEVELOPER);
-        debugging("new score for $attempt->id is $scaledpoints", DEBUG_DEVELOPER);
+        debugging("new score for $attempt->id is $score", DEBUG_DEVELOPER);
 
-        $attempt->score = $scaledpoints;
+        $attempt->score = $score;
         $attempt->save();
 
-        return $scaledpoints;
+        return $score;
     }
 
     /**
@@ -223,18 +196,15 @@ class grade {
      * @return number
      * @throws \Exception When there is no valid scaletype throws new exception
      */
-    protected function apply_grading_method($grades) {
+    protected function apply_grading_method($grades, $mostrecentgrade, $firstgrade) {
         debugging("grade method is " . $this->crucible->crucible->grademethod . " for " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
         switch ($this->crucible->crucible->grademethod) {
             case \mod_crucible\utils\scaletypes::crucible_FIRSTATTEMPT:
-                // take the first record (as there should only be one since it was filtered out earlier)
-                reset($grades);
-                return current($grades);
+                return $firstgrade;
 
                 break;
             case \mod_crucible\utils\scaletypes::crucible_LASTATTEMPT:
-                // take the last grade (there should only be one, as the last attempt was filtered out earlier)
-                return end($grades);
+                return $mostrecentgrade;
 
                 break;
             case \mod_crucible\utils\scaletypes::crucible_ATTEMPTAVERAGE:
@@ -251,7 +221,7 @@ class grade {
                 // find the highest grade
                 $highestgrade = 0;
                 foreach ($grades as $grade) {
-                    if ($grade > $highestgrade) {
+                    if (is_numeric($grade) and $grade > $highestgrade) {
                         $highestgrade = $grade;
                     }
                 }

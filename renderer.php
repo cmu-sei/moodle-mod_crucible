@@ -45,10 +45,39 @@ class mod_crucible_renderer extends plugin_renderer_base {
         echo $this->render_from_template('mod_crucible/detail', $data);
     }
 
-    function display_form($url, $eventtemplate) {
+    function display_form($url, $eventtemplate, $id = 0, $selectedAttempt = 0, $attempts = [], $code = '') {
         $data = new stdClass();
         $data->url = $url;
         $data->eventtemplate = $eventtemplate;
+
+        $data->code = $code;
+        $data->selectedAttempt = $selectedAttempt;
+        $data->activeAttempts = !empty($attempts);
+        $data->id = $id;
+
+        $filteredArray = array_filter($attempts, function($attempt) use($selectedAttempt) {
+            return $selectedAttempt == $attempt->id;
+        });
+
+        $joinedAttemptObj = reset($filteredArray);
+
+        if ($joinedAttemptObj) {
+            $data->joinedAttempt = true;
+            $data->joinedAttemptOwner = $joinedAttemptObj->username;
+        }
+
+        $formattempts = [];
+
+        foreach ($attempts as $attempt) {
+            $a = new stdClass();
+            $a->id = $attempt->id;
+            $a->username = $attempt->username;
+
+            array_push($formattempts, $a);
+        }
+
+        $data->attempts = $formattempts;
+
         echo $this->render_from_template('mod_crucible/form', $data);
     }
 
@@ -62,7 +91,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
     function display_link_page($player_app_url, $viewid) {
         $data = new stdClass();
-        $data->url =  $player_app_url . '/view-player/' .  $viewid;
+        $data->url =  $player_app_url . '/view/' .  $viewid;
         $data->playerlinktext = get_string('playerlinktext', 'mod_crucible');
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_crucible/link', $data);
@@ -95,14 +124,30 @@ class mod_crucible_renderer extends plugin_renderer_base {
     }
 
     function display_score($attempt) {
-        global $USER;
-        global $DB;
+        // global $USER;
+        // global $DB;
 
-        $rec = $DB->get_record("crucible_attempts", array("id" => $attempt));
+        // $rec = $DB->get_record("crucible_attempts", array("id" => $attempt));
 
         $data = new stdClass();
-        $data->score = $rec->score;
-        $data->maxgrade = $DB->get_field("crucible", "grade", array('id' => $rec->crucibleid));
+        $data->score = 0;
+        $data->maxgrade = 0;
+        // $data->score = $rec->score;
+        // $data->maxgrade = $DB->get_field("crucible", "grade", array('id' => $rec->crucibleid));
+        echo $this->render_from_template('mod_crucible/score', $data);
+    }
+
+    function display_scenario_score($scenario) {
+        // global $USER;
+        // global $DB;
+
+        // $rec = $DB->get_record("crucible_attempts", array("id" => $attempt));
+
+        $data = new stdClass();
+        $data->score = $scenario->scoreEarned;
+        $data->maxgrade = $scenario->score;
+        // $data->score = $rec->score;
+        // $data->maxgrade = $DB->get_field("crucible", "grade", array('id' => $rec->crucibleid));
         echo $this->render_from_template('mod_crucible/score', $data);
     }
 
@@ -268,11 +313,12 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 $rowdata->id = $task->id;
                 $rowdata->name = $task->name;
                 $rowdata->desc = $task->description;
-                if (isset($task->result)) {
-                    $rowdata->result = $task->result;
+                if (isset($task->totalStatus)) {
+                    $rowdata->result = $task->totalStatus;
                 }
                 // check whether we can execute the task
-                if ((isset($task->triggerCondition)) && ($task->triggerCondition === "Manual")) {
+                // if ((isset($task->triggerCondition)) && ($task->triggerCondition === "Manual")) {
+                if ($task->executable) {
                     $rowdata->action = get_string('taskexecute', 'mod_crucible');
                 } else {
                     $rowdata->action = get_string('tasknoexecute', 'mod_crucible');
@@ -284,10 +330,10 @@ class mod_crucible_renderer extends plugin_renderer_base {
                         $rowdata->comment = "-";
                     }
                 }
-                if (isset($task->score)) {
-                    $rowdata->score = $task->score;
+                if (isset($task->totalScoreEarned)) {
+                    $rowdata->score = $task->totalScoreEarned;
                 }
-                $rowdata->points = $task->points;
+                $rowdata->points = $task->totalScore;
                 $data->tabledata[] = $rowdata;
             }
 
@@ -361,5 +407,3 @@ class mod_crucible_renderer extends plugin_renderer_base {
         echo $this->render_from_template('mod_crucible/clock', $data);
     }
 }
-
-

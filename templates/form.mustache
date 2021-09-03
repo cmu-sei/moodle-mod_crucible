@@ -39,13 +39,44 @@ DM20-0196
 <form action="{{url}}" method="post">
     <input id="event" type="hidden" name="event" value=""/>
     <input id="eventtemplateid" type="hidden" name="eventtemplateid" value="{{eventtemplateid}}" />
-    <input id="end_button" style="display:none" class="btn btn-primary" type="submit" name="stop" value="End Lab" />
+    <input id="end_button" style="display:none" class="btn btn-primary" type="submit" name="stop" value="End Lab"
+    {{#joinedAttempt}}
+    disabled="disabled"
+    {{/joinedAttempt}}
+    />
     <input id="launch_button" style="display:none" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />
 </form>
+
+{{#code}}
+    <input id="invite_button" style="display:none" onclick="copy_link('{{url}}&code={{code}}')" readonly class="btn btn-primary" name="invite" value="Copy Invite Link" />
+{{/code}}
 
 <input id="wait" style="display:none; width:400px" class="btn btn-primary" type="" name="start" value="Please wait, system processing" />
 <input id="failed" style="display:none; width:400px" class="btn btn-primary" type="" name="failed" value="Your operation has failed." />
 
 <br>
 
+{{#joinedAttempt}}
+<p>Currently viewing attempt owned by: {{joinedAttemptOwner}}</p>
 
+<form action="{{url}}" method="get">
+  <input type="hidden" name="id" value="{{id}}" />
+  <input id="return-button" type="submit" style="display:none" class="btn btn-primary" value="Return">
+</form>
+{{/joinedAttempt}}
+
+{{#activeAttempts}}
+<form id="join-form" action="" method="get style="display:none">
+  <input type="hidden" name="id" value="{{id}}" />
+  <label for="attempts">Join Existing Lab:</label>
+  <select name="attempt" id="attempt">
+    {{#attempts}}
+        <option value={{id}}>{{username}}</option>
+    {{/attempts}}
+  </select>
+  <br><br>
+  <input type="submit" class="btn btn-primary" value="Join">
+</form>
+{{/activeAttempts}}
+
+<br>
