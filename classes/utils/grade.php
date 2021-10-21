@@ -113,8 +113,16 @@ class grade {
             usort($finishedattempts, function($a, $b) { return $a->timefinish - $b->timefinish; });
 
             $grade = $this->apply_grading_method($attemptsgrades, $attempt->score, reset($finishedattempts)->score);
-            $grades[$userid] = $grade;
-            debugging("new grade for $userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
+
+            if (!is_null($grade))
+            {
+                $grades[$userid] = $grade;
+                debugging("new grade for $userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
+            }
+            else
+            {
+                debugging("discarding NULL grade for $userid in crucible " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
+            }
         }
 
         // run the whole thing on a transaction (persisting to our table and gradebook updates).
