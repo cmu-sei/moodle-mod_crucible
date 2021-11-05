@@ -49,6 +49,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data = new stdClass();
         $data->url = $url;
         $data->eventtemplate = $eventtemplate;
+        $data->fullscreen = get_string('fullscreen', 'mod_crucible');
 
         $data->code = $code;
         $data->selectedAttempt = $selectedAttempt;
@@ -79,6 +80,42 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data->attempts = $formattempts;
 
         echo $this->render_from_template('mod_crucible/form', $data);
+    }
+
+    function display_invite($url, $eventtemplate, $id = 0, $selectedAttempt = 0, $attempts = [], $code = '') {
+        $data = new stdClass();
+        $data->url = $url;
+        $data->eventtemplate = $eventtemplate;
+
+        $data->code = $code;
+        $data->selectedAttempt = $selectedAttempt;
+        $data->activeAttempts = !empty($attempts);
+        $data->id = $id;
+
+        $filteredArray = array_filter($attempts, function($attempt) use($selectedAttempt) {
+            return $selectedAttempt == $attempt->id;
+        });
+
+        $joinedAttemptObj = reset($filteredArray);
+
+        if ($joinedAttemptObj) {
+            $data->joinedAttempt = true;
+            $data->joinedAttemptOwner = $joinedAttemptObj->username;
+        }
+
+        $formattempts = [];
+
+        foreach ($attempts as $attempt) {
+            $a = new stdClass();
+            $a->id = $attempt->id;
+            $a->username = $attempt->username;
+
+            array_push($formattempts, $a);
+        }
+
+        $data->attempts = $formattempts;
+
+        echo $this->render_from_template('mod_crucible/invite', $data);
     }
 
     function display_return_form($url, $id) {
