@@ -288,6 +288,8 @@ if ($object->event) {
     $renderer->display_grade($crucible);
 }
 
+$renderer->display_invite($url, $object->crucible->eventtemplateid, $id, $attemptid, $form_attempts, $shareCode);
+
 if ($vmapp == 1) {
     $renderer->display_embed_page($crucible);
 } else {

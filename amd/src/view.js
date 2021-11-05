@@ -169,13 +169,13 @@ define(['jquery'], function($) {
 
     function show_active() {
         editStyle('launch_button', 'display', 'none');
-        editStyle('end_button', 'display', 'block');
+        editStyle('end_button', 'display', 'inline');
         editStyle('event', 'value', event_id);
         editStyle('wait', 'display', 'none');
         editStyle('failed', 'display', 'none');
         editStyle('timerdiv', 'display', 'block');
         editStyle('crucible-container', 'display', 'block');
-        editStyle('enable-fullscreen', 'display', 'inline-block');
+        editStyle('enable-fullscreen', 'display', 'inline');
         editStyle('invite_button', 'display', 'block');
         editStyle('return-button', 'display', 'block');
         editStyle('join-form', 'display', 'block');
