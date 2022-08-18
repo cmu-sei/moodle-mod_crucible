@@ -48,8 +48,12 @@ DM20-0196
       <input id="launch_button" style="display:none" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />
   </form>
 
-  <input id="wait" style="display:none; width:400px" class="btn btn-primary" type="" name="start" value="Please wait, system processing" />
-  <input id="failed" style="display:none; width:400px" class="btn btn-primary" type="" name="failed" value="Your operation has failed." />
+  <button id="wait" style="display:none; width:300px" class="btn btn-primary" type="button" name="start">
+    <span class="spinner-border spinner-border-sm" role="status"></span>
+    &nbsp;&nbsp
+    Please wait, system processing
+  </button>
+  <input id="failed" style="display:none; width:300px" class="btn btn-primary" type="" name="failed" value="Your operation has failed." />
 
   <p id="enable-fullscreen" style="display: none;" class="btn btn-primary">{{fullscreen}}</p>
 </span>
