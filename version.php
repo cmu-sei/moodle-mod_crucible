@@ -37,10 +37,10 @@ DM20-0196
 defined('MOODLE_INTERNAL') || die();
 
 // This is the version of the plugin.
-$plugin->version = 2021110502;
+$plugin->version = 2023070700;
 
 // This is the version of Moodle this plugin requires.
-$plugin->requires = 2018050800;
+$plugin->requires = 2022112801;
 
 // This is the component name of the plugin - it always starts with 'component_'
 $plugin->component = 'mod_crucible';

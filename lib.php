@@ -297,32 +297,19 @@ function mod_crucible_core_calendar_provide_event_action(calendar_event $event,
  * @param int $userid specific user only, 0 means all users.
  * @param bool $nullifnone If a single user is specified and $nullifnone is true a grade item with a null rawgrade will be inserted
  */
-function crucible_update_grades($crucible, $userid = 0, $nullifnone = true, $grade) {
+function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
     global $CFG, $DB;
     require_once($CFG->libdir . '/gradelib.php');
 
-    if ($crucible->grade == 0) {
-        crucible_grade_item_update($crucible);
-
-    } else if ($grades =  crucible_get_user_grades($crucible, $userid)) {
-
-        $status = crucible_grade_item_update($crucible, $grades);
-    } else if ($userid) {
-        $grd = new stdClass();
-        $grd->userid = $userid;
-
-        if ($nullifnone) {
-            $grd->rawgrade = null;
-        } else if ($grade) {
-            $grd->rawgrade = $grade;
-        } else {
-            $grd->rawgrade = null;
-        }
-
-        crucible_grade_item_update($crucible, $grd);
-    } else {
-        crucible_grade_item_update($crucible);
-    }
+    $grades = array();
+    foreach ($userid as $user) {
+        $rawgrade = crucible_get_user_grades($crucible, $userid);
+        $grade = new stdClass();
+        $grade->userid = $userid;
+        $grade->rawgrade = $rawgrade;
+        $grades[$user] = $grade;
+    } 
+    return crucible_grade_item_update($crucible, $grades);
 }
 
 /**
@@ -337,7 +324,7 @@ function crucible_grade_item_update($crucible, $grades = null) {
     global $CFG, $OUTPUT;
     require_once($CFG->libdir . '/gradelib.php');
 
-    if (array_key_exists('cmidnumber', $crucible)) { // May not be always present.
+    if (property_exists($crucible, 'cmidnumber')) { // May not be always present.
         $params = array('itemname' => $crucible->name, 'idnumber' => $crucible->cmidnumber);
     } else {
         $params = array('itemname' => $crucible->name);

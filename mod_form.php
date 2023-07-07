@@ -115,9 +115,9 @@ class mod_crucible_mod_form extends moodleform_mod {
             $currentgrade = $this->current->grade;
         }
 
-        $mform->addElement('text', 'grade', get_string('grade'), $currentgrade);
-        $mform->setType('grade', PARAM_INT);
-        $mform->addHelpButton('grade', 'grade', 'crucible');
+        $mform->addElement('text', 'grade', $currentgrade);
+        $mform->setType('grade', PARAM_FLOAT);
+        //$mform->addHelpButton('grade', 'grade', 'crucible');
 
         $mform->addElement('select', 'grademethod',
             get_string('grademethod', 'crucible'),
@@ -180,7 +180,7 @@ class mod_crucible_mod_form extends moodleform_mod {
 
     }
 
-    function data_postprocessing(&$data) {
+    function data_postprocessing($data) {
         if (!$data->eventtemplateid) {
             echo "return to settings page<br>";
             exit;

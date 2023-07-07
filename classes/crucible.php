@@ -150,7 +150,8 @@ class crucible {
 
         $r = json_decode($response, true);
 
-        if (!$r) {
+	if (!$r) {
+	    // this can mean the user made 0 attempts at this event
             debugging("could not decode json $url", DEBUG_DEVELOPER);
             return;
         }

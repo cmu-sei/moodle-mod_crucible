@@ -109,7 +109,9 @@ $access_token = get_token($object->userauth);
 $history = $object->list_events();
 $object->events = get_active_events($history);
 
-ensure_added_to_event_attempts($object->events);
+if ($object->events) {
+    ensure_added_to_event_attempts($object->events);
+}
 
 // get active attempt for user: true/false
 $attempt = $object->get_open_attempt($attemptid);
