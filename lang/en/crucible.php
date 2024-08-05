@@ -153,4 +153,4 @@ $string['crucible:view'] = 'View Crucible activity information';
 $string['crucible:addinstance'] = 'Add a new Crucible activties';
 
 // privacy
-$string['privacy:metadata'] = 'The Crucible activity plugin shows data stored in Moodle although though privacy API has not been configured';
+$string['privacy:metadata'] = 'The Crucible activity plugin shows data stored in Moodle although the privacy API has not yet been configured';
