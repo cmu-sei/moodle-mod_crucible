@@ -44,6 +44,8 @@ class mod_crucible_mod_form extends moodleform_mod {
     /** @var array options to be used with date_time_selector fields in the activity. */
     public static $datefieldoptions = array('optional' => true);
 
+    protected $eventtemplates = null;
+
     function definition() {
         global $COURSE, $CFG, $DB, $PAGE;
         $mform = $this->_form;
