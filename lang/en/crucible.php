@@ -154,3 +154,7 @@ $string['crucible:addinstance'] = 'Add a new Crucible activties';
 
 // privacy
 $string['privacy:metadata'] = 'The Crucible activity plugin shows data stored in Moodle although the privacy API has not yet been configured';
+
+$string['notasksavailable'] = 'There are no tasks available for this activity.';
+$string['backtocruclanding'] = 'Back to Activity View';
+

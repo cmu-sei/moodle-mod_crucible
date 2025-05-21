@@ -58,6 +58,13 @@ class crucible {
 
     public $userauth;
 
+    public $cm;
+
+    public $course;
+
+    public $pagevars;
+
+    public $renderer;
 
     /**
      * Construct class

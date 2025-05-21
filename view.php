@@ -344,9 +344,9 @@ if ($scenarioid) {
     if ($tasks) {
         // run as system account
         $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
+        $renderer->display_tasks($filtered);
+        $renderer->display_tasks($filtered);
     }
-
-    $renderer->display_tasks($filtered);
 }
 
 $info = new stdClass();
