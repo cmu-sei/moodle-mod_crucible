@@ -67,7 +67,8 @@ class crucible_tasks_form extends \moodleform {
             $group[] = $mform->createElement('hidden', 'scenariotemplateid', $task->scenarioTemplateId);
 
             $mform->addElement('html', '<div>VM Mask<pre>' . $task->vmMask. '</pre></div>');
-            $mform->addElement('html', '<div>Input String<pre>' . $task->inputString . '</pre></div>');
+            $input = isset($task->inputString) ? $task->inputString : '';
+            $mform->addElement('html', '<div>Input String<pre>' . $input . '</pre></div>');
             $mform->addElement('html', '<div>Expected Output<pre>' . $task->expectedOutput . '</pre></div>');
 
             $group[] = $mform->createElement('checkbox', 'visible', get_string('visible', 'crucible'));
