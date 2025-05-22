@@ -327,7 +327,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 //get_string('taskid', 'mod_crucible'),
                 get_string('taskname', 'mod_crucible'),
                 get_string('taskdesc', 'mod_crucible'),
-                get_string('taskaction', 'mod_crucible'),
+                //get_string('taskaction', 'mod_crucible'),
                 get_string('taskcomment', 'mod_crucible'),
                 get_string('taskresult', 'mod_crucible'),
                 get_string('points', 'mod_crucible'),
@@ -338,7 +338,8 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 //get_string('taskid', 'mod_crucible'),
                 get_string('taskname', 'mod_crucible'),
                 get_string('taskdesc', 'mod_crucible'),
-                get_string('taskaction', 'mod_crucible'),
+                //get_string('taskaction', 'mod_crucible'),
+                get_string('taskcomment', 'mod_crucible'),
                 get_string('taskresult', 'mod_crucible'),
                 get_string('points', 'mod_crucible'),
                 get_string('score', 'mod_crucible')
@@ -355,15 +356,8 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 if (isset($task->totalStatus)) {
                     $rowdata->result = $task->totalStatus;
                 }
-                // check whether we can execute the task
-                // if ((isset($task->triggerCondition)) && ($task->triggerCondition === "Manual")) {
-                if ($task->executable) {
-                    $rowdata->action = get_string('taskexecute', 'mod_crucible');
-                } else {
-                    $rowdata->action = get_string('tasknoexecute', 'mod_crucible');
-                }
                 if ($review) {
-                    if ($task->comment) {
+                    if (isset($task->comment)) {
                         $rowdata->comment = $task->comment;
                     } else {
                         $rowdata->comment = "-";
