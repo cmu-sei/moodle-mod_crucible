@@ -91,10 +91,6 @@ if ($object->eventtemplate) {
     $scenariotemplateid = "";
 }
 
-if (!$object->is_instructor()) {
-    redirect($returnurl);
-}
-
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 $renderer->display_detail($crucible, $object->eventtemplate->durationHours);
@@ -106,14 +102,19 @@ if ($scenariotemplateid) {
     if ($tasks) {
         // run as system account
         $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
-    }
-
-    if (!is_null($tasks)) {
-        $renderer->display_tasks($filtered);
+        if ($filtered) {
+            $renderer->display_tasks($filtered);
+        }
     }
 }
 
-$attempts = $object->getall_attempts('all', $review = true);
-echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
+if ($object->is_instructor()) {
+    $attempts = $object->getall_attempts('closed', $review = true);
+    echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
+} else {
+    $userid = $USER->id;
+    $attempts = $object->get_attempts_by_user($userid, 'closed');
+    echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = false);
+}
 
 echo $renderer->footer();

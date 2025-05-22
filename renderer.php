@@ -192,7 +192,9 @@ class mod_crucible_renderer extends plugin_renderer_base {
         global $DB;
         $data = new stdClass();
         $data->tableheaders = new stdClass();
-        $data->tabledata[] = array();
+        $data = new stdClass();
+        $data->tableheaders = new stdClass();
+        $data->tabledata = [];
 
         if ($showuser) {
             $data->tableheaders->username = get_string('username', 'mod_crucible');

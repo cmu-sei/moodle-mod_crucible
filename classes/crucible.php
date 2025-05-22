@@ -285,6 +285,52 @@ class crucible {
         return $attempts;
     }
 
+    public function get_attempts_by_user($userid, $state = 'all', $review = false) {
+        global $DB;
+    
+        $sqlparams = [];
+        $where = [];
+    
+        $where[] = '{crucible_attempts}.crucibleid = ?';
+        $sqlparams[] = $this->crucible->id;
+    
+        switch ($state) {
+            case 'open':
+                $where[] = '{crucible_attempts}.state = ?';
+                $sqlparams[] = crucible_attempt::INPROGRESS;
+                break;
+            case 'closed':
+                $where[] = '{crucible_attempts}.state = ?';
+                $sqlparams[] = crucible_attempt::FINISHED;
+                break;
+            default:
+                // No additional state filtering
+        }
+    
+        // Always filter by user
+        $where[] = '({crucible_attempts}.userid = ? OR {crucible_attempt_users}.userid = ?)';
+        $sqlparams[] = $userid;
+        $sqlparams[] = $userid;
+    
+        $wherestring = implode(' AND ', $where);
+    
+        $sql = "SELECT {crucible_attempts}.* 
+                FROM {crucible_attempts}
+                LEFT JOIN {crucible_attempt_users}
+                ON {crucible_attempts}.id = {crucible_attempt_users}.attemptid
+                WHERE $wherestring
+                ORDER BY timemodified DESC";
+    
+        $dbattempts = $DB->get_records_sql($sql, $sqlparams);
+    
+        $attempts = [];
+        foreach ($dbattempts as $dbattempt) {
+            $attempts[] = new crucible_attempt($dbattempt);
+        }
+    
+        return $attempts;
+    }
+    
     public function init_attempt() {
         global $DB, $USER;
 

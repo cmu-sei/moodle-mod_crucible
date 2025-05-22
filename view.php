@@ -344,9 +344,6 @@ if ($scenarioid) {
     if ($tasks) {
         // run as system account
         $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
-        if ($filtered) {
-            $renderer->display_tasks($filtered);
-        }
     }
 }
 
@@ -360,9 +357,6 @@ $info->vm_app_url = $vm_app_url;
 $info->player_app_url = $player_app_url;
 
 $PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$info]);
-
-$attempts = $object->getall_attempts('closed', $review = false);
-echo $renderer->display_attempts($attempts, $showgrade);
 
 $jsoptions = ['keepaliveinterval' => 1];
 $PAGE->requires->js_call_amd('mod_crucible/keepalive', 'init', [$jsoptions]);

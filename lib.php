@@ -404,13 +404,11 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
         $beforekey = $keys[$i + 1];
     }
 
-    if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/crucible/review.php', array('id' => $PAGE->cm->id));
-        $node = navigation_node::create(get_string('reviewtext', 'mod_crucible'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_crucible_review', new pix_icon('i/grades', 'grades'));
-        $context->add_node($node, $beforekey);
-    }
+    $url = new moodle_url('/mod/crucible/review.php', array('id' => $PAGE->cm->id));
+    $node = navigation_node::create(get_string('reviewtext', 'mod_crucible'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING, null, 'mod_crucible_review', new pix_icon('i/grades', 'grades'));
+    $context->add_node($node, $beforekey);
 
     if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
         $url = new moodle_url('/mod/crucible/manage.php', array('c' => $PAGE->cm->course));
