@@ -299,7 +299,7 @@ if ($vmapp == 1) {
 }
 
 // TODO have a completely different view page for active labs
-if ($scenarioid) {
+if ($object->event && $object->event->status === 'Active' && $scenarioid) {
 
     $tasks = get_scenariotasks($object->userauth, $scenarioid);
     if (is_null($tasks)) {
