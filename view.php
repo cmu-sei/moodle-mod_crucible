@@ -129,7 +129,7 @@ if ($attempt == true) {
 //TODO send instructor to a different page
 
 // handle start/stop form action
-if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
+if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
     debugging("start request received", DEBUG_DEVELOPER);
 
     if ($attempt) { //&& (!$object->event !== null)
@@ -161,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
             print_error("start_event failed");
         }
     }
-} else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop'])) {
+} else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop_confirmed']) && $_POST['stop_confirmed'] === "yes") {
     debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->status == "Active") {
