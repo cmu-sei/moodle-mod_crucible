@@ -216,6 +216,18 @@ function crucible_delete_instance($id) {
  * @return cached_cm_info info
  */
 function crucible_get_coursemodule_info($coursemodule) {
+    global $DB;
+
+    $crucible = $DB->get_record('crucible', array('id' => $coursemodule->instance), '*', MUST_EXIST);
+
+    $info = new cached_cm_info();
+    $info->name = $crucible->name;
+
+    if ($coursemodule->showdescription) {
+        $info->content = format_module_intro('crucible', $crucible, $coursemodule->id, false);
+    }
+
+    return $info;
 }
 
 /*

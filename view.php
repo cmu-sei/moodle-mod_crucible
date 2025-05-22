@@ -96,7 +96,12 @@ if ($object->eventtemplate) {
     $scenariotemplateid = $object->eventtemplate->scenarioTemplateId;
     // Update the database.
     $crucible->name = $object->eventtemplate->name;
-    $crucible->intro = $object->eventtemplate->description;
+
+    if (!$crucible->intro)
+    {
+        $crucible->intro = $object->eventtemplate->description;
+    }
+
     $DB->update_record('crucible', $crucible);
     // this generates lots of hvp module errors
     //rebuild_course_cache($crucible->course);
