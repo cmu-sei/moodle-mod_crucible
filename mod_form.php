@@ -192,8 +192,9 @@ class mod_crucible_mod_form extends moodleform_mod {
         }
         $index = array_search($data->eventtemplateid, array_column($this->eventtemplates, 'id'), true);
         $data->name = $this->eventtemplates[$index]->name;
-        $data->intro = $this->eventtemplates[$index]->description;
-        $data->introeditor['format'] = FORMAT_PLAIN;
+        $rawdescription = $this->eventtemplates[$index]->description;
+        $data->intro = strip_tags($rawdescription); // Removes all HTML tags
+        $data->introformat = FORMAT_PLAIN;
 
         // TODO if grade method changed, update all grades
     }

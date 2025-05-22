@@ -39,7 +39,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
     function display_detail ($crucible, $duration) {
         $data = new stdClass();
         $data->name = $crucible->name;
-        $data->intro = $crucible->intro;
+        $data->intro = strip_tags($crucible->intro);
         $data->durationtext = get_string('durationtext', 'mod_crucible');
         $data->duration = $duration;
         echo $this->render_from_template('mod_crucible/detail', $data);
@@ -325,7 +325,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 //get_string('taskid', 'mod_crucible'),
                 get_string('taskname', 'mod_crucible'),
                 get_string('taskdesc', 'mod_crucible'),
-                //get_string('taskaction', 'mod_crucible'),
+                get_string('taskaction', 'mod_crucible'),
                 get_string('taskcomment', 'mod_crucible'),
                 get_string('taskresult', 'mod_crucible'),
                 get_string('points', 'mod_crucible'),
@@ -336,8 +336,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 //get_string('taskid', 'mod_crucible'),
                 get_string('taskname', 'mod_crucible'),
                 get_string('taskdesc', 'mod_crucible'),
-                //get_string('taskaction', 'mod_crucible'),
-                get_string('taskcomment', 'mod_crucible'),
+                get_string('taskaction', 'mod_crucible'),
                 get_string('taskresult', 'mod_crucible'),
                 get_string('points', 'mod_crucible'),
                 get_string('score', 'mod_crucible')
@@ -354,6 +353,15 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 if (isset($task->totalStatus)) {
                     $rowdata->result = $task->totalStatus;
                 }
+
+                if (!$review) {
+                    if ($task->executable) {
+                        $rowdata->action = get_string('taskexecute', 'mod_crucible');
+                    }
+                } else {
+                    $rowdata->noaction = get_string('tasknoexecute', 'mod_crucible');
+                }            
+
                 if ($review) {
                     if (isset($task->comment)) {
                         $rowdata->comment = $task->comment;

@@ -314,7 +314,7 @@ if ($object->event && $object->event->status === 'Active' && $scenarioid) {
     if ($tasks) {
         // display tasks
         $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
-        $renderer->display_results($filtered);
+        $renderer->display_results($filtered, $review = false);
         $info = new stdClass();
         $info->scenario = $scenarioid;
         $info->view = $viewid;
@@ -339,17 +339,6 @@ if ($object->event && $object->event->status === 'Active' && $scenarioid) {
     // have js run tasks as user from browser
     //$PAGE->requires->js_call_amd('mod_crucible/results', 'init', [$info]);
 */
-} else if ($scenariotemplateid) {
-    // this is when we do not have an active scenario
-    $tasks = get_scenariotemplatetasks($object->userauth, $scenariotemplateid);
-    if (is_null($tasks)) {
-        $tasks = get_scenariotemplatetasks($object->systemauth, $scenariotemplateid);
-    }
-
-    if ($tasks) {
-        // run as system account
-        $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
-    }
 }
 
 $info = new stdClass();
