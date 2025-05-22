@@ -94,7 +94,6 @@ if ($object->eventtemplate) {
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 $renderer->display_detail($crucible, $object->eventtemplate->durationHours);
-$renderer->display_return_form($returnurl, $id);
 
 if ($scenariotemplateid) {
     $tasks = get_scenariotemplatetasks($object->systemauth, $scenariotemplateid);
@@ -116,5 +115,7 @@ if ($object->is_instructor()) {
     $attempts = $object->get_attempts_by_user($userid, 'closed');
     echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = false);
 }
+
+$renderer->display_return_form($returnurl, $id);
 
 echo $renderer->footer();
