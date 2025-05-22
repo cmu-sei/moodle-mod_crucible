@@ -37,23 +37,54 @@ DM20-0196
 }}
 
 <span>
-  <form action="{{url}}" method="post" style="display:inline">
-      <input id="event" type="hidden" name="event" value=""/>
+  <form id="lab_form" action="{{url}}" method="post" style="display:inline">
+      <input id="event" type="hidden" name="event" value="" />
       <input id="eventtemplateid" type="hidden" name="eventtemplateid" value="{{eventtemplateid}}" />
-      <input id="end_button" style="display:none" class="btn btn-primary" type="submit" name="stop" value="End Lab"
-      {{#joinedAttempt}}
-      disabled="disabled"
-      {{/joinedAttempt}}
-      />
+      <input id="start_confirmed" type="hidden" name="start_confirmed" value="" />
+      <input id="stop_confirmed" type="hidden" name="stop_confirmed" value="" />
+
       <input id="launch_button" style="display:none" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />
+      <input id="end_button" style="display:none" class="btn btn-danger" type="submit" name="stop" value="End Lab"
+          {{#joinedAttempt}}disabled="disabled"{{/joinedAttempt}} />
   </form>
 
-  <button id="wait" style="display:none; width:300px" class="btn btn-primary" type="button" name="start">
+  <button id="wait" style="display:none; width:300px" class="btn btn-primary" type="button" name="wait">
     <span class="spinner-border spinner-border-sm" role="status"></span>
-    &nbsp;&nbsp
-    Please wait, system processing
+    &nbsp;&nbsp;Please wait, system processing
   </button>
-  <input id="failed" style="display:none; width:300px" class="btn btn-primary" type="" name="failed" value="Your operation has failed." />
+
+  <input id="failed" style="display:none; width:300px" class="btn btn-secondary" type="button" name="failed" value="Your operation has failed." />
 
   <p id="enable-fullscreen" style="display: none;" class="btn btn-primary">{{fullscreen}}</p>
 </span>
+
+<script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', function () {
+      const launchBtn = document.getElementById('launch_button');
+      const endBtn = document.getElementById('end_button');
+      const startConfirm = document.getElementById('start_confirmed');
+      const stopConfirm = document.getElementById('stop_confirmed');
+
+      if (launchBtn) {
+          launchBtn.addEventListener('click', function (e) {
+              const confirmed = confirm("{{#str}} start_attempt_confirm, mod_crucible {{/str}}");
+              if (!confirmed) {
+                  e.preventDefault();
+              } else {
+                  startConfirm.value = "yes";
+              }
+          });
+      }
+
+      if (endBtn) {
+          endBtn.addEventListener('click', function (e) {
+              const confirmed = confirm("{{#str}} stop_attempt_confirm, mod_crucible {{/str}}");
+              if (!confirmed) {
+                  e.preventDefault();
+              } else {
+                  stopConfirm.value = "yes";
+              }
+          });
+      }
+  });
+</script>

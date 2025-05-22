@@ -216,6 +216,18 @@ function crucible_delete_instance($id) {
  * @return cached_cm_info info
  */
 function crucible_get_coursemodule_info($coursemodule) {
+    global $DB;
+
+    $crucible = $DB->get_record('crucible', array('id' => $coursemodule->instance), '*', MUST_EXIST);
+
+    $info = new cached_cm_info();
+    $info->name = $crucible->name;
+
+    if ($coursemodule->showdescription) {
+        $info->content = format_module_intro('crucible', $crucible, $coursemodule->id, false);
+    }
+
+    return $info;
 }
 
 /*
@@ -404,13 +416,11 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
         $beforekey = $keys[$i + 1];
     }
 
-    if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/crucible/review.php', array('id' => $PAGE->cm->id));
-        $node = navigation_node::create(get_string('reviewtext', 'mod_crucible'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_crucible_review', new pix_icon('i/grades', 'grades'));
-        $context->add_node($node, $beforekey);
-    }
+    $url = new moodle_url('/mod/crucible/review.php', array('id' => $PAGE->cm->id));
+    $node = navigation_node::create(get_string('reviewtext', 'mod_crucible'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING, null, 'mod_crucible_review', new pix_icon('i/grades', 'grades'));
+    $context->add_node($node, $beforekey);
 
     if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
         $url = new moodle_url('/mod/crucible/manage.php', array('c' => $PAGE->cm->course));

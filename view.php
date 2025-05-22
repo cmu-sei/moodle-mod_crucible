@@ -96,7 +96,12 @@ if ($object->eventtemplate) {
     $scenariotemplateid = $object->eventtemplate->scenarioTemplateId;
     // Update the database.
     $crucible->name = $object->eventtemplate->name;
-    $crucible->intro = $object->eventtemplate->description;
+
+    if (!$crucible->intro)
+    {
+        $crucible->intro = $object->eventtemplate->description;
+    }
+
     $DB->update_record('crucible', $crucible);
     // this generates lots of hvp module errors
     //rebuild_course_cache($crucible->course);
@@ -124,7 +129,7 @@ if ($attempt == true) {
 //TODO send instructor to a different page
 
 // handle start/stop form action
-if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
+if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
     debugging("start request received", DEBUG_DEVELOPER);
 
     if ($attempt) { //&& (!$object->event !== null)
@@ -156,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
             print_error("start_event failed");
         }
     }
-} else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop'])) {
+} else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop_confirmed']) && $_POST['stop_confirmed'] === "yes") {
     debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->status == "Active") {
@@ -299,7 +304,7 @@ if ($vmapp == 1) {
 }
 
 // TODO have a completely different view page for active labs
-if ($scenarioid) {
+if ($object->event && $object->event->status === 'Active' && $scenarioid) {
 
     $tasks = get_scenariotasks($object->userauth, $scenarioid);
     if (is_null($tasks)) {
@@ -309,7 +314,7 @@ if ($scenarioid) {
     if ($tasks) {
         // display tasks
         $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
-        $renderer->display_results($filtered);
+        $renderer->display_results($filtered, $review = false);
         $info = new stdClass();
         $info->scenario = $scenarioid;
         $info->view = $viewid;
@@ -334,20 +339,6 @@ if ($scenarioid) {
     // have js run tasks as user from browser
     //$PAGE->requires->js_call_amd('mod_crucible/results', 'init', [$info]);
 */
-} else if ($scenariotemplateid) {
-    // this is when we do not have an active scenario
-    $tasks = get_scenariotemplatetasks($object->userauth, $scenariotemplateid);
-    if (is_null($tasks)) {
-        $tasks = get_scenariotemplatetasks($object->systemauth, $scenariotemplateid);
-    }
-
-    if ($tasks) {
-        // run as system account
-        $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
-        if ($filtered) {
-            $renderer->display_tasks($filtered);
-        }
-    }
 }
 
 $info = new stdClass();
@@ -360,9 +351,6 @@ $info->vm_app_url = $vm_app_url;
 $info->player_app_url = $player_app_url;
 
 $PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$info]);
-
-$attempts = $object->getall_attempts('closed', $review = false);
-echo $renderer->display_attempts($attempts, $showgrade);
 
 $jsoptions = ['keepaliveinterval' => 1];
 $PAGE->requires->js_call_amd('mod_crucible/keepalive', 'init', [$jsoptions]);

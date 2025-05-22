@@ -118,8 +118,8 @@ $string['taskdesc'] = 'Task Description';
 $string['taskname'] = 'Task Name';
 $string['taskresult'] = 'Latest Task Result';
 $string['taskaction'] = 'Action';
-$string['taskexecute'] = 'Run Task';
-$string['tasknoexecute'] = 'No Action';
+$string['taskexecute'] = 'Execute Task';
+$string['tasknoexecute'] = 'Not Executable';
 
 // view
 $string['eventwithoutattempt'] = 'Event exists but attempt does not exist in moodle db.';
@@ -157,4 +157,7 @@ $string['privacy:metadata'] = 'The Crucible activity plugin shows data stored in
 
 $string['notasksavailable'] = 'There are no tasks available for this activity.';
 $string['backtocruclanding'] = 'Back to Activity View';
+$string['start_attempt_confirm'] = 'Are you sure you want to launch the lab?';
+$string['stop_attempt_confirm'] = 'Are you sure you want to end the lab?';
+
 
