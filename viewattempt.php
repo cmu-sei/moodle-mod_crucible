@@ -41,6 +41,7 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 
+$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $a = optional_param('a', '', PARAM_INT);  // attempt ID
 $action = optional_param('action', 'list', PARAM_TEXT);
 $actionitem = optional_param('id', 0, PARAM_INT);
@@ -137,7 +138,7 @@ global $DB;
 $system = setup_system();
 $scenario = get_scenario($system, $attempt->scenarioid);
 $tasks = get_scenariotasks($system, $attempt->scenarioid);
-$tasks = $object->filter_scenario_tasks($tasks, $visible = 1);
+$tasks = $object->filter_scenario_tasks($tasks, true, false);
 
 //get tasks from db
 if ($isinstructor) {
@@ -243,3 +244,9 @@ if ($isinstructor) {
         $renderer->display_results($tasks, $review = true);
     }
 }
+
+$returnurl = new moodle_url ( '/mod/crucible/view.php', array ( 'id' => $cm->id ) );
+$renderer->display_return_form($returnurl, $id);
+
+
+echo $renderer->footer();

@@ -39,7 +39,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
     function display_detail ($crucible, $duration) {
         $data = new stdClass();
         $data->name = $crucible->name;
-        $data->intro = $crucible->intro;
+        $data->intro = strip_tags($crucible->intro);
         $data->durationtext = get_string('durationtext', 'mod_crucible');
         $data->duration = $duration;
         echo $this->render_from_template('mod_crucible/detail', $data);
@@ -192,7 +192,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
         global $DB;
         $data = new stdClass();
         $data->tableheaders = new stdClass();
-        $data->tabledata[] = array();
+        $data->tabledata = [];
 
         if ($showuser) {
             $data->tableheaders->username = get_string('username', 'mod_crucible');
@@ -262,8 +262,12 @@ class mod_crucible_renderer extends plugin_renderer_base {
             $rowdata = array();
             //$rowdata[] = $task->id;
             $rowdata[] = $task->name;
-            $rowdata[] = $task->description;
-            $rowdata[] = $task->points;
+            if ($task->description) {
+                $rowdata[] = $task->description;
+            } else {
+                $rowdata[] = "No description available";
+            }
+            $rowdata[] = $task->score;
             $data->tabledata[] = $rowdata;
         }
 
@@ -353,15 +357,20 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 if (isset($task->totalStatus)) {
                     $rowdata->result = $task->totalStatus;
                 }
-                // check whether we can execute the task
-                // if ((isset($task->triggerCondition)) && ($task->triggerCondition === "Manual")) {
-                if ($task->executable) {
-                    $rowdata->action = get_string('taskexecute', 'mod_crucible');
+
+                if (!$review) {
+                    if ($task->userExecutable) {
+                        $rowdata->action = get_string('taskexecute', 'mod_crucible');
+                    }
+                    else {
+                        $rowdata->noaction = get_string('tasknoexecute', 'mod_crucible');
+                    }
                 } else {
-                    $rowdata->action = get_string('tasknoexecute', 'mod_crucible');
-                }
+                    $rowdata->noaction = get_string('tasknoexecute', 'mod_crucible');
+                }            
+
                 if ($review) {
-                    if ($task->comment) {
+                    if (isset($task->comment)) {
                         $rowdata->comment = $task->comment;
                     } else {
                         $rowdata->comment = "-";
