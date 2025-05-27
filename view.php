@@ -180,6 +180,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             crucible_end($cm, $context, $crucible);
         }
     }
+    $reviewurl = new moodle_url('/mod/crucible/review.php', [
+        'id' => $cm->id
+    ]);
+    redirect($reviewurl);    
 }
 
 if ($object->event) {
@@ -313,7 +317,7 @@ if ($object->event && $object->event->status === 'Active' && $scenarioid) {
 
     if ($tasks) {
         // display tasks
-        $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
+        $filtered = $object->filter_scenario_tasks($tasks, true, false);
         $renderer->display_results($filtered, $review = false);
         $info = new stdClass();
         $info->scenario = $scenarioid;

@@ -100,7 +100,7 @@ if ($scenariotemplateid) {
 
     if ($tasks) {
         // run as system account
-        $filtered = $object->filter_scenario_tasks($tasks, $visible = 1);
+        $filtered = $object->filter_scenario_tasks($tasks, true, false);
         if ($filtered) {
             $renderer->display_tasks($filtered);
         }

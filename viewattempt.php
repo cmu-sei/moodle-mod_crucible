@@ -138,7 +138,7 @@ global $DB;
 $system = setup_system();
 $scenario = get_scenario($system, $attempt->scenarioid);
 $tasks = get_scenariotasks($system, $attempt->scenarioid);
-$tasks = $object->filter_scenario_tasks($tasks, $visible = 1);
+$tasks = $object->filter_scenario_tasks($tasks, true, false);
 
 //get tasks from db
 if ($isinstructor) {

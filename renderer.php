@@ -262,8 +262,12 @@ class mod_crucible_renderer extends plugin_renderer_base {
             $rowdata = array();
             //$rowdata[] = $task->id;
             $rowdata[] = $task->name;
-            $rowdata[] = $task->description;
-            $rowdata[] = $task->points;
+            if ($task->description) {
+                $rowdata[] = $task->description;
+            } else {
+                $rowdata[] = "No description available";
+            }
+            $rowdata[] = $task->score;
             $data->tabledata[] = $rowdata;
         }
 
@@ -355,8 +359,11 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 }
 
                 if (!$review) {
-                    if ($task->executable) {
+                    if ($task->userExecutable) {
                         $rowdata->action = get_string('taskexecute', 'mod_crucible');
+                    }
+                    else {
+                        $rowdata->noaction = get_string('tasknoexecute', 'mod_crucible');
                     }
                 } else {
                     $rowdata->noaction = get_string('tasknoexecute', 'mod_crucible');

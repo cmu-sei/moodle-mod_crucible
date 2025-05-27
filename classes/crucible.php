@@ -403,24 +403,47 @@ class crucible {
     }
 
     // filter for tasks the user can see and sort by name
-    function filter_scenario_tasks($tasks, $visible = 0, $gradable = 0) {
-
+    function filter_scenario_tasks($tasks, $isVisible = false, $isExecutable = false) {
         global $DB;
+    
         if (is_null($tasks)) {
-            return;
+            return [];
         }
-        $filtered = array();
+    
+        $filtered = [];
+    
         foreach ($tasks as $task) {
-            if ($task->userExecutable) {
+            $include = true;
+    
+            // Filter by visibility from DB
+            if ($isVisible) {
+                $sql = 'SELECT visible FROM {crucible_tasks} WHERE ' .
+                $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name');
+
+                $rec = $DB->get_record_sql($sql, ['name' => $task->name]);
+    
+                if (!$rec || empty($rec->visible)) {
+                    $include = false;
+                }
+            }
+    
+            // Filter by executable flag from task object
+            if ($isExecutable && empty($task->userExecutable)) {
+                $include = false;
+            }
+    
+            // Include task if it passes all checks
+            if ($include) {
+                if (!empty($task->userExecutable)) {
+                    $task->points = $task->totalScore ?? 0;
+                }
                 $filtered[] = $task;
-                $task->points = $task->totalScore;
             }
         }
-
+    
         usort($filtered, "tasksort");
         return $filtered;
-
-    }
+    }           
 
     public function get_all_attempts_for_form() {
         global $DB, $USER;
