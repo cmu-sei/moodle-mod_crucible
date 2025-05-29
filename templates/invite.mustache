@@ -37,7 +37,14 @@ DM20-0196
 }}
 
 {{#code}}
-    <input id="invite_button" style="display:none" onclick="copy_link('{{url}}&code={{code}}')" readonly class="btn btn-primary" name="invite" value="Copy Invite Link" />
+<!-- Hidden input or data attribute instead of visible text -->
+<div id="invitationlinkurl" style="display: none;">
+    {{url}}&code={{code}}
+</div>
+
+<button id="copy_invite" type="button" class="btn btn-primary">
+    Copy Invite Link
+</button>
 {{/code}}
 
 {{#joinedAttempt}}

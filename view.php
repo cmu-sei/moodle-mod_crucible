@@ -299,6 +299,8 @@ if ($object->event) {
     $renderer->display_grade($crucible);
 }
 
+$PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
+
 $renderer->display_invite($url, $object->crucible->eventtemplateid, $id, $attemptid, $form_attempts, $shareCode);
 
 if ($vmapp == 1) {
