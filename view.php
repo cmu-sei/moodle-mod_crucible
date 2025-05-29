@@ -276,8 +276,6 @@ if ($object->openAttempt && $object->openAttempt->userid == $USER->id) {
     $shareCode = $object->event->shareCode;
 }
 
-$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $form_attempts, $shareCode);
-
 if ($object->event) {
 
     $extend = false;
@@ -298,6 +296,8 @@ if ($object->event) {
 } else if ($showgrade) {
     $renderer->display_grade($crucible);
 }
+
+$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $form_attempts, $shareCode);
 
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 

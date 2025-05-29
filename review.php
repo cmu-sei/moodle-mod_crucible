@@ -93,7 +93,6 @@ if ($object->eventtemplate) {
 
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
-$renderer->display_detail($crucible, $object->eventtemplate->durationHours);
 
 if ($scenariotemplateid) {
     $tasks = get_scenariotemplatetasks($object->systemauth, $scenariotemplateid);
