@@ -37,10 +37,7 @@ DM20-0196
 }}
 
 {{#code}}
-<!-- Hidden input or data attribute instead of visible text -->
-<div id="invitationlinkurl" style="display: none;">
-    {{url}}&code={{code}}
-</div>
+<input id="invitationlinkurl" type="text" value="{{url}}&code={{code}}" readonly style="position: absolute; left: -9999px;">
 
 <button id="copy_invite" type="button" class="btn btn-primary">
     Copy Invite Link
