@@ -272,8 +272,11 @@ if ($object->openAttempt && $object->openAttempt->userid == $USER->id) {
     if ($object->event->shareCode == null) {
         $object->event = $object->generate_sharecode();
     }
-
-    $shareCode = $object->event->shareCode;
+    if (is_object($object->event) && isset($object->event->shareCode)) {
+        $shareCode = $object->event->shareCode;
+    } else {
+        debugging('Event is not set or shareCode is missing', DEBUG_DEVELOPER);
+    }  
 }
 
 if ($object->event) {
@@ -301,16 +304,16 @@ $renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attempti
 
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 
-$renderer->display_invite($url, $object->crucible->eventtemplateid, $id, $attemptid, $form_attempts, $shareCode);
-
-if ($vmapp == 1) {
-    $renderer->display_embed_page($crucible);
-} else {
-    $renderer->display_link_page($player_app_url, $viewid);
-}
-
 // TODO have a completely different view page for active labs
 if ($object->event && $object->event->status === 'Active' && $scenarioid) {
+
+    $renderer->display_invite($url, $object->crucible->eventtemplateid, $id, $attemptid, $form_attempts, $shareCode);
+
+    if ($vmapp == 1) {
+        $renderer->display_embed_page($crucible);
+    } else {
+        $renderer->display_link_page($player_app_url, $viewid);
+    }
 
     $tasks = get_scenariotasks($object->userauth, $scenarioid);
     if (is_null($tasks)) {
@@ -347,16 +350,31 @@ if ($object->event && $object->event->status === 'Active' && $scenarioid) {
 */
 }
 
-$info = new stdClass();
-$info->token = $access_token;
-$info->state = $status;
-$info->event = $eventid;
-$info->view = $viewid;
-$info->alloy_api_url = $alloy_api_url;
-$info->vm_app_url = $vm_app_url;
-$info->player_app_url = $player_app_url;
+// $info = new stdClass();
+// $info->token = $access_token;
+// $info->state = $status;
+// $info->event = $eventid;
+// $info->view = $viewid;
+// $info->alloy_api_url = $alloy_api_url;
+// $info->vm_app_url = $vm_app_url;
+// $info->player_app_url = $player_app_url;
 
-$PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$info]);
+// $PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$info]);
+$PAGE->requires->js_call_amd('mod_crucible/view', 'init'); // no args now
+
+$configdata = [
+    'token' => $access_token,
+    'state' => $status,
+    'event' => $eventid,
+    'view' => $viewid,
+    'alloy_api_url' => $alloy_api_url,
+    'vm_app_url' => $vm_app_url,
+    'player_app_url' => $player_app_url,
+];
+
+$PAGE->requires->js_init_code("
+    window.CrucibleConfig = " . json_encode($configdata) . ";
+");
 
 $jsoptions = ['keepaliveinterval' => 1];
 $PAGE->requires->js_call_amd('mod_crucible/keepalive', 'init', [$jsoptions]);
