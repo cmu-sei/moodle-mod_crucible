@@ -92,9 +92,6 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->setDefault('eventtemplateid', null);
         $mform->addHelpButton('eventtemplateid', 'eventtemplate', 'crucible');
 
-        $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'crucible'));
-        $mform->addHelpButton('extendevent', 'extendeventsetting', 'crucible');
-
         //-------------------------------------------------------
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
@@ -103,9 +100,9 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->setDefault('vmapp', $config->vmapp);
         $mform->addHelpButton('vmapp', 'vmapp', 'crucible');
 
-        $options = array('', 'Countdown', 'Timer');
+        $options = ['Hidden', 'Countdown', 'Timer'];
         $mform->addElement('select', 'clock', get_string('clock', 'crucible'), $options);
-        $mform->setDefault('clock', '');
+        $mform->setDefault('clock', 1); // Set default to the index of 'Countdown' in $options array
         $mform->addHelpButton('clock', 'clock', 'crucible');
 
         // Grade settings.
@@ -139,6 +136,9 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->addElement('date_time_selector', 'timeclose', get_string('eventclose', 'crucible'),
                 self::$datefieldoptions);
         $mform->addHelpButton('timeclose', 'eventclose', 'crucible');
+
+        $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'crucible'));
+        $mform->addHelpButton('extendevent', 'extendeventsetting', 'crucible');
 
 
         //-------------------------------------------------------

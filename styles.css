@@ -26,3 +26,19 @@
 #timer {
   font-family: monospace;
 }
+
+.notification-box {
+  position: relative;
+  padding: .75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 0 solid transparent;
+  border-radius: .5rem;
+  max-width: 300px;
+  word-wrap: break-word;
+}
+
+.notification-style {
+  color: #00434e;
+  background-color: #cce6ea;
+  border-color: #b8dce2;
+}
