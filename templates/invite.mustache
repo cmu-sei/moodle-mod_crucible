@@ -44,16 +44,16 @@ DM20-0196
   </button>
 {{/code}}
 
-{{#joinedAttempt}}
-<p>Currently viewing attempt owned by: {{joinedAttemptOwner}}</p>
+{{#joinedattempt}}
+<p>Currently viewing attempt owned by: {{joinedattemptowner}}</p>
 
 <form action="{{url}}" method="get">
   <input type="hidden" name="id" value="{{id}}" />
   <input id="return-button" type="submit" style="display:none" class="btn btn-primary" value="Return">
 </form>
-{{/joinedAttempt}}
+{{/joinedattempt}}
 
-{{#activeAttempts}}
+{{#activeattempts}}
 <form id="join-form" action="" method="get style="display:none">
   <span>
     <input type="hidden" name="id" value="{{id}}" />
@@ -66,5 +66,5 @@ DM20-0196
     <input type="submit" class="btn btn-primary" value="Join">
   </span>
 </form>
-{{/activeAttempts}}
+{{/activeattempts}}
 <br>

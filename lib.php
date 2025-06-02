@@ -22,19 +22,21 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Crucible Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING,
+BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY,
+OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
+OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
 Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
+Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
 DM20-0196
  */
-
-// This line protects the file from being accessed by a URL directly.
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * List of features supported in crucible module
@@ -43,25 +45,45 @@ defined('MOODLE_INTERNAL') || die();
  */
 function crucible_supports($feature) {
     switch($feature) {
-        case FEATURE_MOD_ARCHETYPE:           return MOD_ARCHETYPE_OTHER;
-        case FEATURE_GROUPS:                  return false;
-        case FEATURE_GROUPINGS:               return false;
-        case FEATURE_MOD_INTRO:               return true;
-        case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
-        case FEATURE_GRADE_HAS_GRADE:         return true;
-        case FEATURE_GRADE_OUTCOMES:          return false;
-        case FEATURE_BACKUP_MOODLE2:          return true;
-        case FEATURE_SHOW_DESCRIPTION:        return true;
-
-        default: return null;
+        case FEATURE_MOD_ARCHETYPE: {
+            return MOD_ARCHETYPE_OTHER;
+        }
+        case FEATURE_GROUPS: {
+            return false;
+        }
+        case FEATURE_GROUPINGS: {
+            return false;
+        }
+        case FEATURE_MOD_INTRO: {
+            return true;
+        }
+        case FEATURE_COMPLETION_TRACKS_VIEWS: {
+            return true;
+        }
+        case FEATURE_GRADE_HAS_GRADE: {
+            return true;
+        }
+        case FEATURE_GRADE_OUTCOMES: {
+            return false;
+        }
+        case FEATURE_BACKUP_MOODLE2: {
+            return true;
+        }
+        case FEATURE_SHOW_DESCRIPTION: {
+            return true;
+        }
+        default: {
+            return null;
+        }
     }
 }
+
 /**
  * Returns all other caps used in module
  * @return array
  */
 function crucible_get_extra_capabilities() {
-    return array('moodle/site:accessallgroups');
+    return ['moodle/site:accessallgroups'];
 }
 
 /**
@@ -74,7 +96,7 @@ function crucible_reset_userdata($data) {
     // Any changes to the list of dates that needs to be rolled should be same during course restore and course reset.
     // See MDL-9367.
 
-    return array();
+    return [];
 }
 
 /**
@@ -88,7 +110,7 @@ function crucible_reset_userdata($data) {
  * @return array
  */
 function crucible_get_post_actions() {
-    return array('update', 'add');
+    return ['update', 'add'];
 }
 
 /**
@@ -109,7 +131,7 @@ function crucible_add_instance($crucible, $mform) {
     }
 
     $crucible->created = time();
-    $crucible->grade = 100; //default
+    $crucible->grade = 100; // Default.
     $crucible->id = $DB->insert_record('crucible', $crucible);
 
     // Do the processing required after an add or an update.
@@ -138,7 +160,7 @@ function crucible_update_instance(stdClass $crucible, $mform) {
         return $result;
     }
     // Get the current value, so we can see what changed.
-   // $oldcrucible = $DB->get_record('crucible', array('id' => $crucible->instance));
+    // $oldcrucible = $DB->get_record('crucible', array('id' => $crucible->instance));
 
     // Update the database.
     $crucible->id = $crucible->instance;
@@ -163,14 +185,19 @@ function crucible_after_add_or_update($crucible) {
     $cmid = $crucible->coursemodule;
 
     // We need to use context now, so we need to make sure all needed info is already in db.
-    $DB->set_field('course_modules', 'instance', $crucible->id, array('id'=>$cmid));
+    $DB->set_field('course_modules', 'instance', $crucible->id, ['id' => $cmid]);
     $context = context_module::instance($cmid);
 
     // Update related grade item.
     crucible_grade_item_update($crucible);
 }
 
-
+/**
+ * Processes module options before inserting or updating a Crucible instance.
+ *
+ * @param stdClass $crucible The Crucible activity instance object.
+ * @return void|string Returns error string on failure, or nothing on success.
+ */
 function crucible_process_options($crucible) {
     global $CFG;
     require_once($CFG->dirroot . '/mod/crucible/locallib.php');
@@ -185,22 +212,21 @@ function crucible_process_options($crucible) {
  */
 function crucible_delete_instance($id) {
     global $DB;
-    $crucible = $DB->get_record('crucible', array('id' => $id), '*', MUST_EXIST);
+    $crucible = $DB->get_record('crucible', ['id' => $id], '*', MUST_EXIST);
 
-    // delete calander events
-    $events = $DB->get_records('event', array('modulename' => 'crucible', 'instance' => $crucible->id));
+    // Delete calander events.
+    $events = $DB->get_records('event', ['modulename' => 'crucible', 'instance' => $crucible->id]);
     foreach ($events as $event) {
         $event = calendar_event::load($event);
         $event->delete();
     }
 
-
-    // delete grade from database
+    // Delete grade from database.
     crucible_grade_item_delete($crucible);
 
-    // note: all context files are deleted automatically
+    // Note: all context files are deleted automatically.
 
-    $DB->delete_records('crucible', array('id'=>$crucible->id));
+    $DB->delete_records('crucible', ['id' => $crucible->id]);
 
     return true;
 }
@@ -218,7 +244,7 @@ function crucible_delete_instance($id) {
 function crucible_get_coursemodule_info($coursemodule) {
     global $DB;
 
-    $crucible = $DB->get_record('crucible', array('id' => $coursemodule->instance), '*', MUST_EXIST);
+    $crucible = $DB->get_record('crucible', ['id' => $coursemodule->instance], '*', MUST_EXIST);
 
     $info = new cached_cm_info();
     $info->name = $crucible->name;
@@ -230,22 +256,24 @@ function crucible_get_coursemodule_info($coursemodule) {
     return $info;
 }
 
-/*
- * Mark the activity completed (if required) and trigger the course_module_viewed event.
+/**
+ * Handles the logic for viewing the Crucible module instance.
  *
- * @param  stdClass $crucible        crucible object
- * @param  stdClass $course     course object
- * @param  stdClass $cm         course module object
- * @param  stdClass $context    context object
- * @since Moodle 3.0
+ * This includes triggering the course_module_viewed event and marking the activity as viewed for completion tracking.
+ *
+ * @param stdClass $crucible The Crucible instance record from the database.
+ * @param stdClass $course The course record the module belongs to.
+ * @param cm_info  $cm The course module information.
+ * @param context_module $context The module context.
+ * @return void
  */
 function crucible_view($crucible, $course, $cm, $context) {
 
     // Trigger course_module_viewed event.
-    $params = array(
+    $params = [
         'context' => $context,
-        'objectid' => $crucible->id
-    );
+        'objectid' => $crucible->id,
+    ];
 
     $event = \mod_crucible\event\course_module_viewed::create($params);
     $event->add_record_snapshot('course_modules', $cm);
@@ -267,8 +295,8 @@ function crucible_view($crucible, $course, $cm, $context) {
  * @return stdClass an object with the different type of areas indicating if they were updated or not
  * @since Moodle 3.2
  */
-function crucible_check_updates_since(cm_info $cm, $from, $filter = array()) {
-    $updates = course_check_module_updates_since($cm, $from, array('content'), $filter);
+function crucible_check_updates_since(cm_info $cm, $from, $filter = []) {
+    $updates = course_check_module_updates_since($cm, $from, ['content'], $filter);
     return $updates;
 }
 /**
@@ -313,14 +341,14 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
     global $CFG, $DB;
     require_once($CFG->libdir . '/gradelib.php');
 
-    $grades = array();
+    $grades = [];
     foreach ($userid as $user) {
         $rawgrade = crucible_get_user_grades($crucible, $userid);
         $grade = new stdClass();
         $grade->userid = $userid;
         $grade->rawgrade = $rawgrade;
         $grades[$user] = $grade;
-    } 
+    }
     return crucible_grade_item_update($crucible, $grades);
 }
 
@@ -337,9 +365,9 @@ function crucible_grade_item_update($crucible, $grades = null) {
     require_once($CFG->libdir . '/gradelib.php');
 
     if (property_exists($crucible, 'cmidnumber')) { // May not be always present.
-        $params = array('itemname' => $crucible->name, 'idnumber' => $crucible->cmidnumber);
+        $params = ['itemname' => $crucible->name, 'idnumber' => $crucible->cmidnumber];
     } else {
-        $params = array('itemname' => $crucible->name);
+        $params = ['itemname' => $crucible->name];
     }
     if ($crucible->grade > 0) {
         $params['gradetype'] = GRADE_TYPE_VALUE;
@@ -348,7 +376,7 @@ function crucible_grade_item_update($crucible, $grades = null) {
     } else {
         $params['gradetype'] = GRADE_TYPE_NONE;
     }
-    if ($grades  === 'reset') {
+    if ($grades === 'reset') {
         $params['reset'] = true;
         $grades = null;
     }
@@ -368,7 +396,7 @@ function crucible_grade_item_delete($crucible) {
     require_once($CFG->libdir . '/gradelib.php');
 
     return grade_update('mod/crucible', $crucible->course, 'mod', 'crucible', $crucible->id, 0,
-            null, array('deleted' => 1));
+            null, ['deleted' => 1]);
 }
 
 /**
@@ -381,7 +409,7 @@ function crucible_grade_item_delete($crucible) {
 function crucible_get_user_grades($crucible, $userid = 0) {
     global $CFG, $DB;
 
-    $params = array($crucible->id);
+    $params = [$crucible->id];
     $usertest = '';
     if ($userid) {
         $params[] = $userid;
@@ -404,26 +432,36 @@ function crucible_get_user_grades($crucible, $userid = 0) {
             GROUP BY u.id, cg.grade, cg.timemodified", $params);
 }
 
+/**
+ * Extends the settings navigation for the Crucible activity.
+ *
+ * Adds links for review, manage attempts, and manage tasks to the module settings navigation block,
+ * if the user has the required capabilities.
+ *
+ * @param navigation_node $settingsnav The settings navigation node for the module.
+ * @param context $context The context of the module.
+ * @return void
+ */
 function crucible_extend_settings_navigation($settingsnav, $context) {
     global $PAGE;
 
     $keys = $context->get_children_key_list();
     $beforekey = null;
     $i = array_search('modedit', $keys);
-    if ($i === false and array_key_exists(0, $keys)) {
+    if ($i === false && array_key_exists(0, $keys)) {
         $beforekey = $keys[0];
     } else if (array_key_exists($i + 1, $keys)) {
         $beforekey = $keys[$i + 1];
     }
 
-    $url = new moodle_url('/mod/crucible/review.php', array('id' => $PAGE->cm->id));
+    $url = new moodle_url('/mod/crucible/review.php', ['id' => $PAGE->cm->id]);
     $node = navigation_node::create(get_string('reviewtext', 'mod_crucible'),
             new moodle_url($url),
             navigation_node::TYPE_SETTING, null, 'mod_crucible_review', new pix_icon('i/grades', 'grades'));
     $context->add_node($node, $beforekey);
 
     if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/crucible/manage.php', array('c' => $PAGE->cm->course));
+        $url = new moodle_url('/mod/crucible/manage.php', ['c' => $PAGE->cm->course]);
         $node = navigation_node::create(get_string('managetext', 'mod_crucible'),
                 new moodle_url($url),
                 navigation_node::TYPE_SETTING, null, 'mod_crucible_manage', new pix_icon('i/grades', 'grades'));
@@ -431,12 +469,11 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
     }
 
     if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/crucible/tasks.php', array('id' => $PAGE->cm->id));
+        $url = new moodle_url('/mod/crucible/tasks.php', ['id' => $PAGE->cm->id]);
         $node = navigation_node::create(get_string('managetasks', 'mod_crucible'),
                 new moodle_url($url),
                 navigation_node::TYPE_SETTING, null, 'mod_crucible_tasks', new pix_icon('i/completion-manual-enabled', 'tasks'));
         $context->add_node($node, $beforekey);
     }
-
 
 }

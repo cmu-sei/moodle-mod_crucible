@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,67 +22,71 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Crucible Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING,
+BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY,
+OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
+OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
 Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
+Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
 DM20-0196
  */
 
-use \mod_crucible\crucible;
+use mod_crucible\crucible;
 
-//require('../../config.php');
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
-$a = optional_param('a', '', PARAM_INT);  // attempt ID
+$id = optional_param('id', 0, PARAM_INT); // Course_module ID.
+$a = optional_param('a', '', PARAM_INT);  // Attempt ID.
 $action = optional_param('action', 'list', PARAM_TEXT);
 $actionitem = optional_param('id', 0, PARAM_INT);
 
 if (!$a) {
-    $a = required_param('attemptid', PARAM_INT);  // attempt ID
+    $a = required_param('attemptid', PARAM_INT);  // Attempt ID.
 }
 
 try {
-        $attempt    = $DB->get_record('crucible_attempts', array('id' => $a), '*', MUST_EXIST);
-        $crucible   = $DB->get_record('crucible', array('id' => $attempt->crucibleid), '*', MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $crucible->course), '*', MUST_EXIST);
+        $attempt    = $DB->get_record('crucible_attempts', ['id' => $a], '*', MUST_EXIST);
+        $crucible   = $DB->get_record('crucible', ['id' => $attempt->crucibleid], '*', MUST_EXIST);
+        $course     = $DB->get_record('course', ['id' => $crucible->course], '*', MUST_EXIST);
         $cm         = get_coursemodule_from_instance('crucible', $crucible->id, $course->id, false, MUST_EXIST);
 } catch (Exception $e) {
-    print_error("invalid attempt id passed");
+    throw new moodle_exception(null, '', '', null, 'invalid attempt id passed');
 }
 
 require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
-// TODO create review attempt capability
+// TODO create review attempt capability.
 require_capability('mod/crucible:view', $context);
 
-// TODO log event attempt views
+// TODO log event attempt views.
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
     // Completion and trigger events.
-    //crucible_view($crucible, $course, $cm, $context);
+    // crucible_view($crucible, $course, $cm, $context);
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/crucible/viewattempt.php', array ( 'a' => $a ) );
+$url = new moodle_url ( '/mod/crucible/viewattempt.php', ['a' => $a]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($crucible->name));
 $PAGE->set_heading($course->fullname);
 
-// new crucible class
+// New crucible class.
 $pageurl = null;
-$pagevars = array();
+$pagevars = [];
 $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
 
-// get eventtemplate info
+// Get eventtemplate info.
 $object->eventtemplate = get_eventtemplate($object->userauth, $crucible->eventtemplateid);
 
 // Update the database.
@@ -93,13 +96,13 @@ if ($object->eventtemplate) {
     $crucible->name = $object->eventtemplate->name;
     $crucible->intro = $object->eventtemplate->description;
     $DB->update_record('crucible', $crucible);
-    // this generates lots of hvp module errors
-    //rebuild_course_cache($crucible->course);
+    // This generates lots of hvp module errors.
+    // rebuild_course_cache($crucible->course);
 } else {
     $scenariotemplateid = "";
 }
 
-//TODO send instructor to a different page where manual grading can occur
+// TODO send instructor to a different page where manual grading can occur.
 
 $eventid = null;
 $viewid = null;
@@ -111,8 +114,8 @@ $grader = new \mod_crucible\utils\grade($object);
 $gradepass = $grader->get_grade_item_passing_grade();
 debugging("grade pass is $gradepass", DEBUG_DEVELOPER);
 
-// show grade only if a passing grade is set
-if ((int)$gradepass >0) {
+// Show grade only if a passing grade is set.
+if ((int)$gradepass > 0) {
     $showgrade = true;
 } else {
     $showgrade = false;
@@ -126,12 +129,10 @@ $renderer->display_detail($crucible, $object->eventtemplate->durationHours);
 $isinstructor = has_capability('mod/crucible:manage', $context);
 
 if ($isinstructor) {
-    // TODO display attempt user with formatting
-    $user = $DB->get_record('user', array("id" => $attempt->userid));
+    // TODO display attempt user with formatting.
+    $user = $DB->get_record('user', ["id" => $attempt->userid]);
     echo "Username: " . fullname($user);
 }
-
-$renderer->display_form($url, $object->crucible->eventtemplateid);
 
 global $DB;
 
@@ -140,7 +141,7 @@ $scenario = get_scenario($system, $attempt->scenarioid);
 $tasks = get_scenariotasks($system, $attempt->scenarioid);
 $tasks = $object->filter_scenario_tasks($tasks, true, false);
 
-//get tasks from db
+// Get tasks from db.
 if ($isinstructor) {
 
     if ($showgrade) {
@@ -245,7 +246,7 @@ if ($isinstructor) {
     }
 }
 
-$returnurl = new moodle_url ( '/mod/crucible/view.php', array ( 'id' => $cm->id ) );
+$returnurl = new moodle_url ( '/mod/crucible/view.php', ['id' => $cm->id]);
 $renderer->display_return_form($returnurl, $id);
 
 

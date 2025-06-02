@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,40 +22,44 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Crucible Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING,
+BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY,
+OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
+OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
 Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
+Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
 DM20-0196
  */
 
-use \mod_crucible\crucible;
+use mod_crucible\crucible;
 
-//require('../../config.php');
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
-$c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
+$id = optional_param('id', 0, PARAM_INT); // Course_module ID.
+$c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 
 try {
     if ($id) {
         $cm         = get_coursemodule_from_id('crucible', $id, 0, false, MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-        $crucible   = $DB->get_record('crucible', array('id' => $cm->instance), '*', MUST_EXIST);
+        $course     = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
+        $crucible   = $DB->get_record('crucible', ['id' => $cm->instance], '*', MUST_EXIST);
     } else if ($c) {
-        $crucible   = $DB->get_record('crucible', array('id' => $c), '*', MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $crucible->course), '*', MUST_EXIST);
+        $crucible   = $DB->get_record('crucible', ['id' => $c], '*', MUST_EXIST);
+        $course     = $DB->get_record('course', ['id' => $crucible->course], '*', MUST_EXIST);
         $cm         = get_coursemodule_from_instance('crucible', $crucible->id, $course->id, false, MUST_EXIST);
     }
 } catch (Exception $e) {
-    print_error("invalid course module id passed");
+    throw new \moodle_exception('invalidcoursemodule', 'error');
 }
 
 require_course_login($course, true, $cm);
@@ -69,20 +72,20 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/crucible/review.php', array ( 'id' => $cm->id ) );
-$returnurl = new moodle_url ( '/mod/crucible/view.php', array ( 'id' => $cm->id ) );
+$url = new moodle_url ( '/mod/crucible/review.php', ['id' => $cm->id]);
+$returnurl = new moodle_url ( '/mod/crucible/view.php', ['id' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($crucible->name));
 $PAGE->set_heading($course->fullname);
 
-// new crucible class
+// New crucible class.
 $pageurl = $url;
-$pagevars = array();
+$pagevars = [];
 $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
 
-// get eventtemplate info
+// Get eventtemplate info.
 $object->eventtemplate = get_eventtemplate($object->userauth, $crucible->eventtemplateid);
 
 if ($object->eventtemplate) {
@@ -98,7 +101,7 @@ if ($scenariotemplateid) {
     $tasks = get_scenariotemplatetasks($object->systemauth, $scenariotemplateid);
 
     if ($tasks) {
-        // run as system account
+        // Run as system account.
         $filtered = $object->filter_scenario_tasks($tasks, true, false);
         if ($filtered) {
             $renderer->display_tasks($filtered);

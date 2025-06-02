@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,12 +22,17 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Crucible Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING,
+BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY,
+OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
+OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
 Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
+Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
 DM20-0196
@@ -38,12 +42,22 @@ namespace mod_crucible;
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once ($CFG->dirroot.'/course/moodleform_mod.php');
+require_once($CFG->dirroot.'/course/moodleform_mod.php');
 require_once($CFG->dirroot.'/mod/crucible/locallib.php');
 
+/**
+ * Form class for configuring Crucible tasks in a Moodle module instance.
+ *
+ * @package    mod_crucible
+ * @copyright  2020 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class crucible_tasks_form extends \moodleform {
 
-    function definition() {
+    /**
+     * Defines the form fields for configuring Crucible tasks.
+     */
+    public function definition() {
         global $COURSE, $CFG, $DB, $PAGE;
         $mform = $this->_form;
         $index = 0;
@@ -52,7 +66,7 @@ class crucible_tasks_form extends \moodleform {
 
         foreach ($this->_customdata['tasks'] as $task) {
 
-            $group = array();
+            $group = [];
 
             $mform->addElement('header', 'task', $task->name);
             $group[] = $mform->createElement('hidden', 'name', $task->name);
@@ -72,20 +86,20 @@ class crucible_tasks_form extends \moodleform {
             $mform->addElement('html', '<div>Expected Output<pre>' . $task->expectedOutput . '</pre></div>');
 
             $group[] = $mform->createElement('checkbox', 'visible', get_string('visible', 'crucible'));
-            //$mform->addHelpButton('visible', 'visiblehelp', 'crucible');
+            // $mform->addHelpButton('visible', 'visiblehelp', 'crucible');
 
             $group[] = $mform->createElement('checkbox', 'gradable', get_string('gradable', 'crucible'));
-            //$mform->addHelpButton('gradble', 'gradablehelp', 'crucible');
+            // $mform->addHelpButton('gradble', 'gradablehelp', 'crucible');
 
             $group[] = $mform->createElement('checkbox', 'multiple', get_string('multiple', 'crucible'));
-            //$mform->addHelpButton('mutiple', 'multiplehelp', 'crucible');
+            // $mform->addHelpButton('mutiple', 'multiplehelp', 'crucible');
 
-            $group[] = $mform->createElement('text', 'points', get_string('points', 'crucible'), array('size'=>'5'));
-            //$mform->addHelpButton('points', 'pointshelp', 'crucible');
+            $group[] = $mform->createElement('text', 'points', get_string('points', 'crucible'), ['size' => '5']);
+            // $mform->addHelpButton('points', 'pointshelp', 'crucible');
 
             $group[] = $mform->createElement('html', get_string('points', 'crucible'));
 
-            $mform->addGroup($group, "options-$index", 'Options', array(' '), true);
+            $mform->addGroup($group, "options-$index", 'Options', [' '], true);
 
             $mform->setType("options-" . $index . "[name]", PARAM_RAW);
             $mform->setType("options-" . $index . "[description]", PARAM_RAW);
@@ -113,25 +127,39 @@ class crucible_tasks_form extends \moodleform {
 
             $index++;
         }
-
-
-        //-------------------------------------------------------
         $this->add_action_buttons();
     }
 
+    /**
+     * Validates submitted form data.
+     *
+     * @param array $data  Submitted form values.
+     * @param array $files Submitted files.
+     * @return array An array of error messages, or an empty array if none.
+     */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
     }
 
-    function data_preprocessing(&$data) {
+    /**
+     * Preprocesses data before it's set in the form.
+     *
+     * @param array $data The form data to preprocess.
+     */
+    public function data_preprocessing(&$data) {
 
     }
 
-    function data_postprocessing(&$data) {
-        // TODO save tasks to the db
+    /**
+     * Processes form data after it has been submitted.
+     *
+     * @param array $data The submitted form data to postprocess.
+     */
+    public function data_postprocessing(&$data) {
+        // TODO save tasks to the db.
 
-        // TODO if grade method changed, update all grades
+        // TODO if grade method changed, update all grades.
     }
 
 

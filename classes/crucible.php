@@ -63,7 +63,7 @@ class crucible {
     public $crucible;
 
     /** @var \mod_crucible\crucible_attempt Currently active attempt */
-    public $openattempt; // Renamed from $openAttempt.
+    public $openattempt; // Renamed from $openattempt.
 
     /** @var object Event template metadata */
     public $eventtemplate;
@@ -245,13 +245,13 @@ class crucible {
         debugging("open attempt found", DEBUG_DEVELOPER);
 
         // Get the first (and only) value in the array.
-        $this->openAttempt = reset($attempts);
+        $this->openattempt = reset($attempts);
 
         if (isset($this->events) && !isset($this->event)) {
             $event = array_filter(
                 $this->events,
                 function ($event) {
-                    return $event->id == $this->openAttempt->eventid;
+                    return $event->id == $this->openattempt->eventid;
                 }
             );
 
@@ -260,23 +260,23 @@ class crucible {
 
         if (isset($this->event)) {
             // Update values if null in attempt but exist in event.
-            if ((!$this->openAttempt->eventid) && ($this->event->id)) {
-                $this->openAttempt->eventid = $this->event->id;
+            if ((!$this->openattempt->eventid) && ($this->event->id)) {
+                $this->openattempt->eventid = $this->event->id;
             }
-            if ((!$this->openAttempt->scenarioid) && ($this->event->scenarioId)) {
-                $this->openAttempt->scenarioid = $this->event->scenarioId;
+            if ((!$this->openattempt->scenarioid) && ($this->event->scenarioId)) {
+                $this->openattempt->scenarioid = $this->event->scenarioId;
             }
 
             // TODO remove check for Z once API is updated.
             if (strpos($this->event->expirationDate, "Z")) {
-                $this->openAttempt->endtime = strtotime($this->event->expirationDate);
+                $this->openattempt->endtime = strtotime($this->event->expirationDate);
             } else if (is_null($this->event->expirationDate)) {
                 debugging("event " . $this->event->id . " does not have expirationDate set", DEBUG_DEVELOPER);
-                $this->openAttempt->endtime = time() + 28800;
+                $this->openattempt->endtime = time() + 28800;
             } else {
-                $this->openAttempt->endtime = strtotime($this->event->expirationDate . 'Z');
+                $this->openattempt->endtime = strtotime($this->event->expirationDate . 'Z');
             }
-            $this->openAttempt->save();
+            $this->openattempt->save();
         }
         return true;
     }
@@ -412,7 +412,7 @@ class crucible {
 
         $attempt = $this->get_open_attempt(0);
         if ($attempt === true) {
-            debugging("init_attempt found " . $this->openAttempt->id, DEBUG_DEVELOPER);
+            debugging("init_attempt found " . $this->openattempt->id, DEBUG_DEVELOPER);
             return true;
         }
         debugging("init_attempt could not find attempt", DEBUG_DEVELOPER);
@@ -444,7 +444,7 @@ class crucible {
             $attempt->endtime = strtotime($this->event->expirationDate . 'Z');
         }
 
-        $attempt->setState('inprogress');
+        $attempt->setstate('inprogress');
 
         // TODO get list of tasks from steamfitter.
         if ($this->event->scenarioId) {
@@ -469,7 +469,7 @@ class crucible {
         }
 
         if ($attempt->save()) {
-            $this->openAttempt = $attempt;
+            $this->openattempt = $attempt;
         } else {
             return false;
         }

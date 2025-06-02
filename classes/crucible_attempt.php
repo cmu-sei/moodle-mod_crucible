@@ -41,18 +41,33 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
+/**
+ * crucible Attempt wrapper class to encapsulate functions needed to individual
+ * attempt records
+ *
+ * @package     mod_crucible
+ * @copyright   2020 Carnegie Mellon Univeristy
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class crucible_attempt {
 
     /** Constants for the status of the attempt */
+    /** @var int Status constant representing a not-yet-started attempt. */
     const NOTSTARTED = 0;
+
+    /** @var int Status constant representing an in-progress attempt. */
     const INPROGRESS = 10;
+
+    /** @var int Status constant representing an abandoned attempt. */
     const ABANDONED = 20;
+
+    /** @var int Status constant representing a finished attempt. */
     const FINISHED = 30;
 
     /** @var \stdClass The attempt record */
     protected $attempt;
 
-    // TODO remove context if we dont use it
+    // TODO remove context if we dont use it.
     /** @var \context_module $context The context for this attempt */
     protected $context;
 
@@ -67,11 +82,11 @@ class crucible_attempt {
     public function __construct($dbattempt = null, $context = null) {
         $this->context = $context;
 
-        // if empty create new attempt
+        // If empty create new attempt.
         if (empty($dbattempt)) {
             $this->attempt = new \stdClass();
 
-        } else { // else load it up in this class instance
+        } else { // Else load it up in this class instance.
             $this->attempt = $dbattempt;
         }
     }
@@ -91,7 +106,7 @@ class crucible_attempt {
      * @return string
      * @throws \Exception throws exception upon an undefined status
      */
-    public function getState() {
+    public function getstate() {
 
         switch ($this->attempt->state) {
             case self::NOTSTARTED:
@@ -115,7 +130,7 @@ class crucible_attempt {
      *
      * @return bool
      */
-    public function setState($status) {
+    public function setstate($status) {
 
         switch ($status) {
             case 'notstarted':
@@ -135,7 +150,7 @@ class crucible_attempt {
                 break;
         }
 
-        // save the attempt
+        // Save the attempt.
         return $this->save();
     }
 
@@ -146,34 +161,34 @@ class crucible_attempt {
      */
     public function save() {
         global $DB;
-        // TODO check for undefined
+        // TODO check for undefined.
         if (is_null($this->attempt->endtime)) {
             debugging("null endtime passed to attempt->save for " . $this->attempt->id, DEBUG_DEVELOPER);
         }
 
         $this->attempt->timemodified = time();
 
-        if (isset($this->attempt->id)) { // update the record
+        if (isset($this->attempt->id)) { // Update the record.
 
             try {
                 $DB->update_record('crucible_attempts', $this->attempt);
-            } catch(\Exception $e) {
-                error_log($e->getMessage());
+            } catch (\Exception $e) {
+                debugging($e->getMessage());
 
-                return false; // return false on failure
+                return false; // Return false on failure.
             }
         } else {
-            // insert new record
+            // Insert new record.
             try {
                 $newid = $DB->insert_record('crucible_attempts', $this->attempt);
                 $this->attempt->id = $newid;
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 var_dump($e);
-                return false; // return false on failure
+                return false; // Return false on failure.
             }
         }
 
-        return true; // return true if we get here
+        return true; // Return true if we get here.
     }
 
     /**
@@ -190,16 +205,16 @@ class crucible_attempt {
         $this->attempt->timefinish = time();
         $this->save();
 
-        $params = array(
+        $params = [
             'objectid'      => $this->attempt->crucibleid,
             'context'       => $this->context,
-            'relateduserid' => $USER->id
-        );
+            'relateduserid' => $USER->id,
+        ];
 
         // TODO verify this info is gtg and send the event
-        //$event = \mod_crucible\event\attempt_ended::create($params);
-        //$event->add_record_snapshot('crucible_attempts', $this->attempt);
-        //$event->trigger();
+        // $event = \mod_crucible\event\attempt_ended::create($params);
+        // $event->add_record_snapshot('crucible_attempts', $this->attempt);
+        // $event->trigger();
 
         return true;
     }
@@ -218,7 +233,7 @@ class crucible_attempt {
             return $this->attempt->$prop;
         }
 
-        // otherwise throw a new exception
+        // Otherwise throw a new exception.
         throw new \Exception('undefined property(' . $prop . ') on crucible attempt');
 
     }
