@@ -135,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
     if ($attempt) { //&& (!$object->event !== null)
         //TODO this should also check that we dont have an attempt
         //print_error('attemptalreadyexists', 'crucible');
-        if ($object->event && $object->isEnded()) {
+        if ($object->event && $object->isended()) {
             debugging('closing attempt - not active', DEBUG_DEVELOPER);
             $grader = new \mod_crucible\utils\grade($object);
             $grader->process_attempt($object->openAttempt);
