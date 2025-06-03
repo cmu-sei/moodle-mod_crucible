@@ -140,12 +140,11 @@ if (!empty($tasks) && is_array($tasks)) {
                         $rec->gradable = 0;
                         $rec->points = 0;
                     }
-                    
                     if (isset($task['multiple']) && $task['multiple']) {
                         $rec->multiple = $task['multiple'];
                     } else {
                         $rec->multiple = 0;
-                    }                    
+                    }
                     debugging("updating task record for " . $task['dispatchtaskid'], DEBUG_DEVELOPER);
                     $DB->update_record('crucible_tasks', $rec);
                 }
