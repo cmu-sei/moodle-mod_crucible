@@ -124,14 +124,14 @@ if (!empty($tasks) && is_array($tasks)) {
                     debugging("creating task record for " . $task['dispatchtaskid'], DEBUG_DEVELOPER);
                     $DB->insert_record('crucible_tasks', $task);
                 } else if ($rec) {
-                    if ($task['visible']) {
+                    if (isset($task['visible']) && $task['visible']) {
                         $rec->visible = $task['visible'];
                     } else {
                         $rec->visible = 0;
-                    }
-                    if ($task['gradable']) {
+                    }                    
+                    if (isset($task['gradable']) && $task['gradable']) {
                         $rec->gradable = $task['gradable'];
-                        if ($task['points']) {
+                        if (isset($task['points']) && $task['points']) {
                             $rec->points = $task['points'];
                         } else {
                             $rec->points = 1;
@@ -140,11 +140,12 @@ if (!empty($tasks) && is_array($tasks)) {
                         $rec->gradable = 0;
                         $rec->points = 0;
                     }
-                    if ($task['multiple']) {
+                    
+                    if (isset($task['multiple']) && $task['multiple']) {
                         $rec->multiple = $task['multiple'];
                     } else {
                         $rec->multiple = 0;
-                    }
+                    }                    
                     debugging("updating task record for " . $task['dispatchtaskid'], DEBUG_DEVELOPER);
                     $DB->update_record('crucible_tasks', $rec);
                 }
