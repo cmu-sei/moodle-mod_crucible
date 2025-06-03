@@ -22,12 +22,17 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Crucible Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING,
+BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY,
+OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
+OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
 Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
+Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
 DM20-0196
@@ -41,28 +46,27 @@ require_once("$CFG->dirroot/mod/crucible/locallib.php");
 require_login();
 require_sesskey();
 
-
-// TODO get the view id from an activity setting
+// TODO get the view id from an activity setting.
 $id = required_param('id', PARAM_ALPHANUMEXT);
 
 global $USER;
 $username = fullname($USER);
 $vmguid = null;
 
-// TODO get the vm mask from an activity setting
+// TODO get the vm mask from an activity setting.
 $vmmask = "mccorc.kali.student";
 
 // Require the session key - want to make sure that this isn't called
 // maliciously to keep a session alive longer than intended.
 if (!confirm_sesskey()) {
     header('HTTP/1.1 403 Forbidden');
-    print_error('invalidsesskey');
+    throw new \moodle_exception('invalidsesskey', 'error');
 }
-$response = array();
+$response = [];
 $response['user'] = $username;
 
 $system = setup_system();
-// TODO we need to pass the view id here
+// TODO we need to pass the view id here.
 $result = get_allvms($system, $id);
 foreach ($result as $vm) {
     if (preg_match("/$vmmask-$username/", $vm->name)) {
@@ -81,7 +85,6 @@ $request->action = "guest_process_run";
 $request->vmMask = $vmguid;
 $request->vmList = [];
 $request->apiUrl = "stackstorm";
-//$request->inputString = '{"Moid":"{moid}", "Username": "root", "Password": "tartans@1", "CommandText": "/bin/bash", "CommandArgs": "-c \"hostname\""}';
 $inputString = new stdClass();
 $inputString->Moid = "{moid}";
 $inputString->Username = "root";
@@ -106,8 +109,6 @@ if (!$result) {
 
 } else {
     header('HTTP/1.1 200 OK');
-    //TODO comment out raw response
-    //$response['raw'] = $result;
     $response['status'] = $result[0]->status;
     $response['message'] = "success";
     $response['output'] = $result[0]->actualOutput;

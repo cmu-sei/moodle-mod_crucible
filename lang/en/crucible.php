@@ -22,12 +22,17 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Crucible Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN 'AS-IS' BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING,
+BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY,
+OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
+OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
 Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
+Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
 DM20-0196
@@ -42,7 +47,7 @@ $string['modulename_link'] = 'mod/crucible/view';
 $string['modulenameplural'] = 'Crucibles';
 $string['pluginname'] = 'Crucible';
 
-// plugin settings
+// Plugin settings.
 $string['alloyapiurl'] = 'Alloy API Base URL';
 $string['vmapp'] = 'Display Mode';
 $string['vmappurl'] = 'VM App Base URL';
@@ -64,7 +69,7 @@ $string['configeventtemplate'] = 'Event Template GUID to be launched.';
 $string['configautocomplete'] = 'Display list of Event Templates in a dropdown or a searchable text box.';
 $string['configshowfailed'] = 'Show failed Events in the history table.';
 
-// activity settings
+// Activity settings
 $string['vmapp_help'] = 'This determines whether the VM app is emebeded in an iframe or whether a link to the player is displayed';
 $string['eventtemplate_help'] = 'This is the Event Template GUID in Alloy.';
 $string['eventtemplate'] = 'Alloy Event Template';
@@ -82,7 +87,6 @@ $string['grademethod_help'] = 'The grading method defines how the grade for a si
 $string['grademethoddesc'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
 $string['extendeventsetting'] = 'Extend Event';
 $string['extendeventsetting_help'] = 'Setting this allows the user to extend the lab by one hour increments.';
-//$string['grade_help'] = 'This setting specifies the maximum grade for the lab. If set to 0, the lesson does not appear in the grades pages.';
 
 // Time options
 $string['timing'] = 'Timing';
@@ -91,13 +95,13 @@ $string['eventclose'] = 'Close the quiz';
 $string['eventopen_help'] = 'The actitity will not be available until this date.';
 $string['eventclose_help'] = 'The activity will not be available after this date';
 
-// history table
+// History table
 $string['id'] = 'Alloy Event GUID';
 $string['status'] = 'Status';
 $string['launchdate'] = 'Launch Date';
 $string['enddate'] = 'End Date';
 $string['historycaption'] = 'History';
-// attempt table
+// Attempt table
 $string['eventid'] = 'Alloy Event GUID';
 $string['state'] = 'State';
 $string['timestart'] = 'Time Started';
@@ -106,12 +110,11 @@ $string['tasks'] = 'Tasks';
 $string['score'] = 'Score';
 $string['username'] = 'Username';
 
-
-// events
+// Events
 $string['eventattemptstarted'] = 'Attempt started';
 $string['eventattemptended'] = 'Attempt ended';
 
-// tasks
+// Tasks
 $string['taskcaption'] = 'Tasks';
 $string['taskid'] = 'Task ID';
 $string['taskdesc'] = 'Task Description';
@@ -121,7 +124,7 @@ $string['taskaction'] = 'Action';
 $string['taskexecute'] = 'Execute Task';
 $string['tasknoexecute'] = 'Not Executable';
 
-// view
+// View
 $string['eventwithoutattempt'] = 'Event exists but attempt does not exist in moodle db.';
 $string['courseorinstanceid'] = 'Either a course id or an instance must be given.';
 $string['attemptalreadyexists'] = 'An open attempt already exists for this event';
@@ -133,13 +136,13 @@ $string['managetext'] = 'Review Course Attempts';
 $string['durationtext'] = 'Scheduled Duration';
 $string['attemptscore'] = 'Attempt Grade: ';
 
-// review
+// Review
 $string['returntext'] = 'Return to Lab';
 $string['taskregrade'] = 'Edit Grade';
 $string['vmname'] = 'VM Name';
 $string['taskcomment'] = 'Comment';
 
-// tasks
+// Tasks
 $string['managetasks'] = 'Manage Tasks';
 $string['taskcloseattempt'] = 'Close expired Crucible attempts';
 $string['visible'] = 'Visible';
@@ -147,12 +150,12 @@ $string['gradable'] = 'Gradable';
 $string['multiple'] = 'Multiple VMs';
 $string['points'] = 'Points';
 
-// roles
+// Roles
 $string['crucible:manage'] = 'Manage Crucible activities';
 $string['crucible:view'] = 'View Crucible activity information';
 $string['crucible:addinstance'] = 'Add a new Crucible activties';
 
-// privacy
+// Privacy
 $string['privacy:metadata'] = 'The Crucible activity plugin shows data stored in Moodle although the privacy API has not yet been configured';
 
 $string['notasksavailable'] = 'There are no tasks available for this activity.';

@@ -37,6 +37,10 @@ DM20-0196
 }}
 
 <h1>{{name}}</h1>
-<p>{{intro}}</p>
-<p>{{durationtext}}: {{duration}} hour(s)</p>
+
+{{#duration}}
+<div class="notification-style notification-box">
+{{durationtext}}: {{duration}} hour(s)
+</div>
+{{/duration}}
 

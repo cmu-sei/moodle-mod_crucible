@@ -16,7 +16,21 @@
 
 namespace mod_crucible\utils;
 
-defined('MOODLE_INTERNAL') || die();
+/*
+Crucible Plugin for Moodle
+Copyright 2020 Carnegie Mellon University.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING,
+BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY,
+OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
+OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
+Please see Copyright notice for non-US Government use and distribution.
+This Software includes and/or makes use of the following Third-Party Software subject to its own license:
+1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
+DM20-0196
+ */
 
 /**
  * Class to define grade types for the module
@@ -26,26 +40,20 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright   2020 Carnegie Mellon University
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-/**
-Crucible Plugin for Moodle
-Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
-This Software includes and/or makes use of the following Third-Party Software subject to its own license:
-1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
-2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md) Copyright 2014 John Hoopes and the University of Wisconsin.
-DM20-0196
- */
-
 class scaletypes {
 
     /** Define grading scale types */
-    const crucible_FIRSTATTEMPT = 1;
-    const crucible_LASTATTEMPT = 2;
-    const crucible_ATTEMPTAVERAGE = 3;
-    const crucible_HIGHESTATTEMPTGRADE = 4;
+    /** @var int Grading method: use score from the first attempt. */
+    const CRUCIBLE_FIRSTATTEMPT = 1;
+
+    /** @var int Grading method: use score from the last attempt. */
+    const CRUCIBLE_LASTATTEMPT = 2;
+
+    /** @var int Grading method: use average score across all attempts. */
+    const CRUCIBLE_ATTEMPTAVERAGE = 3;
+
+    /** @var int Grading method: use the highest score from any attempt. */
+    const CRUCIBLE_HIGHESTATTEMPTGRADE = 4;
 
 
     /**
@@ -55,12 +63,12 @@ class scaletypes {
      */
     public static function get_types() {
 
-        return array(
-            'firstattempt' => self::crucible_FIRSTATTEMPT,
+        return [
+            'firstattempt' => self::CRUCIBLE_FIRSTATTEMPT,
             'lastattempt'  => self::crucible_LASTATTEMPT,
-            'average'      => self::crucible_ATTEMPTAVERAGE,
-            'highestgrade' => self::crucible_HIGHESTATTEMPTGRADE,
-        );
+            'average'      => self::CRUCIBLE_ATTEMPTAVERAGE,
+            'highestgrade' => self::CRUCIBLE_HIGHESTATTEMPTGRADE,
+        ];
     }
 
     /**
@@ -71,12 +79,12 @@ class scaletypes {
      */
     public static function get_display_types() {
 
-        return array(
-            self::crucible_FIRSTATTEMPT        => get_string('firstattempt', 'crucible'),
-            self::crucible_LASTATTEMPT        => get_string('lastattempt', 'crucible'),
-            self::crucible_ATTEMPTAVERAGE      => get_string('attemptaverage', 'crucible'),
-            self::crucible_HIGHESTATTEMPTGRADE => get_string('highestattempt', 'crucible'),
-        );
+        return [
+            self::CRUCIBLE_FIRSTATTEMPT        => get_string('firstattempt', 'crucible'),
+            self::CRUCIBLE_LASTATTEMPT       => get_string('lastattempt', 'crucible'),
+            self::CRUCIBLE_ATTEMPTAVERAGE      => get_string('attemptaverage', 'crucible'),
+            self::CRUCIBLE_HIGHESTATTEMPTGRADE => get_string('highestattempt', 'crucible'),
+        ];
     }
 
 }

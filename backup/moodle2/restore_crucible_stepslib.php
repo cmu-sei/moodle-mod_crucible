@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,10 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Step definitions for restoring Crucible activity module.
+ *
  * @package   mod_crucible
  * @category  backup
- * @copyright 2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright ...
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
@@ -31,15 +32,25 @@
  */
 class restore_crucible_activity_structure_step extends restore_activity_structure_step {
 
+    /**
+     * Define the structure to be restored for the Crucible activity.
+     *
+     * @return array List of restore path elements.
+     */
     protected function define_structure() {
 
-        $paths = array();
+        $paths = [];
         $paths[] = new restore_path_element('crucible', '/activity/crucible');
 
-        // Return the paths wrapped into standard activity structure
+        // Return the paths wrapped into standard activity structure.
         return $this->prepare_activity_structure($paths);
     }
 
+    /**
+     * Processes the restored data for a Crucible activity instance.
+     *
+     * @param stdClass $data The data from the backup to restore.
+     */
     protected function process_crucible($data) {
         global $DB;
 
@@ -47,20 +58,22 @@ class restore_crucible_activity_structure_step extends restore_activity_structur
         $oldid = $data->id;
         $data->course = $this->get_courseid();
 
-        // Any changes to the list of dates that needs to be rolled should be same during course restore and course reset.
-        // See MDL-9367.
-
-	//TODO time setting, behaviour settings, display settings
-
-
-        // insert the crucible record
+        // Insert the Crucible record into the database.
         $newitemid = $DB->insert_record('crucible', $data);
-        // immediately after inserting "activity" record, call this
+
+        // Register this instance for linking with the course module.
         $this->apply_activity_instance($newitemid);
     }
 
+
+    /**
+     * Performs final steps after the Crucible activity restore has been executed.
+     *
+     * This includes restoring any files related to the module (e.g., intro attachments).
+     */
     protected function after_execute() {
-        // Add crucible related files, no need to match by itemname (just internally handled context)
+        // Add Crucible related files, no need to match by itemname (just internally handled context).
         $this->add_related_files('mod_crucible', 'intro', null);
     }
+
 }

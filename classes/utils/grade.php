@@ -16,8 +16,6 @@
 
 namespace mod_crucible\utils;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * crucible Attempt wrapper class to encapsulate functions needed to individual
  * attempt records
@@ -27,17 +25,31 @@ defined('MOODLE_INTERNAL') || die();
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Crucible Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING,
+BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY,
+OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
+OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
 Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
+Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
 DM20-0196
  */
 
+/**
+ * Utility class for handling grading operations in Crucible activities.
+ *
+ * Provides methods to calculate, process, and persist grades for attempts.
+ *
+ * @package    mod_crucible
+ * @copyright  2020 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class grade {
 
     /** @var \mod_crucible\crucible */
@@ -62,7 +74,7 @@ class grade {
      * @return array($forgroupid, $number)
      */
     public function get_attempt_grade($attempt) {
-        return array($attempt->userid, $this->calculate_attempt_grade($attempt));
+        return [$attempt->userid, $this->calculate_attempt_grade($attempt)];
     }
 
     /**
@@ -76,27 +88,38 @@ class grade {
 
         global $DB;
         $recs = $DB->get_records_select('crucible_grades', 'userid = ? AND crucibleid = ?',
-                array($userid, $crucible->id), 'grade');
-        $grades = array();
+                [$userid, $crucible->id], 'grade');
+        $grades = [];
         foreach ($recs as $rec) {
             array_push($grades, $rec->grade);
         }
-        // user should only have one grade entry in the crucible grades table for each activity
+        // User should only have one grade entry in the crucible grades table for each activity.
         debugging("user $userid has " . count($grades) . " grades for $crucible->id", DEBUG_DEVELOPER);
         return $grades;
     }
 
+    /**
+     * Processes a Crucible attempt by calculating grades and updating gradebook entries.
+     *
+     * This method determines grades for all users associated with the given attempt,
+     * applies the configured grading method, stores grades in the Crucible table,
+     * and synchronizes them with the Moodle gradebook.
+     *
+     * @param \mod_crucible\crucible_attempt $attempt The attempt to process.
+     * @return bool True on successful processing and commit.
+     * @throws \Exception If gradebook update or database persistence fails.
+     */
     public function process_attempt($attempt) {
         global $DB;
 
-        // get this attempt grade
+        // Get this attempt grade.
         $this->calculate_attempt_grade($attempt);
 
-        // get all attempt grades
-        $grades = array();
-        $attemptsgrades = array();
+        // Get all attempt grades.
+        $grades = [];
+        $attemptsgrades = [];
 
-        // get all users in attempt
+        // Get all users in attempt.
         $userids = $this->crucible->get_all_users_for_attempt($attempt);
 
         foreach ($userids as $userid) {
@@ -110,29 +133,28 @@ class grade {
                 return $atmpt->timefinish != null;
             });
 
-            usort($finishedattempts, function($a, $b) { return $a->timefinish - $b->timefinish; });
+            usort($finishedattempts, function($a, $b) {
+                return $a->timefinish - $b->timefinish;
+            });
 
             $grade = $this->apply_grading_method($attemptsgrades, $attempt->score, reset($finishedattempts)->score);
 
-            if (!is_null($grade))
-            {
+            if (!is_null($grade)) {
                 $grades[$userid] = $grade;
                 debugging("new grade for $userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
-            }
-            else
-            {
+            } else {
                 debugging("discarding NULL grade for $userid in crucible " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
             }
         }
 
-        // run the whole thing on a transaction (persisting to our table and gradebook updates).
+        // Run the whole thing on a transaction (persisting to our table and gradebook updates).
         $transaction = $DB->start_delegated_transaction();
 
-        // now that we have the final grades persist the grades to crucible grades table.
-        //TODO we could possibly remove this table and just look at the grade_grades table
+        // Now that we have the final grades persist the grades to crucible grades table.
+        // TODO we could possibly remove this table and just look at the grade_grades table.
         $this->persist_grades($grades, $transaction);
 
-        // update grades to gradebookapi.
+        // Update grades to gradebookapi.
         foreach ($userids as $userid) {
             $updated = crucible_update_grades($this->crucible->crucible, $userid, false, $grades[$userid]);
 
@@ -141,10 +163,10 @@ class grade {
             }
         }
 
-        // Allow commit if we get here
+        // Allow commit if we get here.
         $transaction->allow_commit();
 
-        // if everything passes to here return true
+        // If everything passes to here return true.
         return true;
     }
 
@@ -192,7 +214,8 @@ class grade {
     public function get_grade_item_passing_grade() {
         global $DB;
 
-        $gradetopass = $DB->get_field('grade_items', 'gradepass', array('iteminstance' => $this->crucible->crucible->id, 'itemmodule' => 'crucible'));
+        $gradetopass = $DB->get_field('grade_items', 'gradepass',
+                        ['iteminstance' => $this->crucible->crucible->id, 'itemmodule' => 'crucible']);
 
         return $gradetopass;
     }
@@ -205,18 +228,19 @@ class grade {
      * @throws \Exception When there is no valid scaletype throws new exception
      */
     protected function apply_grading_method($grades, $mostrecentgrade, $firstgrade) {
-        debugging("grade method is " . $this->crucible->crucible->grademethod . " for " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
+        debugging("grade method is " . $this->crucible->crucible->grademethod .
+                    " for " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
         switch ($this->crucible->crucible->grademethod) {
-            case \mod_crucible\utils\scaletypes::crucible_FIRSTATTEMPT:
+            case \mod_crucible\utils\scaletypes::CRUCIBLE_FIRSTATTEMPT:
                 return $firstgrade;
 
                 break;
-            case \mod_crucible\utils\scaletypes::crucible_LASTATTEMPT:
+            case \mod_crucible\utils\scaletypes::CRUCIBLE_LASTATTEMPT:
                 return $mostrecentgrade;
 
                 break;
-            case \mod_crucible\utils\scaletypes::crucible_ATTEMPTAVERAGE:
-                // average the grades
+            case \mod_crucible\utils\scaletypes::CRUCIBLE_ATTEMPTAVERAGE:
+                // Average the grades.
                 $gradecount = count($grades);
                 $gradetotal = 0;
                 foreach ($grades as $grade) {
@@ -225,11 +249,11 @@ class grade {
                 return $gradetotal / $gradecount;
 
                 break;
-            case \mod_crucible\utils\scaletypes::crucible_HIGHESTATTEMPTGRADE:
-                // find the highest grade
+            case \mod_crucible\utils\scaletypes::CRUCIBLE_HIGHESTATTEMPTGRADE:
+                // Find the highest grade.
                 $highestgrade = 0;
                 foreach ($grades as $grade) {
-                    if (is_numeric($grade) and $grade > $highestgrade) {
+                    if (is_numeric($grade) && $grade > $highestgrade) {
                         $highestgrade = $grade;
                     }
                 }
@@ -250,14 +274,14 @@ class grade {
      *
      * @return bool
      */
-
     protected function persist_grades($grades, \moodle_transaction $transaction) {
         global $DB;
 
         foreach ($grades as $userid => $grade) {
 
-            if ($usergrade = $DB->get_record('crucible_grades', array('userid' => $userid, 'crucibleid' => $this->crucible->crucible->id))) {
-                // we're updating
+            if ($usergrade = $DB->get_record('crucible_grades',
+                ['userid' => $userid, 'crucibleid' => $this->crucible->crucible->id])) {
+                // We're updating.
 
                 $usergrade->grade = $grade;
                 $usergrade->timemodified = time();
@@ -266,7 +290,7 @@ class grade {
                     $transaction->rollback(new \Exception('Can\'t update user grades'));
                 }
             } else {
-                // we're adding
+                // We're adding.
 
                 $usergrade = new \stdClass();
                 $usergrade->crucibleid = $this->crucible->crucible->id;
