@@ -112,48 +112,47 @@ if (!empty($tasks) && is_array($tasks)) {
     // Form processing and displaying is done here.
     if ($mform->is_cancelled()) {
         redirect(new moodle_url('/mod/crucible/view.php', ["id" => $id]));
-    } else if ($fromform = $mform->get_data()) {
-        foreach ($fromform as $task) {
-            if (is_array($task)) {
-                // Process each task (same logic as before).
-                $rec = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
-                        . $DB->sql_compare_text('dispatchtaskid') . ' = '
-                        . $DB->sql_compare_text(':dispatchtaskid'), ['dispatchtaskid' => $task['dispatchtaskid']]);
-                if ($rec === false) {
-                    $task['crucibleid'] = $crucible->id;
-                    debugging("creating task record for " . $task['dispatchtaskid'], DEBUG_DEVELOPER);
-                    $DB->insert_record('crucible_tasks', $task);
-                } else if ($rec) {
-                    if (isset($task['visible']) && $task['visible']) {
-                        $rec->visible = $task['visible'];
-                    } else {
-                        $rec->visible = 0;
-                    }                    
-                    if (isset($task['gradable']) && $task['gradable']) {
-                        $rec->gradable = $task['gradable'];
-                        if (isset($task['points']) && $task['points']) {
-                            $rec->points = $task['points'];
-                        } else {
-                            $rec->points = 1;
-                        }
-                    } else {
-                        $rec->gradable = 0;
-                        $rec->points = 0;
-                    }
-                    if (isset($task['multiple']) && $task['multiple']) {
-                        $rec->multiple = $task['multiple'];
-                    } else {
-                        $rec->multiple = 0;
-                    }
-                    debugging("updating task record for " . $task['dispatchtaskid'], DEBUG_DEVELOPER);
-                    $DB->update_record('crucible_tasks', $rec);
-                }
+    } 
+    $fromform = $mform->get_data();
+    if ($fromform) {
+        $index = 0;
+        foreach ($tasks as $task) {
+            $taskprefix = "task_$index";
+            $dispatchtaskid = $fromform->{$taskprefix . '_dispatchtaskid'};
+            if (!$dispatchtaskid) {
+                $index++;
+                continue;
             }
+    
+            $rec = $DB->get_record_sql(
+                'SELECT * FROM {crucible_tasks}
+                 WHERE ' . $DB->sql_compare_text('dispatchtaskid') . ' = ' . $DB->sql_compare_text(':dispatchtaskid'),
+                ['dispatchtaskid' => $dispatchtaskid]
+            );            
+            $data = new stdClass();
+            $data->crucibleid = $crucible->id;
+            $data->dispatchtaskid = $dispatchtaskid;
+            $data->name = $fromform->{$taskprefix . '_name'};
+            $data->description = $fromform->{$taskprefix . '_description'};
+            $data->scenariotemplateid = $fromform->{$taskprefix . '_scenariotemplateid'};
+            $data->visible = !empty($fromform->{$taskprefix . '_visible'}) ? 1 : 0;
+            $data->gradable = !empty($fromform->{$taskprefix . '_gradable'}) ? 1 : 0;
+            $data->multiple = !empty($fromform->{$taskprefix . '_multiple'}) ? 1 : 0;
+            $data->points = ($data->gradable && isset($fromform->{$taskprefix . '_points'}))
+                ? intval($fromform->{$taskprefix . '_points'})
+                : 0;
+    
+            if ($rec) {
+                $data->id = $rec->id;
+                $DB->update_record('crucible_tasks', $data);
+            } else {
+                $DB->insert_record('crucible_tasks', $data);
+            }
+    
+            $index++;
         }
+    }    
         $mform->display();
-    } else {
-        $mform->display();
-    }
 } else {
     \core\notification::warning(get_string('notasksavailable', 'mod_crucible'));
 
