@@ -343,7 +343,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
         ];
 
         foreach ($tasks as $task) {
-            // var_dump($task);
             $rowdata = [];
             // $rowdata[] = $task->id;
             $rowdata[] = $task->name;
@@ -352,7 +351,11 @@ class mod_crucible_renderer extends plugin_renderer_base {
             } else {
                 $rowdata[] = "No description available";
             }
-            $rowdata[] = $task->score;
+            if (empty($task->points) && isset($task->score)) {
+                $rowdata[] = $task->score;
+            } else {
+                $rowdata[] = $task->points;
+            }            
             $data->tabledata[] = $rowdata;
         }
 
@@ -385,7 +388,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
         ];
 
         foreach ($tasks as $task) {
-            // var_dump($task);
             $rowdata = [];
             $rowdata[] = $task->id;
             $rowdata[] = $task->name;
@@ -473,7 +475,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 if (isset($task->totalScoreEarned)) {
                     $rowdata->score = $task->totalScoreEarned;
                 }
-                $rowdata->points = $task->totalScore;
+                $rowdata->points = $task->points;
                 $data->tabledata[] = $rowdata;
             }
 
@@ -535,7 +537,11 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 if (isset($task->score)) {
                     $rowdata->score = $task->score;
                 }
-                $rowdata->points = $task->points;
+                if (empty($task->points) && isset($task->score)) {
+                    $rowdata->points = $task->score;
+                } else {
+                    $rowdata->points = $task->points;
+                }                
                 $data->tabledata[] = $rowdata;
             }
 

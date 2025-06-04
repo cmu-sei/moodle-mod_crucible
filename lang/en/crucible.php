@@ -149,6 +149,14 @@ $string['visible'] = 'Visible';
 $string['gradable'] = 'Gradable';
 $string['multiple'] = 'Multiple VMs';
 $string['points'] = 'Points';
+$string['visible'] = 'Visible';
+$string['visible_help'] = 'If checked, this task will be visible to students.';
+$string['gradable'] = 'Gradable';
+$string['gradable_help'] = "If checked, this task will contribute to the user's score.";
+$string['multiple'] = 'Multiple VMs';
+$string['multiple_help'] = 'If checked, this task can be executed on multiple virtual machines whose names match a specified string or mask.';
+$string['points'] = 'Points';
+$string['points_help'] = 'Set the number of points this task is worth if gradable is enabled.';
 
 // Roles
 $string['crucible:manage'] = 'Manage Crucible activities';

@@ -156,7 +156,7 @@ class grade {
 
         // Update grades to gradebookapi.
         foreach ($userids as $userid) {
-            $updated = crucible_update_grades($this->crucible->crucible, $userid, false, $grades[$userid]);
+            $updated = crucible_update_grades($this->crucible->crucible, $userid, false);
 
             if ($updated === GRADE_UPDATE_FAILED) {
                 $transaction->rollback(new \Exception('Unable to save grades to gradebook'));

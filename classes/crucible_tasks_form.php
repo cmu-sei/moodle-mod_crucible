@@ -65,69 +65,85 @@ class crucible_tasks_form extends \moodleform {
         $mform->setType("id", PARAM_INT);
 
         foreach ($this->_customdata['tasks'] as $task) {
+            $taskprefix = "task_$index";
 
-            $group = [];
+            $mform->addElement('header', "{$taskprefix}_header", $task->name);
 
-            $mform->addElement('header', 'task', $task->name);
-            $group[] = $mform->createElement('hidden', 'name', $task->name);
-
-            $mform->addElement('html', '<div>Description<pre>' . $task->description  . '</pre></div>');
-            $group[] = $mform->createElement('hidden', 'description', $task->description);
-
-            $mform->addElement('html', '<div>Task ID<pre>' . $task->id . '</pre></div>');
-            $group[] = $mform->createElement('hidden', 'dispatchtaskid', $task->id);
-
-            $mform->addElement('html', '<div>Scenario Template ID<pre>' . $task->scenarioTemplateId. '</pre></div>');
-            $group[] = $mform->createElement('hidden', 'scenariotemplateid', $task->scenarioTemplateId);
-
-            $mform->addElement('html', '<div>VM Mask<pre>' . $task->vmMask. '</pre></div>');
-            $input = isset($task->inputString) ? $task->inputString : '';
-            $mform->addElement('html', '<div>Input String<pre>' . $input . '</pre></div>');
-            $mform->addElement('html', '<div>Expected Output<pre>' . $task->expectedOutput . '</pre></div>');
-
-            $group[] = $mform->createElement('checkbox', 'visible', get_string('visible', 'crucible'));
-            // $mform->addHelpButton('visible', 'visiblehelp', 'crucible');
-
-            $group[] = $mform->createElement('checkbox', 'gradable', get_string('gradable', 'crucible'));
-            // $mform->addHelpButton('gradble', 'gradablehelp', 'crucible');
-
-            $group[] = $mform->createElement('checkbox', 'multiple', get_string('multiple', 'crucible'));
-            // $mform->addHelpButton('mutiple', 'multiplehelp', 'crucible');
-
-            $group[] = $mform->createElement('text', 'points', get_string('points', 'crucible'), ['size' => '5']);
-            // $mform->addHelpButton('points', 'pointshelp', 'crucible');
-
-            $group[] = $mform->createElement('html', get_string('points', 'crucible'));
-
-            $mform->addGroup($group, "options-$index", 'Options', [' '], true);
-
-            $mform->setType("options-" . $index . "[name]", PARAM_RAW);
-            $mform->setType("options-" . $index . "[description]", PARAM_RAW);
-            $mform->setType("options-" . $index . "[dispatchtaskid]", PARAM_ALPHANUMEXT);
-            $mform->setType("options-" . $index . "[scenariotemplateid]", PARAM_ALPHANUMEXT);
-            $mform->setType("options-" . $index . "[points]", PARAM_INT);
-
-            $rec = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
-                    . $DB->sql_compare_text('dispatchtaskid') . ' = '
-                    . $DB->sql_compare_text(':dispatchtaskid'), ['dispatchtaskid' => $task->id]);
-
-            if ($rec === false) {
-                $mform->setDefault("options-" . $index . "[visible]", 1);
-                $mform->setDefault("options-" . $index . "[gradable]", 1);
-                $mform->setDefault("options-" . $index . "[multiple]", 1);
-                $mform->setDefault("options-" . $index . "[points]", 1);
-            } else {
-                $mform->setDefault("options-" . $index . "[visible]", $rec->visible);
-                $mform->setDefault("options-" . $index . "[gradable]", $rec->gradable);
-                $mform->setDefault("options-" . $index . "[multiple]", $rec->multiple);
-                $mform->setDefault("options-" . $index . "[points]", $rec->points);
+            // HTML display of description.
+            if (!empty($task->description)) {
+                $mform->addElement('html', '<div><strong>Description</strong><pre>' . s($task->description) . '</pre></div>');
             }
+            
+            if (!empty($task->id)) {
+                $mform->addElement('html', '<div><strong>Task ID</strong><pre>' . s($task->id) . '</pre></div>');
+            }
+            
+            if (!empty($task->scenarioTemplateId)) {
+                $mform->addElement('html', '<div><strong>Scenario Template ID</strong><pre>' . s($task->scenarioTemplateId) . '</pre></div>');
+            }            
+            
+            if (!empty($task->vmMask)) {
+                $mform->addElement('html', '<div><strong>VM Mask</strong><pre>' . s($task->vmMask) . '</pre></div>');
+            }
+            
+            if (!empty($task->inputString)) {
+                $mform->addElement('html', '<div><strong>Input String</strong><pre>' . s($task->inputString) . '</pre></div>');
+            }
+            
+            if (!empty($task->expectedOutput)) {
+                $mform->addElement('html', '<div><strong>Expected Output</strong><pre>' . s($task->expectedOutput) . '</pre></div>');
+            }            
 
-            $mform->disabledIf("options-" . $index . "[points]", "options-" .$index . "[gradable]");
+            // Hidden fields to track values.
+            $mform->addElement('hidden', "{$taskprefix}_name", $task->name);
+            $mform->setType("{$taskprefix}_name", PARAM_RAW);
+
+            $mform->addElement('hidden', "{$taskprefix}_description", $task->description);
+            $mform->setType("{$taskprefix}_description", PARAM_RAW);
+
+            $mform->addElement('hidden', "{$taskprefix}_dispatchtaskid", $task->id);
+            $mform->setType("{$taskprefix}_dispatchtaskid", PARAM_ALPHANUMEXT);
+
+            $mform->addElement('hidden', "{$taskprefix}_scenariotemplateid", $task->scenarioTemplateId);
+            $mform->setType("{$taskprefix}_scenariotemplateid", PARAM_ALPHANUMEXT);
+
+            // Input fields per task.
+            $mform->addElement('checkbox', "{$taskprefix}_visible", get_string('visible', 'crucible'));
+            $mform->addElement('checkbox', "{$taskprefix}_gradable", get_string('gradable', 'crucible'));
+            $mform->addElement('checkbox', "{$taskprefix}_multiple", get_string('multiple', 'crucible'));
+            $mform->addElement('html', '<div><strong>' . get_string('points', 'crucible') . '</strong></div>');
+            $mform->addElement('text', "{$taskprefix}_points", '', ['size' => '5']);
+            $mform->setType("{$taskprefix}_points", PARAM_INT);
+            $mform->disabledIf("{$taskprefix}_points", "{$taskprefix}_gradable");
+
+            // Help Buttons
+            $mform->addHelpButton("{$taskprefix}_visible", 'visible', 'crucible');
+            $mform->addHelpButton("{$taskprefix}_gradable", 'gradable', 'crucible');
+            $mform->addHelpButton("{$taskprefix}_multiple", 'multiple', 'crucible');
+            $mform->addHelpButton("{$taskprefix}_points", 'points', 'crucible');
+
+            // Set defaults based on DB record.
+            $rec = $DB->get_record_sql(
+                'SELECT * FROM {crucible_tasks} WHERE ' . $DB->sql_compare_text('dispatchtaskid') . ' = ' . $DB->sql_compare_text(':dispatchtaskid'),
+                ['dispatchtaskid' => $task->id]
+            );
+
+            if ($rec) {
+                $mform->setDefault("{$taskprefix}_visible", $rec->visible);
+                $mform->setDefault("{$taskprefix}_gradable", $rec->gradable);
+                $mform->setDefault("{$taskprefix}_multiple", $rec->multiple);
+                $mform->setDefault("{$taskprefix}_points", $rec->points);
+            } else {
+                $mform->setDefault("{$taskprefix}_visible", 1);
+                $mform->setDefault("{$taskprefix}_gradable", 1);
+                $mform->setDefault("{$taskprefix}_multiple", 1);
+                $mform->setDefault("{$taskprefix}_points", 1);
+            }
 
             $index++;
         }
         $this->add_action_buttons();
+
     }
 
     /**

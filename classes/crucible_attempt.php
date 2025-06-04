@@ -183,7 +183,6 @@ class crucible_attempt {
                 $newid = $DB->insert_record('crucible_attempts', $this->attempt);
                 $this->attempt->id = $newid;
             } catch (\Exception $e) {
-                var_dump($e);
                 return false; // Return false on failure.
             }
         }

@@ -342,14 +342,41 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
     require_once($CFG->libdir . '/gradelib.php');
 
     $grades = [];
-    foreach ($userid as $user) {
-        $rawgrade = crucible_get_user_grades($crucible, $userid);
-        $grade = new stdClass();
-        $grade->userid = $userid;
-        $grade->rawgrade = $rawgrade;
-        $grades[$user] = $grade;
+
+      // Case 1: All users.
+      if ($userid === 0) {
+        $grades = crucible_get_user_grades($crucible, 0);
     }
-    return crucible_grade_item_update($crucible, $grades);
+
+    // Case 2: Array of user IDs.
+    else if (is_array($userid)) {
+        foreach ($userid as $uid) {
+            $usergrades = crucible_get_user_grades($crucible, $uid);
+            if (!empty($usergrades[$uid])) {
+                $grades[$uid] = $usergrades[$uid];
+            } else if ($nullifnone) {
+                $grade = new stdClass();
+                $grade->userid = $uid;
+                $grade->rawgrade = null;
+                $grades[$uid] = $grade;
+            }
+        }
+    }
+
+    // Case 3: Single user ID.
+    else {
+        $usergrades = crucible_get_user_grades($crucible, $userid);
+        if (!empty($usergrades[$userid])) {
+            $grades[$userid] = $usergrades[$userid];
+        } else if ($nullifnone) {
+            $grade = new stdClass();
+            $grade->userid = $userid;
+            $grade->rawgrade = null;
+            $grades[$userid] = $grade;
+        }
+    }
+
+    return crucible_grade_item_update($crucible, $grades); 
 }
 
 /**
