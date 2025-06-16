@@ -210,16 +210,17 @@ if ($object->event) {
     $scenarioid = $object->event->scenarioId;
 
     // TODO remove this check once the steamfitter is updated.
-    if (strpos($object->event->launchDate, "Z")) {
+    if (isset($object->event->launchDate) && strpos($object->event->launchDate, "Z") !== false) {
         $starttime = strtotime($object->event->launchDate);
     } else {
         $starttime = strtotime($object->event->launchDate . 'Z');
     }
-    if (strpos($object->event->expirationDate, "Z")) {
+    
+    if (isset($object->event->expirationDate) && strpos($object->event->expirationDate, "Z") !== false) {
         $endtime = strtotime($object->event->expirationDate);
     } else {
         $endtime = strtotime($object->event->expirationDate . 'Z');
-    }
+    }    
 } else {
     if ($attempt) {
         // print_error('attemptalreadyexists', 'crucible');
