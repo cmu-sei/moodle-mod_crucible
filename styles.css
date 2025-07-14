@@ -42,3 +42,18 @@
   background-color: #cce6ea;
   border-color: #b8dce2;
 }
+
+.license-info {
+  font-family: Arial, sans-serif; /* Modern font */
+  font-size: 14px;          /* Readable font size */
+  line-height: 1.5;         /* Better line spacing */
+}
+
+.license-info a {
+  color: #0073e6;           /* Link color */
+  text-decoration: none;    /* Remove underline */
+}
+
+.license-info a:hover {
+  text-decoration: underline; /* Underline on hover */
+}

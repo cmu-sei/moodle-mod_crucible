@@ -68,6 +68,10 @@ $string['configalloyapiurl'] = 'Base URL for Alloy API instance without trailing
 $string['configeventtemplate'] = 'Event Template GUID to be launched.';
 $string['configautocomplete'] = 'Display list of Event Templates in a dropdown or a searchable text box.';
 $string['configshowfailed'] = 'Show failed Events in the history table.';
+$string['contentlicense'] = 'Content License';
+$string['contentlicense_help'] = 'Select the appropriate content license associated with this content or lab from the dropdown menu.';
+$string['showcontentlicense'] = 'Display Content License to Students';
+$string['showcontentlicense_help'] = 'If checked, the content license text will be visible to students on the activity page.';
 
 // Activity settings
 $string['vmapp_help'] = 'This determines whether the VM app is emebeded in an iframe or whether a link to the player is displayed';

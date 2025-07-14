@@ -44,6 +44,7 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
+require_once("$CFG->dirroot/lib/licenselib.php");
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID.
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
@@ -265,7 +266,14 @@ if ((int)$gradepass > 0) {
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 
-$renderer->display_detail($crucible, $object->eventtemplate->durationHours);
+$license_info = null;
+
+if ($object->crucible->showcontentlicense) {
+    $license_id = $object->crucible->contentlicense;
+    $license_info = license_manager::get_license_by_shortname($license_id);
+}
+
+$renderer->display_detail($crucible, $object->eventtemplate->durationHours, $license_info);
 
 $formattempts = $object->get_all_attempts_for_form();
 

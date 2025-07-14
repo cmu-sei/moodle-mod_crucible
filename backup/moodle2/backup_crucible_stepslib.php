@@ -56,7 +56,8 @@ class backup_crucible_activity_structure_step extends backup_activity_structure_
         $crucible = new backup_nested_element('crucible', ['id'], [
             'name', 'intro', 'introformat', 'eventtemplateid', 'vmapp',
             'clock', 'extendevent', 'timeopen', 'timeclose', 'grade',
-            'grademethod', 'timecreated', 'timemodified']);
+            'grademethod', 'timecreated', 'timemodified', 'contentlicense',
+            'showcontentlicense']);
 
         // Define sources.
         $crucible->set_source_table('crucible', ['id' => backup::VAR_ACTIVITYID]);

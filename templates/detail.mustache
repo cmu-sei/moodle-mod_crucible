@@ -37,7 +37,11 @@ DM20-0196
 }}
 
 <h1>{{name}}</h1>
-
+{{#license_fullname}}
+<div class="license-info">
+    <p><strong>License:</strong> <a href="{{license_source}}" target="_blank">{{license_fullname}}</a></p>
+</div>
+{{/license_fullname}}
 {{#duration}}
 <div class="notification-style notification-box">
 {{durationtext}}: {{duration}} hour(s)

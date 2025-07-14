@@ -42,6 +42,7 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot.'/course/moodleform_mod.php');
 require_once($CFG->dirroot.'/mod/crucible/locallib.php');
+require_once("$CFG->dirroot/lib/licenselib.php");
 
 /**
  * Form definition for creating or editing Crucible activity instances.
@@ -108,6 +109,22 @@ class mod_crucible_mod_form extends moodleform_mod {
 
         $mform->setDefault('eventtemplateid', null);
         $mform->addHelpButton('eventtemplateid', 'eventtemplate', 'crucible');
+
+        $licenses = license_manager::get_licenses();
+        if ($licenses) {
+            foreach ($licenses as $license) {
+                $license_options[$license->shortname] = $license->fullname;
+            }
+        } else {
+            debugging('No licenses found.', DEBUG_DEVELOPER);
+        }
+
+        $mform->addElement('select', 'contentlicense', get_string('contentlicense', 'crucible'), $license_options);
+        $mform->setType('contentlicense', PARAM_TEXT);
+        $mform->addHelpButton('contentlicense', 'contentlicense', 'crucible');
+        
+        $mform->addElement('checkbox', 'showcontentlicense', get_string('showcontentlicense', 'crucible'));
+        $mform->addHelpButton('showcontentlicense', 'showcontentlicense', 'crucible');
 
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
@@ -224,6 +241,10 @@ class mod_crucible_mod_form extends moodleform_mod {
         $rawdescription = $this->eventtemplates[$index]->description;
         $data->intro = strip_tags($rawdescription); // Removes all HTML tags.
         $data->introformat = FORMAT_PLAIN;
+
+        if (!isset($data->showcontentlicense)) {
+            $data->showcontentlicense = 0; // Checkbox unchecked, set to 0.
+        }
 
         // TODO if grade method changed, update all grades.
     }

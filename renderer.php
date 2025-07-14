@@ -55,12 +55,18 @@ class mod_crucible_renderer extends plugin_renderer_base {
      * @param object $crucible Crucible activity instance.
      * @param string $duration Formatted duration string to display.
      */
-    public function display_detail($crucible, $duration) {
+    public function display_detail($crucible, $duration, $content_license = null) {
         $data = new stdClass();
         $data->name = $crucible->name;
         $data->intro = strip_tags($crucible->intro);
         $data->durationtext = get_string('durationtext', 'mod_crucible');
         $data->duration = $duration;
+
+        if ($content_license) {
+            $data->license_fullname = $content_license->fullname;
+            $data->license_source = $content_license->source;
+        }
+
         echo $this->render_from_template('mod_crucible/detail', $data);
     }
 

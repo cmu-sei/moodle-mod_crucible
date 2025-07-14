@@ -537,6 +537,23 @@ function xmldb_crucible_upgrade($oldversion) {
         // Crucible savepoint reached.
         upgrade_mod_savepoint(true, 2021082301, 'crucible');
     }
+    if ($oldversion < 2025060403) {
+        // Define the table.
+        $table = new xmldb_table('crucible');
+        // Define field 'contentlicense'.
+        $field1 = new xmldb_field('contentlicense', XMLDB_TYPE_TEXT, 'medium', null, null, null, null, 'timemodified');
+        if (!$dbman->field_exists($table, $field1)) {
+            $dbman->add_field($table, $field1);
+        }
+
+        // Define field 'showcontentlicense'.
+        $field2 = new xmldb_field('showcontentlicense', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'contentlicense');
+        if (!$dbman->field_exists($table, $field2)) {
+            $dbman->add_field($table, $field2);
+        }
+        // Savepoint.
+        upgrade_mod_savepoint(true, 2025060403, 'crucible');
+    }
 
     return true;
 }
