@@ -67,7 +67,7 @@ define(['jquery'], function($) {
         if (event_id) {
             console.log('event id ' + event_id);
             $.ajax({
-                url: alloy_api_url + '/events/' + event_id,
+                url: alloy_api_url + '/events/' + event_id + '?t=' + new Date().getTime(),
                 type: 'GET',
                 contentType: 'application/json',
                 dataType: 'json',

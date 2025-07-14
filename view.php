@@ -142,6 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             $grader = new \mod_crucible\utils\grade($object);
             $grader->process_attempt($object->openattempt);
             $object->openattempt->close_attempt();
+            redirect(new moodle_url('/mod/crucible/review.php', ['id' => $cm->id]));
         }
     }
 
