@@ -67,7 +67,7 @@ define(['jquery'], function($) {
         if (event_id) {
             console.log('event id ' + event_id);
             $.ajax({
-                url: alloy_api_url + '/events/' + event_id + '?t=' + new Date().getTime(),
+                url: alloy_api_url + '/events/' + event_id,
                 type: 'GET',
                 contentType: 'application/json',
                 dataType: 'json',
@@ -206,9 +206,6 @@ define(['jquery'], function($) {
         timeout = setTimeout(function() {
             check_status();
             run_loop();
-            if (lab_status == 'Ended') {
-                console.log('lab has ended');
-            }
         }, 5000);
     }
 });
