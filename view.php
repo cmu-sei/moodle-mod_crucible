@@ -142,7 +142,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             $grader = new \mod_crucible\utils\grade($object);
             $grader->process_attempt($object->openattempt);
             $object->openattempt->close_attempt();
-            redirect(new moodle_url('/mod/crucible/review.php', ['id' => $cm->id]));
         }
     }
 
@@ -269,8 +268,8 @@ echo $renderer->header();
 
 $license_info = null;
 
-if ($object->crucible->showcontentlicense) {
-    $license_id = $object->crucible->contentlicense;
+if ($crucible->showcontentlicense) {
+    $license_id = $crucible->contentlicense;
     $license_info = license_manager::get_license_by_shortname($license_id);
 }
 
