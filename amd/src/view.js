@@ -86,7 +86,7 @@ define(['jquery'], function($) {
                             console.log('status ' + lab_status);
                             if (value == 'Active') {
                                 //show_active();
-                                clearTimeout(timeout);
+                                //clearTimeout(timeout);
 
                                 if ((lab_status != 'Active') && (value == 'Active')) {
                                     console.log("reloading");
@@ -97,13 +97,13 @@ define(['jquery'], function($) {
                                 show_wait();
                             }
                             if (value == 'Ended') {
-                                //show_ended();
+                                show_ended();
                                 //clearTimeout(timeout);
                                 window.location.replace(window.location.href);
                             }
                             if (value == 'Failed') {
                                 show_failed();
-                                clearTimeout(timeout);
+                                //clearTimeout(timeout);
                             }
                             lab_status = value;
 

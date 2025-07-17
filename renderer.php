@@ -222,7 +222,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
         // Should only be 1 grade, but we'll always get end just in case.
         $usergrade = end($usergrades);
         $data = new stdClass();
-        $data->overallgrade = get_string('overallgrade', 'groupquiz');
+        $data->overallgrade = get_string('overallgrade', 'crucible');
         $data->grade = number_format($usergrade, 2);
         $data->maxgrade = $crucible->grade;
         echo $this->render_from_template('mod_crucible/grade', $data);

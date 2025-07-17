@@ -43,7 +43,7 @@ DM20-0196
       <input id="start_confirmed" type="hidden" name="start_confirmed" value="" />
       <input id="stop_confirmed" type="hidden" name="stop_confirmed" value="" />
 
-      <input id="launch_button" style="display:none" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />
+      <input id="launch_button" style="display:block" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />
       <input id="end_button" style="display:none" class="btn btn-danger" type="submit" name="stop" value="End Lab"
           {{#joinedattempt}}disabled="disabled"{{/joinedattempt}} />
   </form>
@@ -55,7 +55,7 @@ DM20-0196
 
   <input id="failed" style="display:none; width:300px" class="btn btn-secondary" type="button" name="failed" value="Your operation has failed." />
 
-  <button id="enable-fullscreen" type="button" class="btn btn-primary">{{fullscreen}}</button>
+  <button id="enable-fullscreen" style="display:none; type="button" class="btn btn-primary">{{fullscreen}}</button>
 </span>
 
 <script type="text/javascript">
