@@ -537,7 +537,7 @@ function xmldb_crucible_upgrade($oldversion) {
         // Crucible savepoint reached.
         upgrade_mod_savepoint(true, 2021082301, 'crucible');
     }
-    if ($oldversion < 2025060403) {
+    if ($oldversion < 2025071601) {
         // Define the table.
         $table = new xmldb_table('crucible');
         // Define field 'contentlicense'.
@@ -552,7 +552,7 @@ function xmldb_crucible_upgrade($oldversion) {
             $dbman->add_field($table, $field2);
         }
         // Savepoint.
-        upgrade_mod_savepoint(true, 2025060403, 'crucible');
+        upgrade_mod_savepoint(true, 2025071601, 'crucible'); 
     }
 
     return true;
