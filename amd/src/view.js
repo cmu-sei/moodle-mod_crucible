@@ -32,14 +32,14 @@ define(['jquery'], function($) {
     return {
         init: function() {
             const config = window.CrucibleConfig || {};
-        
+
             access_token = config.token;
             lab_status = config.state;
             event_id = config.event;
             view_id = config.view;
             alloy_api_url = config.alloy_api_url;
             vm_app_url = config.vm_app_url;
-            player_app_url = config.player_app_url;        
+            player_app_url = config.player_app_url;
 
             if (lab_status == 'Active') {
                 show_active();
@@ -62,6 +62,9 @@ define(['jquery'], function($) {
         }
     };
 
+    /**
+     *
+     */
     function check_status() {
 
         if (event_id) {
@@ -71,7 +74,7 @@ define(['jquery'], function($) {
                 type: 'GET',
                 contentType: 'application/json',
                 dataType: 'json',
-                beforeSend : function(xhr) {
+                beforeSend: function(xhr) {
                     xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
                 },
                 success: function(response) {
@@ -85,8 +88,8 @@ define(['jquery'], function($) {
                         if (index == 'status') {
                             console.log('status ' + lab_status);
                             if (value == 'Active') {
-                                //show_active();
-                                //clearTimeout(timeout);
+                                // Show_active();
+                                // clearTimeout(timeout);
 
                                 if ((lab_status != 'Active') && (value == 'Active')) {
                                     console.log("reloading");
@@ -98,12 +101,12 @@ define(['jquery'], function($) {
                             }
                             if (value == 'Ended') {
                                 show_ended();
-                                //clearTimeout(timeout);
+                                // ClearTimeout(timeout);
                                 window.location.replace(window.location.href);
                             }
                             if (value == 'Failed') {
                                 show_failed();
-                                //clearTimeout(timeout);
+                                // ClearTimeout(timeout);
                             }
                             lab_status = value;
 
@@ -128,6 +131,9 @@ define(['jquery'], function($) {
         }
     }
 
+    /**
+     *
+     */
     function show_wait() {
         editStyle('launch_button', 'display', 'none');
         editStyle('end_button', 'display', 'none');
@@ -142,6 +148,9 @@ define(['jquery'], function($) {
         editStyle('join-form', 'display', 'block');
     }
 
+    /**
+     *
+     */
     function show_ended() {
         editStyle('launch_button', 'display', 'block');
         editStyle('end_button', 'display', 'none');
@@ -156,6 +165,9 @@ define(['jquery'], function($) {
         editStyle('join-form', 'display', 'block');
     }
 
+    /**
+     *
+     */
     function show_failed() {
         editStyle('launch_button', 'display', 'none');
         editStyle('end_button', 'display', 'none');
@@ -169,6 +181,9 @@ define(['jquery'], function($) {
         editStyle('join-form', 'display', 'none');
     }
 
+    /**
+     *
+     */
     function show_active() {
         editStyle('launch_button', 'display', 'none');
         editStyle('end_button', 'display', 'inline');
@@ -194,6 +209,12 @@ define(['jquery'], function($) {
         }
    }
 
+   /**
+    *
+    * @param elementId
+    * @param styleName
+    * @param styleValue
+    */
    function editStyle(elementId, styleName, styleValue) {
        var x = document.getElementById(elementId);
 
@@ -202,6 +223,9 @@ define(['jquery'], function($) {
        }
    }
 
+    /**
+     *
+     */
     function run_loop() {
         timeout = setTimeout(function() {
             check_status();
@@ -210,14 +234,18 @@ define(['jquery'], function($) {
     }
 });
 
+/**
+ *
+ * @param link
+ */
 function copy_link(link) {
-    // navigator clipboard api needs a secure context (https)
+    // Navigator clipboard api needs a secure context (https)
     if (navigator.clipboard && window.isSecureContext) {
         return navigator.clipboard.writeText(link);
     } else {
         let textArea = document.createElement("textarea");
         textArea.value = link;
-        // make the textarea out of viewport
+        // Make the textarea out of viewport
         textArea.style.position = "fixed";
         textArea.style.left = "-999999px";
         textArea.style.top = "-999999px";
