@@ -21,23 +21,33 @@ jobs:
         
       - name: package
         run: |
-          OLDVERSION=${{ steps.crucible.outputs.release }}
-          OLDDATE=`echo $OLDVERSION | cut -b 1-8`
-          NEWDATE=`date +%Y%m%d`
-          if [ $OLDDATE -ne $NEWDATE ]; then
-              NEWVERSION=$NEWDATE\01
-          else
-              OLDVERS=`echo $OLDVERSION | cut -b 9-10`
-              OLDVERS=${OLDVERS#0}
-              let NEWVERS=(OLDVERS + 1)
-              NEWVERSION=$OLDDATE`printf %02d $NEWVERS`
-          fi
+          OLDRELEASE=${{ steps.crucible.outputs.release }}
           PREVIOUSVERSION=$(grep "plugin->version" crucible/version.php | sed -e "s/.*= \(.*\);.*/\1/")
-          sed -i "s#$PREVIOUSVERSION#$NEWVERSION#" crucible/version.php
-          zip -r mod_crucible_$NEWVERSION.zip crucible/ -x  "crucible/*.git*" -x "crucible/node_modules/\*"
+          if [ $OLDRELEASE -ne $PREVIOUSVERSION ]; then
+              NEWVERSION=$PREVIOUSVERSION
+          else
+              OLDDATE=`echo $PREVIOUSVERSION | cut -b 1-8`
+              NEWDATE=`date +%Y%m%d`
+              if [ $OLDDATE -ne $NEWDATE ]; then
+                  NEWVERSION=$NEWDATE\00
+              else
+                  OLDVERS=`echo $PREVIOUSVERSION | cut -b 9-10`
+                  OLDVERS=${OLDVERS#0}
+                  let NEWVERS=(OLDVERS + 1)
+                  NEWVERSION=$OLDDATE`printf %02d $NEWVERS`
+              fi
+              sed -i "s#$PREVIOUSVERSION#$NEWVERSION#" crucible/version.php
+              cd ./crucible
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git add version.php
+              git commit -m "Updating version to $NEWVERSION"
+              git push
+              cd ..
+          fi
+          zip -r mod_crucible_$NEWVERSION.zip crucible/ -x  "crucible/*.git*"
           echo "artifact_version=$NEWVERSION" >> $GITHUB_ENV
           echo "artifact_name=mod_crucible_$NEWVERSION" >> $GITHUB_ENV
-      
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
