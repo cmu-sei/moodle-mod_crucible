@@ -36,7 +36,7 @@ jobs:
                   let NEWVERS=(OLDVERS + 1)
                   NEWVERSION=$OLDDATE`printf %02d $NEWVERS`
               fi
-              sed -i "s#$PREVIOUSVERSION#$NEWVERSION#" crucible/version.php
+              sed -i "s#\(plugin->version.*\)$PREVIOUSVERSION#\1$NEWVERSION#" crucible/version.php
               cd ./crucible
               git config user.name "github-actions[bot]"
               git config user.email "github-actions[bot]@users.noreply.github.com"
