@@ -164,7 +164,7 @@ class crucible {
      */
     public function list_events() {
 
-        if ($this->userauth == null) {
+        if ($this->userauth === null) {
             echo 'error with userauth<br>';
             return;
         }
@@ -600,7 +600,7 @@ class crucible {
      */
     public function generate_sharecode() {
 
-        if ($this->userauth == null) {
+        i=f ($this->userauth === null) {
             echo 'error with userauth<br>';
             return;
         }
@@ -639,9 +639,9 @@ class crucible {
      */
     public function enlist($code) {
 
-        if ($this->userauth == null) {
+        if ($this->userauth === null) {
             echo 'error with userauth<br>';
-            return;
+            return false;
         }
 
         // Web request.
@@ -651,19 +651,19 @@ class crucible {
 
         if ($this->userauth->info['http_code'] !== 201) {
             debugging('response code ' . $this->userauth->info['http_code'] . " $url", DEBUG_DEVELOPER);
-            return;
+            return false;
         }
 
         if (!$response) {
-            debugging("no response received by list_events $url", DEBUG_DEVELOPER);
-            return;
+            debugging("no response received by enlist $url", DEBUG_DEVELOPER);
+            return false;
         }
 
         $r = json_decode($response);
 
         if (!$r) {
             debugging("could not decode json $url", DEBUG_DEVELOPER);
-            return;
+            return false;
         }
 
         return $r;
