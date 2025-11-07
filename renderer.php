@@ -60,7 +60,19 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data->name = $crucible->name;
         $data->intro = strip_tags($crucible->intro);
         $data->durationtext = get_string('durationtext', 'mod_crucible');
-        $data->duration = $duration;
+        $seconds = $duration;
+        $days = floor($seconds / 86400);
+        $seconds %= 86400;
+        $hours = floor($seconds / 3600);
+        $seconds %= 3600;
+        $minutes = floor($seconds / 60);
+        $seconds %= 60;
+        $data->duration = [
+            'days' => $days,
+            'hours' => $hours,
+            'minutes' => $minutes,
+            'seconds' => $seconds
+        ];
 
         if ($content_license) {
             $data->license_fullname = $content_license->fullname;
