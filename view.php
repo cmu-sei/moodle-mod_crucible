@@ -93,9 +93,11 @@ if ($code != null) {
     // the alloy api should enlist the user in the running event and return the event object
     $enlisted = $object->enlist($code);
 
-    if ($enlsited) {
+    if (!$enlsited) {
         throw new moodle_exception('enlisterror', 'crucible');
     }
+
+    debugging("user joined event " . $enlisted->id . " owned by " . $enlisted->username, DEBUG_DEVELOPER);
 }
 
 // Get eventtemplate info.
