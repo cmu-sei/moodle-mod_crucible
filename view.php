@@ -315,6 +315,8 @@ $renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attempti
 
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 
+debugging("Event status: " . $object->event->status, DEBUG_DEVELOPER);
+
 // TODO have a completely different view page for active labs.
 if ($object->event && $object->event->status === 'Active' && $scenarioid) {
 
