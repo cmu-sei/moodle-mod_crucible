@@ -600,7 +600,7 @@ class crucible {
      */
     public function generate_sharecode() {
 
-        i=f ($this->userauth === null) {
+        if ($this->userauth === null) {
             echo 'error with userauth<br>';
             return;
         }
