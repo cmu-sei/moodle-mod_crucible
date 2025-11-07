@@ -86,10 +86,16 @@ $PAGE->set_heading($course->fullname);
 $pageurl = null;
 $pagevars = [];
 $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
+$enlisted = null;
 
 // Enlist if code in url.
 if ($code != null) {
-    $object->enlist($code);
+    // the alloy api should enlist the user in the running event and return the event object
+    $enlisted = $object->enlist($code);
+
+    if ($enlsited) {
+        throw new moodle_exception('enlisterror', 'crucible');
+    }
 }
 
 // Get eventtemplate info.
@@ -124,7 +130,7 @@ if ($object->events) {
 // Get active attempt for user: true/false.
 $attempt = $object->get_open_attempt($attemptid);
 if ($attempt == true) {
-    debugging("get_open_attempt returned " . $object->openattempt->id, DEBUG_DEVELOPER);
+    debugging("get_open_attempt returned attempt id: " . $object->openattempt->id, DEBUG_DEVELOPER);
 } else if ($attempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
 }
@@ -315,8 +321,6 @@ $renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attempti
 
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 
-debugging("Event status: " . $object->event->status, DEBUG_DEVELOPER);
-
 // TODO have a completely different view page for active labs.
 if ($object->event && $object->event->status === 'Active') {
 
@@ -369,6 +373,5 @@ $PAGE->requires->js_init_code("
 
 $jsoptions = ['keepaliveinterval' => 1];
 $PAGE->requires->js_call_amd('mod_crucible/keepalive', 'init', [$jsoptions]);
-
 
 echo $renderer->footer();

@@ -161,6 +161,7 @@ $string['multiple'] = 'Multiple VMs';
 $string['multiple_help'] = 'If checked, this task can be executed on multiple virtual machines whose names match a specified string or mask.';
 $string['points'] = 'Points';
 $string['points_help'] = 'Set the number of points this task is worth if gradable is enabled.';
+$string['enlisterror'] = 'There was an error enlisting the user in the active event.';
 
 // Roles
 $string['crucible:manage'] = 'Manage Crucible activities';
