@@ -239,7 +239,7 @@ class crucible {
         );
 
         if (count($attempts) !== 1) {
-            debugging("could not find a single open attempt", DEBUG_DEVELOPER);
+            debugging("could not find exactly one open attempt", DEBUG_DEVELOPER);
             return false;
         }
         debugging("open attempt found", DEBUG_DEVELOPER);

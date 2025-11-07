@@ -96,6 +96,7 @@ if (!empty($code)) {
     if (!$enlisted) {
         throw new moodle_exception('enlisterror', 'crucible');
     }
+    $object->event = get_event($object->userauth, $enlisted->id);
 
     debugging("user joined event " . $enlisted->id . " owned by " . $enlisted->username, DEBUG_DEVELOPER);
 }
@@ -105,36 +106,33 @@ $object->eventtemplate = get_eventtemplate($object->userauth, $crucible->eventte
 
 // Update the database.
 if ($object->eventtemplate) {
-    $scenariotemplateid = $object->eventtemplate->scenarioTemplateId;
-    // Update the database.
     $crucible->name = $object->eventtemplate->name;
-
     if (!$crucible->intro) {
         $crucible->intro = $object->eventtemplate->description;
     }
-
     $DB->update_record('crucible', $crucible);
-    // This generates lots of hvp module errors.
-    // rebuild_course_cache($crucible->course);
 } else {
-    $scenariotemplateid = "";
+    debugging("eventtemplate could not be retrieved from api", DEBUG_DEVELOPER)
 }
 
 // Get current state of eventtemplate.
-$accesstoken = get_token($object->userauth);
 $history = $object->list_events();
 $object->events = get_active_events($history);
-
+debugging("found " . count($object->events) . " active events for this user on this event template", DEBUG_DEVELOPER);
+// TODO if more than one is active... how do we know which one to handle here?
 if ($object->events) {
     ensure_added_to_event_attempts($object->events);
 }
 
 // Get active attempt for user: true/false.
-$attempt = $object->get_open_attempt($attemptid);
+$attempt = $object->get_open_attempt($attemptid); // attemptid of 0 checks for a single attempt for this user
 if ($attempt == true) {
-    debugging("get_open_attempt returned attempt id: " . $object->openattempt->id, DEBUG_DEVELOPER);
+        debugging("get_open_attempt returned attempt id: " . $object->openattempt->id, DEBUG_DEVELOPER);
 } else if ($attempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
+    if ($enlisted) {
+        debugging("enlisted user may not have been added to the attempt", DEBUG_DEVELOPER);
+    }
 }
 
 // TODO send instructor to a different page.
@@ -359,6 +357,7 @@ if ($object->event && $object->event->status === 'Active') {
 
 $PAGE->requires->js_call_amd('mod_crucible/view', 'init');
 
+$accesstoken = get_token($object->userauth);
 $configdata = [
     'token' => $accesstoken,
     'state' => $status,

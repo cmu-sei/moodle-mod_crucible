@@ -990,13 +990,14 @@ function ensure_added_to_event_attempts($events) {
 
             $dbattemptusers = $DB->get_records_sql($sql, $sqlparams);
 
-            // Add user to attempt is not already joined.
+            // Add user to attempt if not already joined.
             if (empty($dbattemptusers)) {
                 $attemptuser = new stdClass();
                 $attemptuser->attemptid = $attempt->id;
                 $attemptuser->userid = $USER->id;
 
-                $DB->insert_record('crucible_attempt_users', $attemptuser);
+		$DB->insert_record('crucible_attempt_users', $attemptuser);
+		debugging("added " . $USER->username . " to attempt " . $attempt->id . " for event " . $attempt->eventid, DEBUG_DEVELOPER);
             }
         }
     }
