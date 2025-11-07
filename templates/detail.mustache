@@ -42,9 +42,13 @@ DM20-0196
     <p><strong>License:</strong> <a href="{{license_source}}" target="_blank">{{license_fullname}}</a></p>
 </div>
 {{/license_fullname}}
+
 {{#duration}}
 <div class="notification-style notification-box">
-{{durationtext}}: {{duration}} hour(s)
+  {{durationtext}}: {{#days}}{{days}} Day(s) {{/days}}
+  {{#hours}}{{hours}} Hour(s) {{/hours}}
+  {{#minutes}}{{minutes}} Minute(s) {{/minutes}}
+  {{#seconds}}{{seconds}} Second(s) {{/seconds}}
 </div>
 {{/duration}}
 

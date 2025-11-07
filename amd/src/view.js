@@ -88,7 +88,7 @@ define(['jquery'], function($) {
                         if (index == 'status') {
                             console.log('status ' + lab_status);
                             if (value == 'Active') {
-                                // Show_active();
+                                show_active();
                                 // clearTimeout(timeout);
 
                                 if ((lab_status != 'Active') && (value == 'Active')) {
