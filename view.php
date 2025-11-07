@@ -93,7 +93,7 @@ if ($code != null) {
     // the alloy api should enlist the user in the running event and return the event object
     $enlisted = $object->enlist($code);
 
-    if (!$enlsited) {
+    if (!$enlisted) {
         throw new moodle_exception('enlisterror', 'crucible');
     }
 
