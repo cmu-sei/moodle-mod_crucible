@@ -89,7 +89,7 @@ $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevar
 $enlisted = null;
 
 // Enlist if code in url.
-if ($code !== null) {
+if (!empty($code)) {
     // the alloy api should enlist the user in the running event and return the event object
     $enlisted = $object->enlist($code);
 
