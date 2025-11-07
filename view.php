@@ -318,7 +318,7 @@ $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]])
 debugging("Event status: " . $object->event->status, DEBUG_DEVELOPER);
 
 // TODO have a completely different view page for active labs.
-if ($object->event && $object->event->status === 'Active' && $scenarioid) {
+if ($object->event && $object->event->status === 'Active') {
 
     $renderer->display_invite($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode);
 
@@ -328,24 +328,26 @@ if ($object->event && $object->event->status === 'Active' && $scenarioid) {
         $renderer->display_link_page($playerappurl, $viewid);
     }
 
-    $tasks = get_scenariotasks($object->userauth, $scenarioid);
-    if (is_null($tasks)) {
-        $tasks = get_scenariotasks($object->systemauth, $scenarioid);
-    }
+    if ($scenarioid) {
+        $tasks = get_scenariotasks($object->userauth, $scenarioid);
+        if (is_null($tasks)) {
+            $tasks = get_scenariotasks($object->systemauth, $scenarioid);
+        }
 
-    if ($tasks) {
-        // Display tasks.
-        $filtered = $object->filter_scenario_tasks($tasks, true, false);
-        $renderer->display_results($filtered, $review = false);
-        $info = new stdClass();
-        $info->scenario = $scenarioid;
-        $info->view = $viewid;
-        $info->attempt = $object->openattempt->id;
-        $info->cmid = $cm->id;
-        // Have run task button hit an ajax script on server to run as system.
-        $PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
+        if ($tasks) {
+            // Display tasks.
+            $filtered = $object->filter_scenario_tasks($tasks, true, false);
+            $renderer->display_results($filtered, $review = false);
+            $info = new stdClass();
+            $info->scenario = $scenarioid;
+            $info->view = $viewid;
+            $info->attempt = $object->openattempt->id;
+            $info->cmid = $cm->id;
+            // Have run task button hit an ajax script on server to run as system.
+            $PAGE->requires->js_call_amd('mod_crucible/tasks', 'init', [$info]);
 
-        $renderer->display_score($object->openattempt->id);
+            $renderer->display_score($object->openattempt->id);
+        }
     }
 }
 
