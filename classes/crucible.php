@@ -172,8 +172,8 @@ class crucible {
         // Web request.
         // Build URL to retrieve user's events for the given event template.
         $url = get_config('crucible', 'alloyapiurl') .
-        '/eventtemplates/' . $this->crucible->eventtemplateid .
-        '/events/mine?includeInvites=true';
+                '/eventtemplates/' . $this->crucible->eventtemplateid .
+                '/events/mine?includeInvites=true';
 
         $response = $this->userauth->get($url);
 
@@ -330,7 +330,7 @@ class crucible {
         $wherestring = implode(' AND ', $where);
 
         $sql = "SELECT {crucible_attempts}.* FROM {crucible_attempts} LEFT JOIN {crucible_attempt_users}
-        ON {crucible_attempts}.id = {crucible_attempt_users}.attemptid WHERE $wherestring ORDER BY timemodified DESC";
+                ON {crucible_attempts}.id = {crucible_attempt_users}.attemptid WHERE $wherestring ORDER BY timemodified DESC";
         $dbattempts = $DB->get_records_sql($sql, $sqlparams);
 
         $attempts = [];
