@@ -137,7 +137,9 @@ class grade {
                 return $a->timefinish - $b->timefinish;
             });
 
-            $grade = $this->apply_grading_method($attemptsgrades, $attempt->score, reset($finishedattempts)->score);
+            $firstFinishedAttempt = reset($finishedattempts);
+            $firstScore = is_object($firstFinishedAttempt) ? $firstFinishedAttempt->score : 0;
+            $grade = $this->apply_grading_method($attemptsgrades, $attempt->score, $firstScore);
 
             if (!is_null($grade)) {
                 $grades[$userid] = $grade;
