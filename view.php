@@ -112,7 +112,7 @@ if ($object->eventtemplate) {
     }
     $DB->update_record('crucible', $crucible);
 } else {
-    debugging("eventtemplate could not be retrieved from api", DEBUG_DEVELOPER)
+    debugging("eventtemplate could not be retrieved from api", DEBUG_DEVELOPER);
 }
 
 // Get current state of eventtemplate.
