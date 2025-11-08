@@ -96,8 +96,7 @@ if (!empty($code)) {
     if (!$enlisted) {
         throw new moodle_exception('enlisterror', 'crucible');
     }
-    $object->event = get_event($object->userauth, $enlisted->id);
-
+    //$object->event = get_event($object->userauth, $enlisted->id);
     debugging("user joined event " . $enlisted->id . " owned by " . $enlisted->username, DEBUG_DEVELOPER);
 }
 
@@ -112,7 +111,7 @@ if ($object->eventtemplate) {
     }
     $DB->update_record('crucible', $crucible);
 } else {
-    debugging("eventtemplate could not be retrieved from api", DEBUG_DEVELOPER)
+    debugging("eventtemplate could not be retrieved from api", DEBUG_DEVELOPER);
 }
 
 // Get current state of eventtemplate.
@@ -282,9 +281,9 @@ if ($crucible->showcontentlicense) {
 $renderer->display_detail($crucible, $object->eventtemplate->durationHours, $license_info);
 
 $formattempts = $object->get_all_attempts_for_form();
-
 $sharecode = '';
 
+// if primary user, display the sharecode
 if ($object->openattempt && $object->openattempt->userid == $USER->id) {
     if ($object->event->shareCode == null) {
         $object->event = $object->generate_sharecode();
@@ -295,6 +294,9 @@ if ($object->openattempt && $object->openattempt->userid == $USER->id) {
         debugging('Event is not set or sharecode is missing', DEBUG_DEVELOPER);
     }
 }
+
+// TODO if user is in two attempts, ask which attempt they want to be in, and redirect them to a url with that attempt
+$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode);
 
 if ($object->event) {
 
@@ -316,8 +318,6 @@ if ($object->event) {
 } else if ($showgrade) {
     $renderer->display_grade($crucible);
 }
-
-$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode);
 
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 
