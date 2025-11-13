@@ -122,7 +122,7 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->addElement('select', 'contentlicense', get_string('contentlicense', 'crucible'), $license_options);
         $mform->setType('contentlicense', PARAM_TEXT);
         $mform->addHelpButton('contentlicense', 'contentlicense', 'crucible');
-        
+
         $mform->addElement('checkbox', 'showcontentlicense', get_string('showcontentlicense', 'crucible'));
         $mform->addHelpButton('showcontentlicense', 'showcontentlicense', 'crucible');
 

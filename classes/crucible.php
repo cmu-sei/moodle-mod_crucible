@@ -488,31 +488,31 @@ class crucible {
      */
     public function filter_scenario_tasks($tasks, $isvisible = false, $isexecutable = false) {
         global $DB;
-    
+
         if (is_null($tasks)) {
             return [];
         }
-    
+
         $filtered = [];
-    
+
         foreach ($tasks as $task) {
             $include = true;
-    
+
             // Look up task visibility, gradable, and points by name.
             $sql = 'SELECT visible, gradable, points FROM {crucible_tasks} WHERE ' .
                    $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name');
             $rec = $DB->get_record_sql($sql, ['name' => $task->name]);
-    
+
             // Filter by visibility flag if required.
             if ($isvisible && (!$rec || empty($rec->visible))) {
                 $include = false;
             }
-    
+
             // Filter by executable flag from task object.
             if ($isexecutable && empty($task->userExecutable)) {
                 $include = false;
             }
-    
+
             // Include task if it passes all checks.
             if ($include) {
                 // Set points if task is gradable in DB.
@@ -521,14 +521,14 @@ class crucible {
                 } else {
                     $task->points = 0; // not gradable
                 }
-    
+
                 $filtered[] = $task;
             }
         }
-    
+
         usort($filtered, "tasksort");
         return $filtered;
-    }    
+    }
 
     /**
      * Retrieves all open attempts that do not belong to the current user.

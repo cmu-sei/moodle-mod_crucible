@@ -117,7 +117,7 @@ if ($object->eventtemplate) {
 // Get current state of eventtemplate.
 $history = $object->list_events();
 $object->events = get_active_events($history);
-debugging("found " . count($object->events) . " active events for this user on this event template", DEBUG_DEVELOPER);
+debugging("found " . count((array)$object->events) . " active events for this user on this event template", DEBUG_DEVELOPER);
 // TODO if more than one is active... how do we know which one to handle here?
 if ($object->events) {
     ensure_added_to_event_attempts($object->events);
@@ -221,12 +221,12 @@ if ($object->event) {
     } else {
         $starttime = strtotime($object->event->launchDate . 'Z');
     }
-    
+
     if (isset($object->event->expirationDate) && strpos($object->event->expirationDate, "Z") !== false) {
         $endtime = strtotime($object->event->expirationDate);
     } else {
         $endtime = strtotime($object->event->expirationDate . 'Z');
-    }    
+    }
 } else {
     if ($attempt) {
         // print_error('attemptalreadyexists', 'crucible');
