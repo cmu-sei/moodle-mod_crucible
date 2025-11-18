@@ -270,7 +270,7 @@ define(['jquery'], function($) {
 
         var dots = new Array(waitDots + 1).join('.');
         // “Current step: Creating...” etc.
-        label.textContent = 'Current step: ' + status + dots;
+        label.textContent = status + dots;
     }
 
     function clear_wait_label() {
