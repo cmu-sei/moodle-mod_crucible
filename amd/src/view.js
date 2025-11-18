@@ -201,7 +201,7 @@ define(['jquery'], function($) {
         editStyle('event', 'value', event_id);
         editStyle('wait', 'display', 'none');
         editStyle('failed', 'display', 'none');
-        editStyle('timerdiv', 'display', 'inline');
+        editStyle('timerdiv', 'display', 'block');
         editStyle('crucible-container', 'display', 'block');
         editStyle('enable-fullscreen', 'display', 'inline');
         editStyle('invite_button', 'display', 'block');
