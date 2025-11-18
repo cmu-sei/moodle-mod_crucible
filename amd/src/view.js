@@ -97,8 +97,6 @@ define(['jquery'], function($) {
                         if (index == 'status') {
                             console.log('status ' + lab_status);
                             if (value == 'Active') {
-                                // show_active();
-                                // clearTimeout(timeout);
 
                                 if ((lab_status != 'Active') && (value == 'Active')) {
                                     clear_wait_label();
@@ -236,9 +234,6 @@ define(['jquery'], function($) {
        }
    }
 
-    /**
-     *
-     */
     function run_loop() {
         timeout = setTimeout(function() {
             check_status();
@@ -258,23 +253,22 @@ define(['jquery'], function($) {
         }
 
         if (currentWaitStatus === status) {
-            // Same status as last time → add one more dot.
             waitDots++;
         } else {
-            // New status (e.g. Creating → Planning) → reset dots.
             currentWaitStatus = status;
             waitDots = 1;
         }
 
-        var maxDots = 10; // cap so it doesn't get silly
+        var maxDots = 10;
         if (waitDots > maxDots) {
             waitDots = maxDots;
         }
 
         var dots = new Array(waitDots + 1).join('.');
 
-        // Build: "Please wait, Creating..." etc.
-        label.textContent = 'Please wait, ' + status + dots;
+        var displayStatus = status.charAt(0).toLowerCase() + status.slice(1);
+
+        label.textContent = 'Please wait, ' + displayStatus + dots;
     }
 
     function clear_wait_label() {
