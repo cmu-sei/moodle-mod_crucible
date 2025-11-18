@@ -187,7 +187,7 @@ define(['jquery'], function($) {
         editStyle('failed', 'display', 'block');
         editStyle('crucible-container', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
-        editStyle('invite_button', 'display', 'none');
+        editStyle('copy_invite', 'display', 'none');
         editStyle('return-button', 'display', 'none');
         editStyle('join-form', 'display', 'none');
     }
@@ -204,7 +204,7 @@ define(['jquery'], function($) {
         editStyle('failed', 'display', 'none');
         editStyle('crucible-container', 'display', 'block');
         editStyle('enable-fullscreen', 'display', 'inline');
-        editStyle('invite_button', 'display', 'inline');
+        editStyle('copy_invite', 'display', 'inline');
         editStyle('return-button', 'display', 'block');
         editStyle('join-form', 'display', 'block');
 
