@@ -30,6 +30,8 @@ define(['jquery'], function($) {
     var player_app_url;
     var waitDots = 0;
     var currentWaitStatus = null;
+    var defaultWaitText = 'Please wait, system processing…';
+
 
     return {
         init: function() {
@@ -42,6 +44,11 @@ define(['jquery'], function($) {
             alloy_api_url = config.alloy_api_url;
             vm_app_url = config.vm_app_url;
             player_app_url = config.player_app_url;
+
+            var label = document.getElementById('wait-text');
+            if (label) {
+                defaultWaitText = label.textContent;
+            }
 
             if (lab_status == 'Active') {
                 show_active();
@@ -239,17 +246,14 @@ define(['jquery'], function($) {
         }, 5000);
     }
 
-        function update_wait_label(status) {
-        var label = document.getElementById('lab-status-label');
+    function update_wait_label(status) {
+        var label = document.getElementById('wait-text');
         if (!label) {
             return;
         }
 
         if (!status) {
-            // Nothing to show.
-            label.textContent = '';
-            currentWaitStatus = null;
-            waitDots = 0;
+            clear_wait_label();
             return;
         }
 
@@ -257,30 +261,31 @@ define(['jquery'], function($) {
             // Same status as last time → add one more dot.
             waitDots++;
         } else {
-            // Status changed (e.g. Creating → Planning) → reset dots.
+            // New status (e.g. Creating → Planning) → reset dots.
             currentWaitStatus = status;
             waitDots = 1;
         }
 
-        // Optional: cap max dots so it doesn’t get ridiculous.
-        var maxDots = 10; // change to 3 if you prefer
+        var maxDots = 10; // cap so it doesn't get silly
         if (waitDots > maxDots) {
             waitDots = maxDots;
         }
 
         var dots = new Array(waitDots + 1).join('.');
-        // “Current step: Creating...” etc.
-        label.textContent = status + dots;
+
+        // Build: "Please wait, Creating..." etc.
+        label.textContent = 'Please wait, ' + status + dots;
     }
 
     function clear_wait_label() {
-        var label = document.getElementById('lab-status-label');
+        var label = document.getElementById('wait-text');
         if (label) {
-            label.textContent = '';
+            label.textContent = defaultWaitText;
         }
         currentWaitStatus = null;
         waitDots = 0;
     }
+
 
 });
 
