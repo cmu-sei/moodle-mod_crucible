@@ -28,6 +28,9 @@ define(['jquery'], function($) {
     var alloy_api_url;
     var vm_app_url;
     var player_app_url;
+    var waitDots = 0;
+    var currentWaitStatus = null;
+
 
     return {
         init: function() {
@@ -98,6 +101,7 @@ define(['jquery'], function($) {
                             }
                             if ((value == 'Creating') || (value == 'Planning') || (value == 'Applying') || (value == 'Ending')) {
                                 show_wait();
+                                update_wait_label(value);
                             }
                             if (value == 'Ended') {
                                 show_ended();
@@ -232,6 +236,29 @@ define(['jquery'], function($) {
             run_loop();
         }, 5000);
     }
+
+    function update_wait_label(status) {
+        var label = document.getElementById('lab-status-label');
+        if (!label) {
+            return;
+        }
+
+        // Same status as last time – just add another dot (cycling 1–3).
+        if (currentWaitStatus === status) {
+            waitDots = (waitDots + 1) % 4; // 0..3
+            if (waitDots === 0) {
+                waitDots = 1;
+            }
+        } else {
+            // Status changed ("Creating" → "Planning", etc) – reset dots.
+            currentWaitStatus = status;
+            waitDots = 1;
+        }
+
+        var dots = new Array(waitDots + 1).join('.');
+        label.textContent = status + dots;
+    }
+
 });
 
 /**
