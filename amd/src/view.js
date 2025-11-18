@@ -204,7 +204,7 @@ define(['jquery'], function($) {
         editStyle('failed', 'display', 'none');
         editStyle('crucible-container', 'display', 'block');
         editStyle('enable-fullscreen', 'display', 'inline');
-        editStyle('invite_button', 'display', 'block');
+        editStyle('invite_button', 'display', 'inline');
         editStyle('return-button', 'display', 'block');
         editStyle('join-form', 'display', 'block');
 
