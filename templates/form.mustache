@@ -35,28 +35,72 @@ DM20-0196
 		          "url": "url"
             }
 }}
-
+{{> mod_crucible/clock}}
 <span>
   <form id="lab_form" action="{{url}}" method="post" style="display:inline">
       <input id="event" type="hidden" name="event" value="" />
       <input id="eventtemplateid" type="hidden" name="eventtemplateid" value="{{eventtemplateid}}" />
       <input id="start_confirmed" type="hidden" name="start_confirmed" value="" />
       <input id="stop_confirmed" type="hidden" name="stop_confirmed" value="" />
-
       <input id="launch_button" style="display:block" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />
       <input id="end_button" style="display:none" class="btn btn-danger" type="submit" name="stop" value="End Lab"
           {{#joinedattempt}}disabled="disabled"{{/joinedattempt}} />
   </form>
 
-  <button id="wait" style="display:none; width:300px" class="btn btn-primary" type="button" name="wait">
+  <button id="wait"
+        style="display:none; white-space:nowrap;"
+        class="btn btn-primary text-left"
+        type="button"
+        name="wait">
     <span class="spinner-border spinner-border-sm" role="status"></span>
-    &nbsp;&nbsp;Please wait, system processing:
-    &nbsp;<span id="lab-status-label">Creating</span>
-  </button>
-  <input id="failed" style="display:none; width:300px" class="btn btn-secondary" type="button" name="failed" value="Your operation has failed." />
+    &nbsp;&nbsp;<span id="wait-text">Please wait, system processing…</span>
+    </button>
+
+    <input id="failed"
+        style="display:none; white-space:nowrap;"
+        class="btn btn-secondary"
+        type="button"
+        name="failed"
+        value="Your operation has failed." />
 
   <button id="enable-fullscreen" style="display:none; type="button" class="btn btn-primary">{{fullscreen}}</button>
+
+   {{#code}}
+    <input id="invitationlinkurl"
+           type="text"
+           value="{{url}}&code={{code}}"
+           readonly
+           style="position: absolute; left: -9999px;">
+
+    <button id="copy_invite" type="button" class="btn btn-primary" style="display:none;">
+        Copy Invitation Link
+    </button>
+  {{/code}}
 </span>
+
+{{#joinedattempt}}
+<p>Currently viewing attempt owned by: {{joinedattemptowner}}</p>
+
+<form action="{{url}}" method="get">
+  <input type="hidden" name="id" value="{{id}}" />
+  <input id="return-button" type="submit" style="display:none" class="btn btn-primary" value="Return">
+</form>
+{{/joinedattempt}}
+
+{{#activeattempts}}
+<form id="join-form" action="" method="get" style="display:none">
+  <span>
+    <input type="hidden" name="id" value="{{id}}" />
+    <label for="attempts">Join Existing Lab:</label>
+    <select name="attempt" id="attempt">
+      {{#attempts}}
+          <option value="{{id}}">{{username}}</option>
+      {{/attempts}}
+    </select>
+    <input type="submit" class="btn btn-primary" value="Join">
+  </span>
+</form>
+{{/activeattempts}}
 
 <script type="text/javascript">
   document.addEventListener('DOMContentLoaded', function () {

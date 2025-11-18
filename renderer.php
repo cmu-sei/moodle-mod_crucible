@@ -100,52 +100,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
         $data->code = $code;
         $data->selectedattempt = $selectedattempt;
-        $data->activeAttempts = !empty($attempts);
-        $data->id = $id;
-
-        $filteredarray = array_filter($attempts, function($attempt) use($selectedattempt) {
-            return $selectedattempt == $attempt->id;
-        });
-
-        $joinedattemptobj = reset($filteredarray);
-
-        if ($joinedattemptobj) {
-            $data->joinedattempt = true;
-            $data->joinedattemptowner = $joinedattemptobj->username;
-        }
-
-        $formattempts = [];
-
-        foreach ($attempts as $attempt) {
-            $a = new stdClass();
-            $a->id = $attempt->id;
-            $a->username = $attempt->username;
-
-            array_push($formattempts, $a);
-        }
-
-        $data->attempts = $formattempts;
-
-        echo $this->render_from_template('mod_crucible/form', $data);
-    }
-
-    /**
-     * Renders the invite page for users to join or continue an attempt.
-     *
-     * @param string $url The URL for form action.
-     * @param object $eventtemplate The event template data.
-     * @param int $id Crucible instance ID.
-     * @param int $selectedattempt ID of the selected attempt (if any).
-     * @param array $attempts List of available attempts.
-     * @param string $code Optional access code.
-     */
-    public function display_invite($url, $eventtemplate, $id = 0, $selectedattempt = 0, $attempts = [], $code = '') {
-        $data = new stdClass();
-        $data->url = $url;
-        $data->eventtemplate = $eventtemplate;
-
-        $data->code = $code;
-        $data->selectedattempt = $selectedattempt;
         $data->activeattempts = !empty($attempts);
         $data->id = $id;
 
@@ -172,7 +126,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
         $data->attempts = $formattempts;
 
-        echo $this->render_from_template('mod_crucible/invite', $data);
+        echo $this->render_from_template('mod_crucible/form', $data);
     }
 
     /**
@@ -373,7 +327,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 $rowdata[] = $task->score;
             } else {
                 $rowdata[] = $task->points;
-            }            
+            }
             $data->tabledata[] = $rowdata;
         }
 
@@ -559,7 +513,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
                     $rowdata->points = $task->score;
                 } else {
                     $rowdata->points = $task->points;
-                }                
+                }
                 $data->tabledata[] = $rowdata;
             }
 

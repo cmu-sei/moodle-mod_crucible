@@ -175,5 +175,3 @@ $string['notasksavailable'] = 'There are no tasks available for this activity.';
 $string['backtocruclanding'] = 'Back to Activity View';
 $string['start_attempt_confirm'] = 'Are you sure you want to launch the lab?';
 $string['stop_attempt_confirm'] = 'Are you sure you want to end the lab?';
-
-

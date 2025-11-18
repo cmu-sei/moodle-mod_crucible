@@ -323,9 +323,6 @@ $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]])
 
 // TODO have a completely different view page for active labs.
 if ($object->event && $object->event->status === 'Active') {
-
-    $renderer->display_invite($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode);
-
     if ($vmapp == 1) {
         $renderer->display_embed_page($crucible);
     } else {
