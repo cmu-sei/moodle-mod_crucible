@@ -30,10 +30,6 @@ define(['jquery'], function($) {
     var player_app_url;
     var waitDots = 0;
     var currentWaitStatus = null;
-    var waitInterval = null;
-    var waitBaseStatus = '';
-
-
 
     return {
         init: function() {
@@ -98,23 +94,23 @@ define(['jquery'], function($) {
                                 // clearTimeout(timeout);
 
                                 if ((lab_status != 'Active') && (value == 'Active')) {
-                                    stop_wait_animation();
+                                    clear_wait_label();
                                     console.log("reloading");
                                     window.location.replace(window.location.href);
                                 }
                             }
                             if ((value == 'Creating') || (value == 'Planning') || (value == 'Applying') || (value == 'Ending')) {
                                 show_wait();
-                                start_wait_animation(value);
+                                update_wait_label(value);
                             }
                             if (value == 'Ended') {
                                 show_ended();
-                                stop_wait_animation();
+                                clear_wait_label();
                                 // ClearTimeout(timeout);
                                 window.location.replace(window.location.href);
                             }
                             if (value == 'Failed') {
-                                stop_wait_animation();
+                                clear_wait_label();
                                 show_failed();
                                 // ClearTimeout(timeout);
                             }
@@ -243,56 +239,47 @@ define(['jquery'], function($) {
         }, 5000);
     }
 
-        function start_wait_animation(status) {
+        function update_wait_label(status) {
         var label = document.getElementById('lab-status-label');
         if (!label) {
             return;
         }
 
-        // Store the base status text from API, like "Creating"
-        waitBaseStatus = status || '';
-        currentWaitStatus = status || '';
-        waitDots = 0;
-
-        // Clear any previous interval to avoid duplicates.
-        if (waitInterval) {
-            clearInterval(waitInterval);
-            waitInterval = null;
-        }
-
-        // If we don't have a status string, keep the label empty.
-        if (!waitBaseStatus) {
+        if (!status) {
+            // Nothing to show.
             label.textContent = '';
+            currentWaitStatus = null;
+            waitDots = 0;
             return;
         }
 
-        // Animate dots every second.
-        waitInterval = setInterval(function() {
-            var labelElement = document.getElementById('lab-status-label');
-            if (!labelElement) {
-                return;
-            }
-            waitDots = (waitDots + 1) % 4; // 0..3
-            if (waitDots === 0) {
-                waitDots = 1;
-            }
-            var dots = new Array(waitDots + 1).join('.');
-            labelElement.textContent = waitBaseStatus + dots;
-        }, 1000);
+        if (currentWaitStatus === status) {
+            // Same status as last time → add one more dot.
+            waitDots++;
+        } else {
+            // Status changed (e.g. Creating → Planning) → reset dots.
+            currentWaitStatus = status;
+            waitDots = 1;
+        }
+
+        // Optional: cap max dots so it doesn’t get ridiculous.
+        var maxDots = 10; // change to 3 if you prefer
+        if (waitDots > maxDots) {
+            waitDots = maxDots;
+        }
+
+        var dots = new Array(waitDots + 1).join('.');
+        // “Current step: Creating...” etc.
+        label.textContent = 'Current step: ' + status + dots;
     }
 
-    function stop_wait_animation() {
+    function clear_wait_label() {
         var label = document.getElementById('lab-status-label');
-        if (waitInterval) {
-            clearInterval(waitInterval);
-            waitInterval = null;
-        }
-        waitDots = 0;
-        waitBaseStatus = '';
-        currentWaitStatus = null;
         if (label) {
             label.textContent = '';
         }
+        currentWaitStatus = null;
+        waitDots = 0;
     }
 
 });
