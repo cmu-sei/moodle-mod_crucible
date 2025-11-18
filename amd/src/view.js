@@ -30,6 +30,9 @@ define(['jquery'], function($) {
     var player_app_url;
     var waitDots = 0;
     var currentWaitStatus = null;
+    var waitInterval = null;
+    var waitBaseStatus = '';
+
 
 
     return {
@@ -95,20 +98,23 @@ define(['jquery'], function($) {
                                 // clearTimeout(timeout);
 
                                 if ((lab_status != 'Active') && (value == 'Active')) {
+                                    stop_wait_animation();
                                     console.log("reloading");
                                     window.location.replace(window.location.href);
                                 }
                             }
                             if ((value == 'Creating') || (value == 'Planning') || (value == 'Applying') || (value == 'Ending')) {
                                 show_wait();
-                                update_wait_label(value);
+                                start_wait_animation(value);
                             }
                             if (value == 'Ended') {
                                 show_ended();
+                                stop_wait_animation();
                                 // ClearTimeout(timeout);
                                 window.location.replace(window.location.href);
                             }
                             if (value == 'Failed') {
+                                stop_wait_animation();
                                 show_failed();
                                 // ClearTimeout(timeout);
                             }
@@ -237,26 +243,56 @@ define(['jquery'], function($) {
         }, 5000);
     }
 
-    function update_wait_label(status) {
+        function start_wait_animation(status) {
         var label = document.getElementById('lab-status-label');
         if (!label) {
             return;
         }
 
-        // Same status as last time – just add another dot (cycling 1–3).
-        if (currentWaitStatus === status) {
+        // Store the base status text from API, like "Creating"
+        waitBaseStatus = status || '';
+        currentWaitStatus = status || '';
+        waitDots = 0;
+
+        // Clear any previous interval to avoid duplicates.
+        if (waitInterval) {
+            clearInterval(waitInterval);
+            waitInterval = null;
+        }
+
+        // If we don't have a status string, keep the label empty.
+        if (!waitBaseStatus) {
+            label.textContent = '';
+            return;
+        }
+
+        // Animate dots every second.
+        waitInterval = setInterval(function() {
+            var labelElement = document.getElementById('lab-status-label');
+            if (!labelElement) {
+                return;
+            }
             waitDots = (waitDots + 1) % 4; // 0..3
             if (waitDots === 0) {
                 waitDots = 1;
             }
-        } else {
-            // Status changed ("Creating" → "Planning", etc) – reset dots.
-            currentWaitStatus = status;
-            waitDots = 1;
-        }
+            var dots = new Array(waitDots + 1).join('.');
+            labelElement.textContent = waitBaseStatus + dots;
+        }, 1000);
+    }
 
-        var dots = new Array(waitDots + 1).join('.');
-        label.textContent = status + dots;
+    function stop_wait_animation() {
+        var label = document.getElementById('lab-status-label');
+        if (waitInterval) {
+            clearInterval(waitInterval);
+            waitInterval = null;
+        }
+        waitDots = 0;
+        waitBaseStatus = '';
+        currentWaitStatus = null;
+        if (label) {
+            label.textContent = '';
+        }
     }
 
 });
