@@ -28,6 +28,10 @@ define(['jquery'], function($) {
     var alloy_api_url;
     var vm_app_url;
     var player_app_url;
+    var waitDots = 0;
+    var currentWaitStatus = null;
+    var defaultWaitText = 'Please wait, system processing…';
+
 
     return {
         init: function() {
@@ -40,6 +44,11 @@ define(['jquery'], function($) {
             alloy_api_url = config.alloy_api_url;
             vm_app_url = config.vm_app_url;
             player_app_url = config.player_app_url;
+
+            var label = document.getElementById('wait-text');
+            if (label) {
+                defaultWaitText = label.textContent;
+            }
 
             if (lab_status == 'Active') {
                 show_active();
@@ -88,23 +97,25 @@ define(['jquery'], function($) {
                         if (index == 'status') {
                             console.log('status ' + lab_status);
                             if (value == 'Active') {
-                                // show_active();
-                                // clearTimeout(timeout);
 
                                 if ((lab_status != 'Active') && (value == 'Active')) {
+                                    clear_wait_label();
                                     console.log("reloading");
                                     window.location.replace(window.location.href);
                                 }
                             }
                             if ((value == 'Creating') || (value == 'Planning') || (value == 'Applying') || (value == 'Ending')) {
                                 show_wait();
+                                update_wait_label(value);
                             }
                             if (value == 'Ended') {
                                 show_ended();
+                                clear_wait_label();
                                 // ClearTimeout(timeout);
                                 window.location.replace(window.location.href);
                             }
                             if (value == 'Failed') {
+                                clear_wait_label();
                                 show_failed();
                                 // ClearTimeout(timeout);
                             }
@@ -176,7 +187,7 @@ define(['jquery'], function($) {
         editStyle('failed', 'display', 'block');
         editStyle('crucible-container', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
-        editStyle('invite_button', 'display', 'none');
+        editStyle('copy_invite', 'display', 'none');
         editStyle('return-button', 'display', 'none');
         editStyle('join-form', 'display', 'none');
     }
@@ -186,14 +197,14 @@ define(['jquery'], function($) {
      */
     function show_active() {
         editStyle('launch_button', 'display', 'none');
+        editStyle('timerdiv', 'display', 'block');
         editStyle('end_button', 'display', 'inline');
         editStyle('event', 'value', event_id);
         editStyle('wait', 'display', 'none');
         editStyle('failed', 'display', 'none');
-        editStyle('timerdiv', 'display', 'inline');
         editStyle('crucible-container', 'display', 'block');
         editStyle('enable-fullscreen', 'display', 'inline');
-        editStyle('invite_button', 'display', 'block');
+        editStyle('copy_invite', 'display', 'inline');
         editStyle('return-button', 'display', 'block');
         editStyle('join-form', 'display', 'block');
 
@@ -223,38 +234,51 @@ define(['jquery'], function($) {
        }
    }
 
-    /**
-     *
-     */
     function run_loop() {
         timeout = setTimeout(function() {
             check_status();
             run_loop();
         }, 5000);
     }
-});
 
-/**
- *
- * @param link
- */
-function copy_link(link) {
-    // Navigator clipboard api needs a secure context (https)
-    if (navigator.clipboard && window.isSecureContext) {
-        return navigator.clipboard.writeText(link);
-    } else {
-        let textArea = document.createElement("textarea");
-        textArea.value = link;
-        // Make the textarea out of viewport
-        textArea.style.position = "fixed";
-        textArea.style.left = "-999999px";
-        textArea.style.top = "-999999px";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        return new Promise((res, rej) => {
-            document.execCommand('copy') ? res() : rej();
-            textArea.remove();
-        });
+    function update_wait_label(status) {
+        var label = document.getElementById('wait-text');
+        if (!label) {
+            return;
+        }
+
+        if (!status) {
+            clear_wait_label();
+            return;
+        }
+
+        if (currentWaitStatus === status) {
+            waitDots++;
+        } else {
+            currentWaitStatus = status;
+            waitDots = 1;
+        }
+
+        var maxDots = 10;
+        if (waitDots > maxDots) {
+            waitDots = maxDots;
+        }
+
+        var dots = new Array(waitDots + 1).join('.');
+
+        var displayStatus = status.charAt(0).toLowerCase() + status.slice(1);
+
+        label.textContent = 'Please wait, ' + displayStatus + dots;
     }
-}
+
+    function clear_wait_label() {
+        var label = document.getElementById('wait-text');
+        if (label) {
+            label.textContent = defaultWaitText;
+        }
+        currentWaitStatus = null;
+        waitDots = 0;
+    }
+
+
+});

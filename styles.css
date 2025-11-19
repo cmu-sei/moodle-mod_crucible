@@ -27,7 +27,7 @@
   font-family: monospace;
 }
 
-.notification-box {
+.crucible-notification-box {
   position: relative;
   padding: .75rem 1.25rem;
   margin-bottom: 1rem;
@@ -37,7 +37,7 @@
   word-wrap: break-word;
 }
 
-.notification-style {
+.crucible-notification-style {
   color: #00434e;
   background-color: #cce6ea;
   border-color: #b8dce2;
