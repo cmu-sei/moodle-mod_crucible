@@ -12,22 +12,22 @@
 
 ## Description
 
-The **Crucible Plugin for Moodle** is an activity plugin that integrates Crucible lab environments into the Moodle Learning Management System (LMS). It enables users to launch and access lab environments directly from within Moodle.
+The **Crucible Plugin for Moodle** is an activity plugin that integrates Crucible environments into the Moodle Learning Management System (LMS). It enables users to launch and access events directly from within Moodle.
 
-> This documentation is meant for Moodle system administrators.
+>⚠️ This documentation is meant for Moodle system administrators.
 
 ## Features
 
-- Launch Crucible lab environments from Moodle activities
-- Embed lab access within Moodle or open in a separate browser tab
-- Configure lab access behavior and availability through Moodle activity settings
+- Launch Crucible environments from Moodle activities
+- Embed event access within Moodle or open in a separate browser tab
+- Configure event access behavior and availability through Moodle activity settings
 - Authenticate users into Crucible using the configured integration method
 
 ## Requirements
 
 1. Moodle 4.x or above
 2. Crucible application stack deployed and operational
-3. An OAuth2 identity provider configured for both Moodle and Crucible
+3. An OAuth2 identity provider configured for both Moodle and Crucible (we recommend [Keycloak](www.keycloak.org))
 
 ## Installation
 
@@ -44,28 +44,21 @@ System admin-type users or users who have the appropriate permissions should fol
 ### Verifying your installation
 
 1. Navigate to **Site administration**, **Plugins**, **Manage Activities**.
-2. Confirm that the Crucible for Moodle appears in the list of installed activities.
+2. Confirm that **Crucible** appears in the list of installed activities.
 
 ## Configuration
 
-Access configurable global settings in Moodle by navigating to **Site Administration**, **Plugins**, **Crucible**.
+Access configurable settings in Moodle by navigating to **Site Administration**, **Plugins**, **Crucible** (located under **Activity modules**).
 
-### General Settings
-
-**Display Mode:** Determines how labs will be displayed in Moodle.
-
-- *Embed Lab inside Moodle:* The lab appears embedded within a Moodle activity page.
-- *Display Link to Crucible:* Opens the lab in a new tab or window.
-
-### API Integration
-
-These fields should be completed during setup.
-
-**Crucible API Base URL:** The API endpoint URL for the Crucible server.
-
-**Crucible Base URL:** The base URL of the Crucible server used for linking and embedding.
-
-**Authentication Configuration:** Configure the authentication method used between Moodle and Crucible.
+| Setting                             | Description                                                                                                  |
+|-------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| **Display Mode**                    | Choose whether Moodle embeds the VM application in the activity page or opens Player in a new tab or window. |
+| **Event Template Selection Method** | Controls how instructors search for and select Event Templates when creating the activity.                   |
+| **OAUTH2 Issuer**                   | Selects the identity provider Moodle uses to authenticate users into Crucible.                               |
+| **Alloy API Base URL**              | API endpoint Moodle uses to create and manage environments (include `/api`, no trailing `/`).                |
+| **Player Base URL**                 | Base URL students open when launching the event in Player (no trailing `/`).                                 |
+| **VM App Base URL**                 | Base URL Moodle loads when embedding the VM app in the activity page (no trailing `/`).                      |
+| **Steamfitter API URL**             | API endpoint that records lab events and scoring data (no trailing `/`).                                     |
 
 ## Usage
 
@@ -73,19 +66,13 @@ These fields should be completed during setup.
 
 Follow the procedures below to add a Crucible activity to a course in Moodle.
 
-1. Navigate to your desired course and click **Add an activity or resource**.
-2. Select Crucible from the activity/resource list.
-3. Under **General**, complete the following.
+1. Navigate to your desired course and click **Add an activity or resource** (you may have to **Add Content** first).
+2. Select Crucible from the **Activities** tab.
+3. Complete the following:
 
-   - **Description:** Provide a description of the activity, visible to students if enabled.
-   - **Lab Selection:** Specify the lab or environment to launch.
-
-4. Under **Appearance**, complete the following:
-   - **Display Mode:** Either embed the lab within Moodle or link externally to the Crucible application.
-
-5. Under **Timing**, specify the following:
-   - **Open the activity / Close the activity:** Start and end dates.
-   - **Duration:** The total time permitted for the lab, if configured.
+   - **Description:** Provide a description of the Crucible activity, visible to students on the course page if enabled.
+   - **Alloy Event Template:** Specify the lab or environment to launch.
+   - **Display Mode:** Either embed the VM application in the activity page or link externally to the Player application.
 
 ### Launching a Crucible Activity
 
