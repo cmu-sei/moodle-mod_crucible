@@ -19,7 +19,7 @@ subject to its own license:
 DM20-0196
  */
 
-define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], function($, ModalFactory, ModalEvents, Str) {
+define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'core/str'], function($, ModalSaveCancel, ModalEvents, Str) {
 
     /**
      * Initialize the form confirmation modals
@@ -35,19 +35,20 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
             launchBtn.addEventListener('click', function(e) {
                 e.preventDefault();
 
+                var modalStrings;
                 Str.get_strings([
                     {key: 'start_attempt_confirm', component: 'mod_crucible'},
                     {key: 'confirm', component: 'moodle'},
                     {key: 'yes', component: 'moodle'},
                     {key: 'no', component: 'moodle'}
                 ]).then(function(strings) {
-                    return ModalFactory.create({
-                        type: ModalFactory.types.SAVE_CANCEL,
+                    modalStrings = strings;
+                    return ModalSaveCancel.create({
                         title: strings[1], // Confirm
                         body: strings[0], // Are you sure you want to launch the lab?
                     });
                 }).then(function(modal) {
-                    modal.setSaveButtonText(strings[2]); // Yes
+                    modal.setSaveButtonText(modalStrings[2]); // Yes
                     modal.getRoot().on(ModalEvents.save, function() {
                         startConfirm.value = "yes";
                         form.submit();
@@ -56,7 +57,7 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
                     return;
                 }).catch(function(error) {
                     // Fallback to native confirm if modal fails
-                    if (confirm(strings[0])) {
+                    if (modalStrings && confirm(modalStrings[0])) {
                         startConfirm.value = "yes";
                         form.submit();
                     }
@@ -68,19 +69,20 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
             endBtn.addEventListener('click', function(e) {
                 e.preventDefault();
 
+                var modalStrings;
                 Str.get_strings([
                     {key: 'stop_attempt_confirm', component: 'mod_crucible'},
                     {key: 'confirm', component: 'moodle'},
                     {key: 'yes', component: 'moodle'},
                     {key: 'no', component: 'moodle'}
                 ]).then(function(strings) {
-                    return ModalFactory.create({
-                        type: ModalFactory.types.SAVE_CANCEL,
+                    modalStrings = strings;
+                    return ModalSaveCancel.create({
                         title: strings[1], // Confirm
                         body: strings[0], // Are you sure you want to end the lab?
                     });
                 }).then(function(modal) {
-                    modal.setSaveButtonText(strings[2]); // Yes
+                    modal.setSaveButtonText(modalStrings[2]); // Yes
                     modal.getRoot().on(ModalEvents.save, function() {
                         stopConfirm.value = "yes";
                         form.submit();
@@ -89,7 +91,7 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
                     return;
                 }).catch(function(error) {
                     // Fallback to native confirm if modal fails
-                    if (confirm(strings[0])) {
+                    if (modalStrings && confirm(modalStrings[0])) {
                         stopConfirm.value = "yes";
                         form.submit();
                     }
