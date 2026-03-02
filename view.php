@@ -321,6 +321,15 @@ if ($object->event) {
 
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 
+// Initialize participant notification for lab owners with active labs
+if ($object->event && $object->event->status === 'Active' && $object->openattempt && $object->openattempt->userid == $USER->id) {
+    $PAGE->requires->js_call_amd('mod_crucible/participantnotify', 'init', [[
+        'cmid' => $cm->id,
+        'labname' => $crucible->name,
+        'isowner' => true
+    ]]);
+}
+
 // TODO have a completely different view page for active labs.
 if ($object->event && $object->event->status === 'Active') {
     if ($vmapp == 1) {
