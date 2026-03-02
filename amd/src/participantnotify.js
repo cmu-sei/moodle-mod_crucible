@@ -19,7 +19,7 @@ subject to its own license:
 DM20-0196
  */
 
-define(['jquery', 'core/ajax', 'core/notification', 'core/modal', 'core/str'], function($, Ajax, Notification, Modal, Str) {
+define(['jquery', 'core/ajax', 'core/notification', 'core/modal_factory', 'core/str'], function($, Ajax, Notification, ModalFactory, Str) {
 
     var lastParticipantId = 0;
     var checkInterval = null;
@@ -38,13 +38,12 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/modal', 'core/str'], f
             ? names + ' has joined your lab!'
             : names + ' have joined your lab!';
 
-        Str.get_string('confirm', 'moodle').then(function(confirmString) {
-            return Modal.create({
-                type: Modal.types.DEFAULT,
-                title: 'User Joined Lab',
-                body: '<p><strong>' + message + '</strong></p><p>Lab: ' + labName + '</p>',
-                large: false
-            });
+        var bodyContent = '<p><strong>' + message + '</strong></p><p>Lab: ' + labName + '</p>';
+
+        ModalFactory.create({
+            type: ModalFactory.types.DEFAULT,
+            title: 'User Joined Lab',
+            body: bodyContent,
         }).then(function(modal) {
             modal.show();
             // Auto-hide after 5 seconds
@@ -52,7 +51,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/modal', 'core/str'], f
                 modal.hide();
                 modal.destroy();
             }, 5000);
-            return;
+            return modal;
         }).catch(Notification.exception);
     };
 
@@ -60,35 +59,28 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/modal', 'core/str'], f
      * Check for new participants
      */
     var checkParticipants = function(labName) {
-        Ajax.call([{
-            methodname: 'core_get_fragment',
-            args: {
-                component: 'mod_crucible',
-                callback: 'check_participants',
-                contextid: 1,
-                args: []
+        $.ajax({
+            url: M.cfg.wwwroot + '/mod/crucible/check_participants.php',
+            method: 'GET',
+            data: {
+                id: cmid,
+                lastattemptid: lastParticipantId
             },
-            fail: function() {
-                // Fallback to direct AJAX call
-                $.ajax({
-                    url: M.cfg.wwwroot + '/mod/crucible/check_participants.php',
-                    method: 'GET',
-                    data: {
-                        id: cmid,
-                        lastattemptid: lastParticipantId
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success && response.newparticipants.length > 0) {
-                            showJoinNotification(response.newparticipants, labName);
-                            lastParticipantId = response.latestid;
-                        } else if (response.success) {
-                            lastParticipantId = response.latestid;
-                        }
-                    }
-                });
+            dataType: 'json',
+            success: function(response) {
+                window.console.log('Check participants response:', response);
+                if (response.success && response.newparticipants && response.newparticipants.length > 0) {
+                    window.console.log('New participants detected:', response.newparticipants);
+                    showJoinNotification(response.newparticipants, labName);
+                    lastParticipantId = response.latestid;
+                } else if (response.success && response.latestid) {
+                    lastParticipantId = response.latestid;
+                }
+            },
+            error: function(xhr, status, error) {
+                window.console.error('Error checking participants:', error, xhr.responseText);
             }
-        }]);
+        });
     };
 
     /**
@@ -99,18 +91,23 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/modal', 'core/str'], f
         var labName = config.labname || 'this lab';
         var isOwner = config.isowner || false;
 
+        window.console.log('Participant notify initialized', {cmid: cmid, labName: labName, isOwner: isOwner});
+
         // Only run for lab owners with active labs
         if (!isOwner) {
+            window.console.log('Not a lab owner, skipping participant notifications');
             return;
         }
 
         // Check every 10 seconds
         checkInterval = setInterval(function() {
+            window.console.log('Checking for new participants...');
             checkParticipants(labName);
         }, 10000);
 
         // Initial check after 5 seconds
         setTimeout(function() {
+            window.console.log('Initial participant check...');
             checkParticipants(labName);
         }, 5000);
     };

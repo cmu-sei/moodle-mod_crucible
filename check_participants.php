@@ -22,6 +22,9 @@ require_capability('mod/crucible:view', $context);
 
 header('Content-Type: application/json');
 
+// Debug logging
+error_log("check_participants.php called by user {$USER->id} for cm {$cm->id}, instance {$cm->instance}, last id: {$lastattemptid}");
+
 // Get all users who have joined attempts owned by the current user
 $participants = $DB->get_records_sql(
     "SELECT cau.id, cau.attemptid, cau.userid, u.firstname, u.lastname, u.username
@@ -40,6 +43,8 @@ $participants = $DB->get_records_sql(
     ]
 );
 
+error_log("Found " . count($participants) . " participants");
+
 $newparticipants = [];
 foreach ($participants as $participant) {
     if ($participant->id > $lastattemptid) {
@@ -52,8 +57,16 @@ foreach ($participants as $participant) {
     }
 }
 
-echo json_encode([
+$result = [
     'success' => true,
     'newparticipants' => $newparticipants,
-    'latestid' => !empty($participants) ? reset($participants)->id : $lastattemptid
-]);
+    'latestid' => !empty($participants) ? reset($participants)->id : $lastattemptid,
+    'debug' => [
+        'total_participants' => count($participants),
+        'new_count' => count($newparticipants),
+        'lastattemptid' => $lastattemptid
+    ]
+];
+
+error_log("Returning: " . json_encode($result));
+echo json_encode($result);
