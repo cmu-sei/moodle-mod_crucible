@@ -60,102 +60,30 @@ class crucible_tasks_form extends \moodleform
      */
     public function definition()
     {
-        global $COURSE, $CFG, $DB, $PAGE;
+        global $DB, $PAGE;
         $mform = $this->_form;
         $index = 0;
         $mform->addElement('hidden', 'id', $this->_customdata['cm']->id);
         $mform->setType("id", PARAM_INT);
 
-        // Add filter section at the top
-        $mform->addElement('header', 'filter_header', get_string('filtertasks', 'crucible'));
-
         $currentfilter = isset($this->_customdata['filter']) ? $this->_customdata['filter'] : 'all';
         $cmid = $this->_customdata['cm']->id;
+        $totaltasks = isset($this->_customdata['totaltasks']) ? $this->_customdata['totaltasks'] : 0;
+        $filteredcount = isset($this->_customdata['filteredcount']) ? $this->_customdata['filteredcount'] : 0;
 
-        $filterhtml = '<div style="margin-bottom: 20px;">';
-        $filterhtml .= '<div class="btn-group" role="group" aria-label="Task filter">';
-
-        $allclass = ($currentfilter === 'all') ? 'btn-primary' : 'btn-secondary';
-        $execclass = ($currentfilter === 'executable') ? 'btn-primary' : 'btn-secondary';
-        $nonexecclass = ($currentfilter === 'nonexecutable') ? 'btn-primary' : 'btn-secondary';
-
-        $filterhtml .= '<a href="?id=' . $cmid . '&filter=all" class="btn ' . $allclass . '">' .
-            get_string('showall', 'crucible') . '</a>';
-        $filterhtml .= '<a href="?id=' . $cmid . '&filter=executable" class="btn ' . $execclass . '">' .
-            get_string('userexecutableonly', 'crucible') . '</a>';
-        $filterhtml .= '<a href="?id=' . $cmid . '&filter=nonexecutable" class="btn ' . $nonexecclass . '">' .
-            get_string('nonexecutableonly', 'crucible') . '</a>';
-        $filterhtml .= '</div>';
-
-        // Add task count info
-        if (isset($this->_customdata['totaltasks']) && isset($this->_customdata['filteredcount'])) {
-            $total = $this->_customdata['totaltasks'];
-            $filtered = $this->_customdata['filteredcount'];
-
-            if ($currentfilter !== 'all' && $filtered < $total) {
-                $filterhtml .= '<div class="alert alert-info mt-2">';
-                $filterhtml .= 'Showing ' . $filtered . ' of ' . $total . ' tasks';
-                $filterhtml .= '</div>';
-            } else {
-                $filterhtml .= '<div class="mt-2"><small>Total tasks: ' . $total . '</small></div>';
-            }
-        }
-
-        $filterhtml .= '</div>';
+        $renderer = $PAGE->get_renderer('mod_crucible');
+        $filterhtml = $renderer->render_task_filter($cmid, $currentfilter, $totaltasks, $filteredcount);
 
         $mform->addElement('html', $filterhtml);
 
         foreach ($this->_customdata['tasks'] as $task) {
             $taskprefix = "task_$index";
 
-            // Add badge to task name
-            $taskname = $task->name;
-            if (!empty($task->userExecutable)) {
-                $taskname .= '&nbsp;&nbsp;&nbsp;<span class="badge badge-success">User Executable</span>';
-            } else {
-                $taskname .= '&nbsp;&nbsp;&nbsp;<span class="badge badge-secondary">Non-Executable</span>';
-            }
+            $mform->addElement('header', "{$taskprefix}_header", $task->name);
 
-            $mform->addElement('header', "{$taskprefix}_header", $taskname);
-
-            // Task execution info
-            $execinfo = '<div class="alert alert-info" style="margin: 10px 0;">';
-            $execinfo .= '<strong>Execution Type:</strong> ';
-            if (!empty($task->userExecutable)) {
-                $execinfo .= 'This task can be executed by users during the lab.';
-            } else {
-                $execinfo .= 'This task cannot be executed by users (auto-graded or system task).';
-            }
-            if (!empty($task->triggerCondition)) {
-                $execinfo .= ' <br><strong>Trigger:</strong> ' . s($task->triggerCondition);
-            }
-            $execinfo .= '</div>';
-            $mform->addElement('html', $execinfo);
-
-            // HTML display of description.
-            if (!empty($task->description)) {
-                $mform->addElement('html', '<div><strong>Description</strong><pre>' . s($task->description) . '</pre></div>');
-            }
-
-            if (!empty($task->id)) {
-                $mform->addElement('html', '<div><strong>Task ID</strong><pre>' . s($task->id) . '</pre></div>');
-            }
-
-            if (!empty($task->scenarioTemplateId)) {
-                $mform->addElement('html', '<div><strong>Scenario Template ID</strong><pre>' . s($task->scenarioTemplateId) . '</pre></div>');
-            }
-
-            if (!empty($task->vmMask)) {
-                $mform->addElement('html', '<div><strong>VM Mask</strong><pre>' . s($task->vmMask) . '</pre></div>');
-            }
-
-            if (!empty($task->inputString)) {
-                $mform->addElement('html', '<div><strong>Input String</strong><pre>' . s($task->inputString) . '</pre></div>');
-            }
-
-            if (!empty($task->expectedOutput)) {
-                $mform->addElement('html', '<div><strong>Expected Output</strong><pre>' . s($task->expectedOutput) . '</pre></div>');
-            }
+            // Task information
+            $taskinfohtml = $renderer->render_task_info($task);
+            $mform->addElement('html', $taskinfohtml);
 
             // Hidden fields to track values.
             $mform->addElement('hidden', "{$taskprefix}_name", $task->name);
@@ -170,20 +98,21 @@ class crucible_tasks_form extends \moodleform
             $mform->addElement('hidden', "{$taskprefix}_scenariotemplateid", $task->scenarioTemplateId);
             $mform->setType("{$taskprefix}_scenariotemplateid", PARAM_ALPHANUMEXT);
 
-            // Input fields per task.
-            $mform->addElement('checkbox', "{$taskprefix}_visible", get_string('visible', 'crucible'));
-            $mform->addElement('checkbox', "{$taskprefix}_gradable", get_string('gradable', 'crucible'));
-            $mform->addElement('checkbox', "{$taskprefix}_multiple", get_string('multiple', 'crucible'));
-            $mform->addElement('html', '<div><strong>' . get_string('points', 'crucible') . '</strong></div>');
-            $mform->addElement('text', "{$taskprefix}_points", '', ['size' => '5']);
-            $mform->setType("{$taskprefix}_points", PARAM_INT);
-            $mform->disabledIf("{$taskprefix}_points", "{$taskprefix}_gradable");
+            // Input fields per task
+            $mform->addElement('checkbox', "{$taskprefix}_visible", '<strong>' . get_string('visible', 'crucible') . '</strong>');
+            $mform->addElement('checkbox', "{$taskprefix}_gradable", '<strong>' . get_string('gradable', 'crucible') . '</strong>');
+            $mform->addElement('checkbox', "{$taskprefix}_multiple", '<strong>' . get_string('multiple', 'crucible') . '</strong>');
 
-            // Help Buttons
+            // Help Buttons for checkboxes
             $mform->addHelpButton("{$taskprefix}_visible", 'visible', 'crucible');
             $mform->addHelpButton("{$taskprefix}_gradable", 'gradable', 'crucible');
             $mform->addHelpButton("{$taskprefix}_multiple", 'multiple', 'crucible');
+
+            // Points field
+            $mform->addElement('text', "{$taskprefix}_points", '<strong>' . get_string('points', 'crucible') . '</strong>', ['size' => '5']);
+            $mform->setType("{$taskprefix}_points", PARAM_INT);
             $mform->addHelpButton("{$taskprefix}_points", 'points', 'crucible');
+            $mform->disabledIf("{$taskprefix}_points", "{$taskprefix}_gradable");
 
             // Set defaults based on DB record.
             $rec = $DB->get_record_sql(
