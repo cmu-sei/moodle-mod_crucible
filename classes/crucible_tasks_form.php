@@ -42,8 +42,8 @@ namespace mod_crucible;
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->dirroot.'/course/moodleform_mod.php');
-require_once($CFG->dirroot.'/mod/crucible/locallib.php');
+require_once($CFG->dirroot . '/course/moodleform_mod.php');
+require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 
 /**
  * Form class for configuring Crucible tasks in a Moodle module instance.
@@ -52,47 +52,110 @@ require_once($CFG->dirroot.'/mod/crucible/locallib.php');
  * @copyright  2020 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class crucible_tasks_form extends \moodleform {
+class crucible_tasks_form extends \moodleform
+{
 
     /**
      * Defines the form fields for configuring Crucible tasks.
      */
-    public function definition() {
+    public function definition()
+    {
         global $COURSE, $CFG, $DB, $PAGE;
         $mform = $this->_form;
         $index = 0;
         $mform->addElement('hidden', 'id', $this->_customdata['cm']->id);
         $mform->setType("id", PARAM_INT);
 
+        // Add filter section at the top
+        $mform->addElement('header', 'filter_header', get_string('filtertasks', 'crucible'));
+
+        $currentfilter = isset($this->_customdata['filter']) ? $this->_customdata['filter'] : 'all';
+        $cmid = $this->_customdata['cm']->id;
+
+        $filterhtml = '<div style="margin-bottom: 20px;">';
+        $filterhtml .= '<div class="btn-group" role="group" aria-label="Task filter">';
+
+        $allclass = ($currentfilter === 'all') ? 'btn-primary' : 'btn-secondary';
+        $execclass = ($currentfilter === 'executable') ? 'btn-primary' : 'btn-secondary';
+        $nonexecclass = ($currentfilter === 'nonexecutable') ? 'btn-primary' : 'btn-secondary';
+
+        $filterhtml .= '<a href="?id=' . $cmid . '&filter=all" class="btn ' . $allclass . '">' .
+            get_string('showall', 'crucible') . '</a>';
+        $filterhtml .= '<a href="?id=' . $cmid . '&filter=executable" class="btn ' . $execclass . '">' .
+            get_string('userexecutableonly', 'crucible') . '</a>';
+        $filterhtml .= '<a href="?id=' . $cmid . '&filter=nonexecutable" class="btn ' . $nonexecclass . '">' .
+            get_string('nonexecutableonly', 'crucible') . '</a>';
+        $filterhtml .= '</div>';
+
+        // Add task count info
+        if (isset($this->_customdata['totaltasks']) && isset($this->_customdata['filteredcount'])) {
+            $total = $this->_customdata['totaltasks'];
+            $filtered = $this->_customdata['filteredcount'];
+
+            if ($currentfilter !== 'all' && $filtered < $total) {
+                $filterhtml .= '<div class="alert alert-info mt-2">';
+                $filterhtml .= 'Showing ' . $filtered . ' of ' . $total . ' tasks';
+                $filterhtml .= '</div>';
+            } else {
+                $filterhtml .= '<div class="mt-2"><small>Total tasks: ' . $total . '</small></div>';
+            }
+        }
+
+        $filterhtml .= '</div>';
+
+        $mform->addElement('html', $filterhtml);
+
         foreach ($this->_customdata['tasks'] as $task) {
             $taskprefix = "task_$index";
 
-            $mform->addElement('header', "{$taskprefix}_header", $task->name);
+            // Add badge to task name
+            $taskname = $task->name;
+            if (!empty($task->userExecutable)) {
+                $taskname .= '&nbsp;&nbsp;&nbsp;<span class="badge badge-success">User Executable</span>';
+            } else {
+                $taskname .= '&nbsp;&nbsp;&nbsp;<span class="badge badge-secondary">Non-Executable</span>';
+            }
+
+            $mform->addElement('header', "{$taskprefix}_header", $taskname);
+
+            // Task execution info
+            $execinfo = '<div class="alert alert-info" style="margin: 10px 0;">';
+            $execinfo .= '<strong>Execution Type:</strong> ';
+            if (!empty($task->userExecutable)) {
+                $execinfo .= 'This task can be executed by users during the lab.';
+            } else {
+                $execinfo .= 'This task cannot be executed by users (auto-graded or system task).';
+            }
+            if (!empty($task->triggerCondition)) {
+                $execinfo .= ' <br><strong>Trigger:</strong> ' . s($task->triggerCondition);
+            }
+            $execinfo .= '</div>';
+            $mform->addElement('html', $execinfo);
 
             // HTML display of description.
             if (!empty($task->description)) {
                 $mform->addElement('html', '<div><strong>Description</strong><pre>' . s($task->description) . '</pre></div>');
             }
-            
+
             if (!empty($task->id)) {
                 $mform->addElement('html', '<div><strong>Task ID</strong><pre>' . s($task->id) . '</pre></div>');
             }
-            
+
             if (!empty($task->scenarioTemplateId)) {
                 $mform->addElement('html', '<div><strong>Scenario Template ID</strong><pre>' . s($task->scenarioTemplateId) . '</pre></div>');
-            }            
-            
+            }
+
             if (!empty($task->vmMask)) {
                 $mform->addElement('html', '<div><strong>VM Mask</strong><pre>' . s($task->vmMask) . '</pre></div>');
             }
-            
+
             if (!empty($task->inputString)) {
                 $mform->addElement('html', '<div><strong>Input String</strong><pre>' . s($task->inputString) . '</pre></div>');
             }
-            
+
             if (!empty($task->expectedOutput)) {
                 $mform->addElement('html', '<div><strong>Expected Output</strong><pre>' . s($task->expectedOutput) . '</pre></div>');
-            }            
+            }
 
             // Hidden fields to track values.
             $mform->addElement('hidden', "{$taskprefix}_name", $task->name);
@@ -143,7 +206,6 @@ class crucible_tasks_form extends \moodleform {
             $index++;
         }
         $this->add_action_buttons();
-
     }
 
     /**
@@ -153,9 +215,9 @@ class crucible_tasks_form extends \moodleform {
      * @param array $files Submitted files.
      * @return array An array of error messages, or an empty array if none.
      */
-    public function validation($data, $files) {
+    public function validation($data, $files)
+    {
         $errors = parent::validation($data, $files);
-
     }
 
     /**
@@ -163,21 +225,17 @@ class crucible_tasks_form extends \moodleform {
      *
      * @param array $data The form data to preprocess.
      */
-    public function data_preprocessing(&$data) {
-
-    }
+    public function data_preprocessing(&$data) {}
 
     /**
      * Processes form data after it has been submitted.
      *
      * @param array $data The submitted form data to postprocess.
      */
-    public function data_postprocessing(&$data) {
+    public function data_postprocessing(&$data)
+    {
         // TODO save tasks to the db.
 
         // TODO if grade method changed, update all grades.
     }
-
-
 }
-

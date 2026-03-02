@@ -104,17 +104,66 @@ if (is_null($tasks)) {
     $tasks = get_scenariotemplatetasks($object->systemauth, $scenariotemplateid);
 }
 
+// Get filter parameter
+$filter = optional_param('filter', 'all', PARAM_ALPHA);
+
 if (!empty($tasks) && is_array($tasks)) {
     usort($tasks, "tasksort");
 
-    $mform = new \mod_crucible\crucible_tasks_form(null, ['tasks' => $tasks, 'cm' => $cm]);
+    // Store original count
+    $totaltasks = count($tasks);
+
+    // Apply filter
+    if ($filter === 'executable') {
+        $tasks = array_filter($tasks, function($task) {
+            return !empty($task->userExecutable);
+        });
+    } else if ($filter === 'nonexecutable') {
+        $tasks = array_filter($tasks, function($task) {
+            return empty($task->userExecutable);
+        });
+    }
+
+    $filteredcount = count($tasks);
+
+    // Check if filtering resulted in empty task list
+    if (empty($tasks)) {
+        $filtername = '';
+        if ($filter === 'executable') {
+            $filtername = get_string('userexecutableonly', 'crucible');
+        } else if ($filter === 'nonexecutable') {
+            $filtername = get_string('nonexecutableonly', 'crucible');
+        }
+
+        echo '<div class="alert alert-info">';
+        echo 'No tasks found with the current filter' . ($filtername ? ': <strong>' . $filtername . '</strong>' : '');
+        echo '<br><a href="?id=' . $cm->id . '&filter=all" class="btn btn-primary">' .
+             get_string('showall', 'crucible') . '</a>';
+        echo '</div>';
+
+        echo $renderer->footer();
+        exit;
+    }
+
+    $mform = new \mod_crucible\crucible_tasks_form(null, [
+        'tasks' => $tasks,
+        'cm' => $cm,
+        'filter' => $filter,
+        'totaltasks' => $totaltasks,
+        'filteredcount' => $filteredcount
+    ]);
 
     // Form processing and displaying is done here.
     if ($mform->is_cancelled()) {
         redirect(new moodle_url('/mod/crucible/view.php', ["id" => $id]));
-    } 
+    }
     $fromform = $mform->get_data();
     if ($fromform) {
+        // Store filter for redirect
+        $redirectparams = ["id" => $id];
+        if ($filter !== 'all') {
+            $redirectparams['filter'] = $filter;
+        }
         $index = 0;
         foreach ($tasks as $task) {
             $taskprefix = "task_$index";
