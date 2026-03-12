@@ -539,4 +539,76 @@ class mod_crucible_renderer extends plugin_renderer_base {
 
         echo $this->render_from_template('mod_crucible/clock', $data);
     }
+
+    /**
+     * Renders task filter buttons using a Mustache template.
+     *
+     * @param int $cmid The course module ID.
+     * @param string $currentfilter The currently active filter ('all', 'executable', 'nonexecutable').
+     * @param int $totaltasks Total number of tasks.
+     * @param int $filteredcount Number of tasks after filtering.
+     * @return string Rendered HTML.
+     */
+    public function render_task_filter($cmid, $currentfilter, $totaltasks, $filteredcount) {
+        $data = new stdClass();
+        $data->title = get_string('filtertasks', 'crucible');
+        $data->cmid = $cmid;
+        $data->allurl = (new moodle_url('', ['id' => $cmid, 'filter' => 'all']))->out(false);
+        $data->executableurl = (new moodle_url('', ['id' => $cmid, 'filter' => 'executable']))->out(false);
+        $data->nonexecutableurl = (new moodle_url('', ['id' => $cmid, 'filter' => 'nonexecutable']))->out(false);
+        $data->allactive = ($currentfilter === 'all');
+        $data->executableactive = ($currentfilter === 'executable');
+        $data->nonexecutableactive = ($currentfilter === 'nonexecutable');
+        $data->showall = get_string('showall', 'crucible');
+        $data->userexecutableonly = get_string('userexecutableonly', 'crucible');
+        $data->nonexecutableonly = get_string('nonexecutableonly', 'crucible');
+        $data->showfilterinfo = ($currentfilter !== 'all' && $filteredcount < $totaltasks);
+        $data->totaltasks = $totaltasks;
+        $data->filteredcount = $filteredcount;
+
+        return $this->render_from_template('mod_crucible/task_filter', $data);
+    }
+
+    /**
+     * Renders task information display using a Mustache template.
+     *
+     * @param object $task The task object with properties to display.
+     * @return string Rendered HTML.
+     */
+    public function render_task_info($task) {
+        $data = new stdClass();
+
+        // Execution type information
+        if (!empty($task->userExecutable)) {
+            $data->executiontype = 'This task can be executed by users during the lab.';
+        } else {
+            $data->executiontype = 'This task cannot be executed by users (auto-graded or system task).';
+        }
+
+        if (!empty($task->triggerCondition)) {
+            $data->executiontype .= '<br>Trigger: ' . s($task->triggerCondition);
+        }
+
+        // Task properties
+        if (!empty($task->description)) {
+            $data->description = s($task->description);
+        }
+        if (!empty($task->id)) {
+            $data->taskid = s($task->id);
+        }
+        if (!empty($task->scenarioTemplateId)) {
+            $data->scenariotemplateid = s($task->scenarioTemplateId);
+        }
+        if (!empty($task->vmMask)) {
+            $data->vmmask = s($task->vmMask);
+        }
+        if (!empty($task->inputString)) {
+            $data->inputstring = s($task->inputString);
+        }
+        if (!empty($task->expectedOutput)) {
+            $data->expectedoutput = s($task->expectedOutput);
+        }
+
+        return $this->render_from_template('mod_crucible/task_info', $data);
+    }
 }

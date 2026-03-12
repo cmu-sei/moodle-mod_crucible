@@ -42,7 +42,7 @@ DM20-0196
 defined('MOODLE_INTERNAL') || die();
 
 // This is the version of the plugin.
-$plugin->version = 2026022000;
+$plugin->version = 2026030104;
 
 // This is the version of Moodle this plugin requires.
 $plugin->requires = 2025041400;
@@ -51,8 +51,7 @@ $plugin->requires = 2025041400;
 $plugin->component = 'mod_crucible';
 
 // This is a list of plugins, this plugin depends on (and their versions).
-$plugin->dependencies = [
-];
+$plugin->dependencies = [];
 
 // This is a stable release.
 // $plugin->maturity = MATURITY_STABLE;

@@ -52,7 +52,7 @@ $string['alloyapiurl'] = 'Alloy API Base URL';
 $string['vmapp'] = 'Display Mode';
 $string['vmappurl'] = 'VM App Base URL';
 $string['playerappurl'] = 'Player Base URL';
-$string['steamfitterapiurl'] = 'SteamFitter API URL';
+$string['steamfitterapiurl'] = 'Steamfitter API URL';
 $string['issuerid'] = 'OAUTH2 Issuer';
 $string['autocomplete'] = 'Event Template Selection Method';
 $string['eventtemplate'] = 'Event Template';
@@ -60,10 +60,10 @@ $string['selectname'] = 'Search for an Event Template by name';
 $string['showfailed'] = 'Show Failed';
 
 $string['configissuerid'] = 'This is the integer value for the issuer.';
-$string['configvmapp'] = 'This determines whether the VM app is emebedd or whether a link to player is displayed';
+$string['configvmapp'] = 'This determines whether the VM app is embedded or whether a link to player is displayed.';
 $string['configvmappurl'] = 'Base URL for VM app instance without trailing /.';
 $string['configplayerappurl'] = 'Base URL for Player instance without trailing /.';
-$string['configsteamfitterapiurl'] = 'Base URL for SteamFitter API instance without trailing /.';
+$string['configsteamfitterapiurl'] = 'Base URL for Steamfitter API instance without trailing /.';
 $string['configalloyapiurl'] = 'Base URL for Alloy API instance without trailing /.';
 $string['configeventtemplate'] = 'Event Template GUID to be launched.';
 $string['configautocomplete'] = 'Display list of Event Templates in a dropdown or a searchable text box.';
@@ -175,3 +175,9 @@ $string['notasksavailable'] = 'There are no tasks available for this activity.';
 $string['backtocruclanding'] = 'Back to Activity View';
 $string['start_attempt_confirm'] = 'Are you sure you want to launch the lab?';
 $string['stop_attempt_confirm'] = 'Are you sure you want to end the lab?';
+
+// Task filtering
+$string['filtertasks'] = 'Filter Tasks';
+$string['showall'] = 'Show All';
+$string['userexecutableonly'] = 'User Executable Only';
+$string['nonexecutableonly'] = 'Non-Executable Only';

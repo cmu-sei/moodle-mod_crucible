@@ -73,6 +73,7 @@ DM20-0196
            style="position: absolute; left: -9999px;">
 
     <button id="copy_invite" type="button" class="btn btn-primary" style="display:none;">
+        <i class="icon fa fa-copy fa-fw" aria-hidden="true"></i>
         Copy Invitation Link
     </button>
   {{/code}}
@@ -102,33 +103,8 @@ DM20-0196
 </form>
 {{/activeattempts}}
 
-<script type="text/javascript">
-  document.addEventListener('DOMContentLoaded', function () {
-      const launchBtn = document.getElementById('launch_button');
-      const endBtn = document.getElementById('end_button');
-      const startConfirm = document.getElementById('start_confirmed');
-      const stopConfirm = document.getElementById('stop_confirmed');
-
-      if (launchBtn) {
-          launchBtn.addEventListener('click', function (e) {
-              const confirmed = confirm("{{#str}} start_attempt_confirm, mod_crucible {{/str}}");
-              if (!confirmed) {
-                  e.preventDefault();
-              } else {
-                  startConfirm.value = "yes";
-              }
-          });
-      }
-
-      if (endBtn) {
-          endBtn.addEventListener('click', function (e) {
-              const confirmed = confirm("{{#str}} stop_attempt_confirm, mod_crucible {{/str}}");
-              if (!confirmed) {
-                  e.preventDefault();
-              } else {
-                  stopConfirm.value = "yes";
-              }
-          });
-      }
-  });
-</script>
+{{#js}}
+require(['mod_crucible/formconfirm'], function(FormConfirm) {
+    FormConfirm.init();
+});
+{{/js}}
