@@ -66,14 +66,28 @@ class restore_crucible_activity_structure_step extends restore_activity_structur
                 'Please contact your administrator.');
         }
 
-        // TODO: Optionally validate that event template exists in Alloy
-        // Uncomment if you want to check Alloy API during restore:
-        // require_once($CFG->dirroot . '/mod/crucible/locallib.php');
-        // if (!crucible_validate_eventtemplate($data->eventtemplateid)) {
-        //     throw new restore_step_exception('crucible_invalid_eventtemplateid',
-        //         'Event template ' . $data->eventtemplateid . ' not found in Alloy. ' .
-        //         'Please import the template or select a different one.');
-        // }
+        // Validate that event template exists in Alloy (warning only, doesn't block restore)
+        require_once($CFG->dirroot . '/mod/crucible/locallib.php');
+
+        $alloyapiurl = get_config('mod_crucible', 'alloyapiurl');
+        if (empty($alloyapiurl)) {
+            // Alloy not configured - warn but allow restore
+            $this->log(
+                'Alloy API not configured. Cannot verify event template ' . $data->eventtemplateid . ' exists.',
+                backup::LOG_WARNING
+            );
+        } else {
+            // Alloy configured - check if template exists
+            $templateexists = crucible_validate_eventtemplate($data->eventtemplateid);
+            if (!$templateexists) {
+                // Template not found - warn but allow restore
+                $this->log(
+                    'Event template ' . $data->eventtemplateid . ' not found in Alloy. ' .
+                    'The activity was restored but may not work until the template is imported.',
+                    backup::LOG_WARNING
+                );
+            }
+        }
 
         // Insert the Crucible record into the database.
         $newitemid = $DB->insert_record('crucible', $data);
