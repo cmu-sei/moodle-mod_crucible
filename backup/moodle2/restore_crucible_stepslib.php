@@ -70,7 +70,7 @@ class restore_crucible_activity_structure_step extends restore_activity_structur
         global $CFG;
         require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 
-        $alloyapiurl = get_config('mod_crucible', 'alloyapiurl');
+        $alloyapiurl = get_config('crucible', 'alloyapiurl');
         if (empty($alloyapiurl)) {
             // Alloy not configured - warn but allow restore
             $this->log(

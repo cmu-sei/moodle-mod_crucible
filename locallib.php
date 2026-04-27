@@ -1021,7 +1021,7 @@ function crucible_validate_eventtemplate($eventtemplateid) {
             return false; // Can't validate, assume it exists to avoid blocking restore
         }
 
-        $apiurl = get_config('mod_crucible', 'alloyapiurl');
+        $apiurl = get_config('crucible', 'alloyapiurl');
         if (empty($apiurl)) {
             debugging('Alloy API URL not configured', DEBUG_DEVELOPER);
             return false;
