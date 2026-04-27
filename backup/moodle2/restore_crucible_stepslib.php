@@ -67,6 +67,7 @@ class restore_crucible_activity_structure_step extends restore_activity_structur
         }
 
         // Validate that event template exists in Alloy (warning only, doesn't block restore)
+        global $CFG;
         require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 
         $alloyapiurl = get_config('mod_crucible', 'alloyapiurl');
