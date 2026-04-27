@@ -1015,7 +1015,7 @@ function crucible_validate_eventtemplate($eventtemplateid) {
     }
 
     try {
-        $client = crucible_get_alloy_authorized_api_client();
+        $client = setup_system();
         if (!$client) {
             debugging('Could not initialize Alloy API client for template validation', DEBUG_DEVELOPER);
             return false; // Can't validate, assume it exists to avoid blocking restore
