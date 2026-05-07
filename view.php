@@ -273,7 +273,7 @@ echo $renderer->header();
 
 $license_info = null;
 
-if ($crucible->showcontentlicense) {
+if (!empty($crucible->showcontentlicense)) {
     $license_id = $crucible->contentlicense;
     $license_info = license_manager::get_license_by_shortname($license_id);
 }
@@ -301,7 +301,7 @@ $renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attempti
 if ($object->event) {
 
     $extend = false;
-    if ($object->systemauth && $crucible->extendevent) {
+    if ($object->systemauth && !empty($crucible->extendevent)) {
         $extend = true;
     }
 
