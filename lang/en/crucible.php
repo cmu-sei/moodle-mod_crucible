@@ -59,7 +59,7 @@ $string['eventtemplate'] = 'Event Template';
 $string['selectname'] = 'Search for an Event Template by name';
 $string['showfailed'] = 'Show Failed';
 
-$string['configissuerid'] = 'This is the integer value for the issuer.';
+$string['configissuerid'] = 'OAuth2 issuer for authentication with Alloy API. The issuer must be configured in Site administration > Server > OAuth 2 services.';
 $string['configvmapp'] = 'This determines whether the VM app is embedded or whether a link to player is displayed.';
 $string['configvmappurl'] = 'Base URL for VM app instance without trailing /.';
 $string['configplayerappurl'] = 'Base URL for Player instance without trailing /.';
