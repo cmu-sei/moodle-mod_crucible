@@ -301,7 +301,7 @@ $renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attempti
 if ($object->event) {
 
     $extend = false;
-    if ($object->systemauth && !empty($crucible->extendevent)) {
+    if ($object->userauth && !empty($crucible->extendevent)) {
         $extend = true;
     }
 
