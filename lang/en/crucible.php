@@ -48,7 +48,8 @@ $string['modulenameplural'] = 'Crucibles';
 $string['pluginname'] = 'Crucible';
 
 // Plugin settings.
-$string['alloyapiurl'] = 'Alloy API Base URL';
+$string['alloyapiurl'] = 'Alloy API Base URL (Server)';
+$string['alloyapiclienturl'] = 'Alloy API Base URL (Browser)';
 $string['vmapp'] = 'Display Mode';
 $string['vmappurl'] = 'VM App Base URL';
 $string['playerappurl'] = 'Player Base URL';
@@ -64,7 +65,8 @@ $string['configvmapp'] = 'This determines whether the VM app is embedded or whet
 $string['configvmappurl'] = 'Base URL for VM app instance without trailing /.';
 $string['configplayerappurl'] = 'Base URL for Player instance without trailing /.';
 $string['configsteamfitterapiurl'] = 'Base URL for Steamfitter API instance without trailing /.';
-$string['configalloyapiurl'] = 'Base URL for Alloy API instance without trailing /.';
+$string['configalloyapiurl'] = 'Base URL for Alloy API used by server-side PHP (e.g., http://host.docker.internal:4402/api). Without trailing /.';
+$string['configalloyapiclienturl'] = 'Base URL for Alloy API used by browser JavaScript (e.g., http://localhost:4402/api). Without trailing /. Leave empty to use same as server URL.';
 $string['configeventtemplate'] = 'Event Template GUID to be launched.';
 $string['configautocomplete'] = 'Display list of Event Templates in a dropdown or a searchable text box.';
 $string['configshowfailed'] = 'Show failed Events in the history table.';

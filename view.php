@@ -354,13 +354,18 @@ if ($object->event && $object->event->status === 'Active') {
 
 $PAGE->requires->js_call_amd('mod_crucible/view', 'init');
 
+$alloyapiclienturl = get_config('crucible', 'alloyapiclienturl');
+if (empty($alloyapiclienturl)) {
+    $alloyapiclienturl = $alloyapiurl;
+}
+
 $accesstoken = get_token($object->userauth);
 $configdata = [
     'token' => $accesstoken,
     'state' => $status,
     'event' => $eventid,
     'view' => $viewid,
-    'alloy_api_url' => $alloyapiurl,
+    'alloy_api_url' => $alloyapiclienturl,
     'vm_app_url' => $vmappurl,
     'player_app_url' => $playerappurl,
 ];
