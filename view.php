@@ -295,9 +295,6 @@ if ($object->openattempt && $object->openattempt->userid == $USER->id) {
     }
 }
 
-// TODO if user is in two attempts, ask which attempt they want to be in, and redirect them to a url with that attempt
-$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode);
-
 if ($object->event) {
 
     $extend = false;
@@ -318,6 +315,9 @@ if ($object->event) {
 } else if ($showgrade) {
     $renderer->display_grade($crucible);
 }
+
+// TODO if user is in two attempts, ask which attempt they want to be in, and redirect them to a url with that attempt
+$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode);
 
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 
