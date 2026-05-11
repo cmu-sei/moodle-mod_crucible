@@ -57,7 +57,7 @@ if (!confirm_sesskey()) {
 
 $response = [];
 
-$client = setup();
+$client = setup_system();
 $event = get_event($client, $id);
 if (!$event) {
     header('HTTP/1.1 500 Error');
