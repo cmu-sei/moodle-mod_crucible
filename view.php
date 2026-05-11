@@ -273,7 +273,7 @@ echo $renderer->header();
 
 $license_info = null;
 
-if ($crucible->showcontentlicense) {
+if (!empty($crucible->showcontentlicense)) {
     $license_id = $crucible->contentlicense;
     $license_info = license_manager::get_license_by_shortname($license_id);
 }
@@ -295,13 +295,10 @@ if ($object->openattempt && $object->openattempt->userid == $USER->id) {
     }
 }
 
-// TODO if user is in two attempts, ask which attempt they want to be in, and redirect them to a url with that attempt
-$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode);
-
 if ($object->event) {
 
     $extend = false;
-    if ($object->systemauth && $crucible->extendevent) {
+    if ($object->userauth && !empty($crucible->extendevent)) {
         $extend = true;
     }
 
@@ -318,6 +315,9 @@ if ($object->event) {
 } else if ($showgrade) {
     $renderer->display_grade($crucible);
 }
+
+// TODO if user is in two attempts, ask which attempt they want to be in, and redirect them to a url with that attempt
+$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode);
 
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 
@@ -354,13 +354,18 @@ if ($object->event && $object->event->status === 'Active') {
 
 $PAGE->requires->js_call_amd('mod_crucible/view', 'init');
 
+$alloyapiclienturl = get_config('crucible', 'alloyapiclienturl');
+if (empty($alloyapiclienturl)) {
+    $alloyapiclienturl = $alloyapiurl;
+}
+
 $accesstoken = get_token($object->userauth);
 $configdata = [
     'token' => $accesstoken,
     'state' => $status,
     'event' => $eventid,
     'view' => $viewid,
-    'alloy_api_url' => $alloyapiurl,
+    'alloy_api_url' => $alloyapiclienturl,
     'vm_app_url' => $vmappurl,
     'player_app_url' => $playerappurl,
 ];
