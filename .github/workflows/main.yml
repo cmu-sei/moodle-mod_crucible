@@ -77,7 +77,11 @@ jobs:
 
       - name: Package plugin
         run: |
-          zip -r mod_crucible_${{ steps.get_version.outputs.version }}.zip . -x "*.git*"
+          mkdir -p /tmp/package
+          rsync -av --exclude='.git*' --exclude='vendor/' --exclude='node_modules/' ./ /tmp/package/crucible/
+          cd /tmp/package
+          zip -r mod_crucible_${{ steps.get_version.outputs.version }}.zip crucible/
+          mv mod_crucible_${{ steps.get_version.outputs.version }}.zip $GITHUB_WORKSPACE/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
