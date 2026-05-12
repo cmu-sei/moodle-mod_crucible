@@ -72,7 +72,6 @@ $scenario = get_scenario($system, $id);
 
 $data = [];
 foreach ($tasks as $task) {
-
     if ($task->userExecutable) {
         $object = new stdClass();
         // $object->statusDate = $result->statusDate;
@@ -86,7 +85,8 @@ foreach ($tasks as $task) {
 
 header('HTTP/1.1 200 OK');
 $response['parsed'] = $data;
-$response['score'] = get_string("attemptscore", "crucible") . "$scenario->scoreEarned / $scenario->score";;
+$response['score'] = get_string("attemptscore", "crucible") . "$scenario->scoreEarned / $scenario->score";
+;
 $response['message'] = "success";
 
 $response['id'] = $id;

@@ -40,7 +40,7 @@ DM20-0196
 
 use mod_crucible\crucible;
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/crucible/view.php', ['id' => $cm->id]);
+$url = new moodle_url('/mod/crucible/view.php', ['id' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -96,7 +96,7 @@ if (!empty($code)) {
     if (!$enlisted) {
         throw new moodle_exception('enlisterror', 'crucible');
     }
-    //$object->event = get_event($object->userauth, $enlisted->id);
+    // $object->event = get_event($object->userauth, $enlisted->id);
     debugging("user joined event " . $enlisted->id . " owned by " . $enlisted->username, DEBUG_DEVELOPER);
 }
 
@@ -296,7 +296,6 @@ if ($object->openattempt && $object->openattempt->userid == $USER->id) {
 }
 
 if ($object->event) {
-
     $extend = false;
     if ($object->systemauth && !empty($crucible->extendevent)) {
         $extend = true;

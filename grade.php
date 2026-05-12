@@ -50,9 +50,6 @@ $itemnumber = optional_param('itemnumber', 0, PARAM_INT);
 $userid = optional_param('userid', 0, PARAM_INT);
 
 // In the simplest case just redirect to the view page.
-redirect('view.php?id='.$id);
+redirect('view.php?id=' . $id);
 
 // TODO redirect instructors to a grade review page.
-
-
-

@@ -72,5 +72,3 @@ $capabilities = [
         ],
     ],
 ];
-
-

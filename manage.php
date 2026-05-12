@@ -40,7 +40,7 @@ DM20-0196
 
 use mod_crucible\crucible;
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_login();
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
@@ -58,7 +58,7 @@ $context = context_course::instance($course->id);
 require_capability('mod/crucible:manage', $context);
 
 // Print the page header.
-$url = new moodle_url ('/mod/crucible/manage.php');
+$url = new moodle_url('/mod/crucible/manage.php');
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -86,5 +86,3 @@ $attempts = getall_course_attempts($course->id);
 echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true, $showdetail = true);
 
 echo $renderer->footer();
-
-
