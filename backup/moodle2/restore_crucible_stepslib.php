@@ -58,6 +58,38 @@ class restore_crucible_activity_structure_step extends restore_activity_structur
         $oldid = $data->id;
         $data->course = $this->get_courseid();
 
+        // Validate required fields
+        if (empty($data->eventtemplateid)) {
+            throw new restore_step_exception('crucible_missing_eventtemplateid',
+                'This backup is missing the event template ID. ' .
+                'The activity cannot be restored without selecting an Alloy event template. ' .
+                'Please contact your administrator.');
+        }
+
+        // Validate that event template exists in Alloy (warning only, doesn't block restore)
+        global $CFG;
+        require_once($CFG->dirroot . '/mod/crucible/locallib.php');
+
+        $alloyapiurl = get_config('crucible', 'alloyapiurl');
+        if (empty($alloyapiurl)) {
+            // Alloy not configured - warn but allow restore
+            $this->log(
+                'Alloy API not configured. Cannot verify event template ' . $data->eventtemplateid . ' exists.',
+                backup::LOG_WARNING
+            );
+        } else {
+            // Alloy configured - check if template exists
+            $templateexists = crucible_validate_eventtemplate($data->eventtemplateid);
+            if (!$templateexists) {
+                // Template not found - warn but allow restore
+                $this->log(
+                    'Event template ' . $data->eventtemplateid . ' not found in Alloy. ' .
+                    'The activity was restored but may not work until the template is imported.',
+                    backup::LOG_WARNING
+                );
+            }
+        }
+
         // Insert the Crucible record into the database.
         $newitemid = $DB->insert_record('crucible', $data);
 

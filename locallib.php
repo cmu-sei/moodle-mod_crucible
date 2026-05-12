@@ -1002,3 +1002,50 @@ function ensure_added_to_event_attempts($events) {
         }
     }
 }
+
+/**
+ * Validate that an event template exists in Alloy
+ *
+ * @param string $eventtemplateid The event template GUID
+ * @return bool True if template exists, false otherwise
+ */
+function crucible_validate_eventtemplate($eventtemplateid) {
+    if (empty($eventtemplateid)) {
+        return false;
+    }
+
+    try {
+        $client = setup_system();
+        if (!$client) {
+            debugging('Could not initialize Alloy API client for template validation', DEBUG_DEVELOPER);
+            return false; // Can't validate, assume it exists to avoid blocking restore
+        }
+
+        $apiurl = get_config('crucible', 'alloyapiurl');
+        if (empty($apiurl)) {
+            debugging('Alloy API URL not configured', DEBUG_DEVELOPER);
+            return false;
+        }
+
+        $url = rtrim($apiurl, '/') . '/event-templates/' . $eventtemplateid;
+        $response = $client->get($url);
+
+        // If we get a 200 response, template exists
+        if ($client->info['http_code'] === 200) {
+            return true;
+        }
+
+        // 404 means template not found
+        if ($client->info['http_code'] === 404) {
+            return false;
+        }
+
+        // Other errors - log but don't block
+        debugging('Unexpected response validating template: HTTP ' . $client->info['http_code'], DEBUG_DEVELOPER);
+        return false;
+
+    } catch (Exception $e) {
+        debugging('Exception validating event template: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        return false; // Assume exists to avoid blocking restore
+    }
+}

@@ -298,7 +298,7 @@ if ($object->openattempt && $object->openattempt->userid == $USER->id) {
 if ($object->event) {
 
     $extend = false;
-    if ($object->userauth && !empty($crucible->extendevent)) {
+    if ($object->systemauth && !empty($crucible->extendevent)) {
         $extend = true;
     }
 
