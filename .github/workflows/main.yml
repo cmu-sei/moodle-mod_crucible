@@ -33,15 +33,15 @@ jobs:
               echo "Version already updated in PR"
               exit 0
           fi
-          OLDDATE=$(echo $PREVIOUSVERSION | cut -b 1-8\`
-          NEWDATE=$(date +%Y%m%d\`
+          OLDDATE=$(echo $PREVIOUSVERSION | cut -b 1-8)
+          NEWDATE=$(date +%Y%m%d)
           if [ $OLDDATE -ne $NEWDATE ]; then
               NEWVERSION=$NEWDATE\00
           else
-              OLDVERS=$(echo $PREVIOUSVERSION | cut -b 9-10\`
+              OLDVERS=$(echo $PREVIOUSVERSION | cut -b 9-10)
               OLDVERS=${OLDVERS#0}
               let NEWVERS=(OLDVERS + 1)
-              NEWVERSION=$OLDDATE$(printf %02d $NEWVERS\`
+              NEWVERSION=$OLDDATE$(printf %02d $NEWVERS)
           fi
           sed -i "s#\(plugin->version.*\)$PREVIOUSVERSION#\1$NEWVERSION#" version.php
           echo "FILESCHANGED=TRUE" >> $GITHUB_ENV
