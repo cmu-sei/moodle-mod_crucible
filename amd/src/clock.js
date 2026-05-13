@@ -30,6 +30,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             var button = document.getElementById('extend-event');
             if (button) {
+                button.setAttribute('data-original-text', button.innerHTML);
                 button.onclick = function() {
                     extend_event();
                 };
@@ -105,6 +106,12 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
     };
 
     function extend_event() {
+        var button = document.getElementById('extend-event');
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = 'Extending...';
+        }
+
         $.ajax({
             url: config.wwwroot + '/mod/crucible/extendevent.php',
             type: 'POST',
@@ -119,13 +126,29 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             success: function(result) {
                 console.log('extended lab');
                 console.log(result);
-                window.location.replace(window.location.href);
+                if (result.message === 'success') {
+                    window.location.replace(window.location.href);
+                } else {
+                    alert('Extend failed: ' + (result.message || 'Unknown error'));
+                    if (button) {
+                        button.disabled = false;
+                        button.innerHTML = button.getAttribute('data-original-text');
+                    }
+                }
             },
             error: function(request) {
                 console.log("extend-event request failed");
-                alert('extend-event request failed');
+                var errorMsg = 'Failed to extend lab. Please try again.';
+                if (request.responseJSON && request.responseJSON.message) {
+                    errorMsg = request.responseJSON.message;
+                }
+                alert(errorMsg);
                 console.log(request);
                 log.debug('moodle-mod_crucible-extend-event: ' . request);
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = button.getAttribute('data-original-text');
+                }
             }
         });
 

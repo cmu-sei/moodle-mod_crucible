@@ -215,6 +215,8 @@ define(['jquery'], function($) {
             }
             if (x.getAttribute('href')) {
                 x.setAttribute('href', player_app_url + '/view/' + view_id);
+                // Hide fullscreen button in link mode (not embed mode).
+                editStyle('enable-fullscreen', 'display', 'none');
             }
             x.style.display = 'block';
         }
