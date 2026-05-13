@@ -58,6 +58,14 @@ if (!confirm_sesskey()) {
 $response = [];
 
 $client = setup_system();
+if (!$client) {
+    header('HTTP/1.1 500 Error');
+    $response['message'] = "System OAuth account not configured. Cannot extend event.";
+    $response['id'] = $id;
+    echo json_encode($response);
+    exit;
+}
+
 $event = get_event($client, $id);
 if (!$event) {
     header('HTTP/1.1 500 Error');
