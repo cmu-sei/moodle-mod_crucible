@@ -495,6 +495,13 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
                 new moodle_url($url),
                 navigation_node::TYPE_SETTING, null, 'mod_crucible_manage', new pix_icon('i/grades', 'grades'));
         $context->add_node($node, $beforekey);
+
+        // Add Manage Deployments link
+        $url = new moodle_url('/mod/crucible/manage_deployments.php', ['id' => $PAGE->cm->id]);
+        $node = navigation_node::create(get_string('manage_deployments_pageheading', 'mod_crucible'),
+                new moodle_url($url),
+                navigation_node::TYPE_SETTING, null, 'mod_crucible_manage_deployments', new pix_icon('i/scheduled', 'deployments'));
+        $context->add_node($node, $beforekey);
     }
 
     if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {

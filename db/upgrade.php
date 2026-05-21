@@ -552,7 +552,71 @@ function xmldb_crucible_upgrade($oldversion) {
             $dbman->add_field($table, $field2);
         }
         // Savepoint.
-        upgrade_mod_savepoint(true, 2025071601, 'crucible'); 
+        upgrade_mod_savepoint(true, 2025071601, 'crucible');
+    }
+
+    if ($oldversion < 2026052102) {
+        // Define table crucible_bulkdeploy_job to be created.
+        $table = new xmldb_table('crucible_bulkdeploy_job');
+
+        // Adding fields to table crucible_bulkdeploy_job.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('crucibleid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('initiatorid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('batchsize', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '1');
+        $table->add_field('rolefilter', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('totalusers', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('status', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, 'queued');
+        $table->add_field('errormessage', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('cancelledby', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timestarted', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('timecompleted', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('timecancelled', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('scheduledfor', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+
+        // Adding keys to table crucible_bulkdeploy_job.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('crucibleid', XMLDB_KEY_FOREIGN, ['crucibleid'], 'crucible', ['id']);
+        $table->add_key('initiatorid', XMLDB_KEY_FOREIGN, ['initiatorid'], 'user', ['id']);
+
+        // Adding indexes to table crucible_bulkdeploy_job.
+        $table->add_index('status', XMLDB_INDEX_NOTUNIQUE, ['status']);
+
+        // Conditionally launch create table for crucible_bulkdeploy_job.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table crucible_bulkdeploy_user to be created.
+        $table = new xmldb_table('crucible_bulkdeploy_user');
+
+        // Adding fields to table crucible_bulkdeploy_user.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('jobid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('eventid', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('status', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, 'pending');
+        $table->add_field('errormessage', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('timestarted', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('timecompleted', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+
+        // Adding keys to table crucible_bulkdeploy_user.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('jobid', XMLDB_KEY_FOREIGN, ['jobid'], 'crucible_bulkdeploy_job', ['id']);
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+
+        // Adding indexes to table crucible_bulkdeploy_user.
+        $table->add_index('jobid-status', XMLDB_INDEX_NOTUNIQUE, ['jobid', 'status']);
+
+        // Conditionally launch create table for crucible_bulkdeploy_user.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Crucible savepoint reached.
+        upgrade_mod_savepoint(true, 2026052102, 'crucible');
     }
 
     return true;

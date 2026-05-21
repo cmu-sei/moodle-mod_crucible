@@ -57,3 +57,29 @@
 .license-info a:hover {
   text-decoration: underline; /* Underline on hover */
 }
+
+/* Manage Deployments page */
+.mod-crucible-manage-deployments {
+    margin-top: 1rem;
+}
+
+.mod-crucible-users-table {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.mod-crucible-users-table th {
+    font-weight: bold;
+    background-color: #f5f5f5;
+}
+
+.mod-crucible-status-tooltip {
+    cursor: help;
+    text-decoration: underline dotted;
+}
+
+.bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}

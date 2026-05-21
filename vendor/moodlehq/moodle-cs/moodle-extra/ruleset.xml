@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd"
+    name="moodle-strict"
+    namespace="MoodleHQ\MoodleCS\MoodleExtra">
+
+    <description>Best Practices for Moodle development beyond the core Coding Standards</description>
+
+    <!-- Extend the standard Moodle coding style -->
+    <rule ref="moodle"/>
+
+    <!--
+        Moodle contains a lot of code which pre-dates PHP 7.1 and did not support constant visibility.
+        We do not warn about these in the `moodle` standard, but we do want to detect them here with the view to warning about them in the future.
+    -->
+    <rule ref="PSR12.Properties.ConstantVisibility.NotFound">
+        <severity>5</severity>
+    </rule>
+
+    <!-- Draft rulesets -->
+
+    <!--
+        Detect issues with Unit Test dataProviders:
+        - private providers
+        - providers which do not exist
+        - providers whose name is prefixed with _test
+        - incorrect casing of dataProvider
+        - dataProviders which do not return an array or Iterable
+        - dataProviders which can be converted to a static method (PHPUnit 10 compatibility)
+    -->
+    <rule ref="moodle.PHPUnit.TestCaseProvider">
+        <properties>
+            <property name="autofixStaticProviders" value="true"/>
+        </properties>
+    </rule>
+
+    <!-- Planned changes -->
+
+    <!--
+        TODO
+
+        PER-2.0 support (https://github.com/squizlabs/PHP_CodeSniffer/issues/3793), including:
+        - Trailing commas in function parameters https://github.com/squizlabs/PHP_CodeSniffer/issues/2030
+
+    -->
+</ruleset>

@@ -108,5 +108,50 @@
         <INDEX NAME="attemptid-userid" UNIQUE="true" FIELDS="attemptid, userid"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="crucible_bulkdeploy_job" COMMENT="Bulk deployment jobs for managing mass deployments of crucible events">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="crucibleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the crucible activity id"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the course id"/>
+        <FIELD NAME="initiatorid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="userid of instructor who created the job"/>
+        <FIELD NAME="batchsize" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="number of concurrent deployments (always 1 for Crucible)"/>
+        <FIELD NAME="rolefilter" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="CSV of role IDs to filter by, null = all roles"/>
+        <FIELD NAME="totalusers" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="total number of users in this job"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="queued" SEQUENCE="false" COMMENT="Job status: queued, running, cancelling, cancelled, completed, failed"/>
+        <FIELD NAME="errormessage" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Error message if job failed"/>
+        <FIELD NAME="cancelledby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="userid who cancelled the job"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="when job was created"/>
+        <FIELD NAME="timestarted" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="when job started running"/>
+        <FIELD NAME="timecompleted" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="when job finished (completed/cancelled/failed)"/>
+        <FIELD NAME="timecancelled" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="when job was cancelled"/>
+        <FIELD NAME="scheduledfor" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Unix timestamp for scheduled deployment, null = immediate"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="crucibleid" UNIQUE="false" FIELDS="crucibleid"/>
+        <INDEX NAME="status" UNIQUE="false" FIELDS="status"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="crucible_bulkdeploy_user" COMMENT="Per-user deployment status for bulk deployment jobs">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="jobid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the bulkdeploy_job id"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the user being deployed"/>
+        <FIELD NAME="eventid" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Alloy event GUID after deployment"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="pending" SEQUENCE="false" COMMENT="Deployment status: pending, launched, ready, skipped, failed, cancelled"/>
+        <FIELD NAME="errormessage" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Error message if deployment failed"/>
+        <FIELD NAME="timestarted" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="when deployment started for this user"/>
+        <FIELD NAME="timecompleted" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="when deployment finished for this user"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="jobid" UNIQUE="false" FIELDS="jobid"/>
+        <INDEX NAME="jobid-status" UNIQUE="false" FIELDS="jobid, status"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

@@ -183,3 +183,42 @@ $string['filtertasks'] = 'Filter Tasks';
 $string['showall'] = 'Show All';
 $string['userexecutableonly'] = 'User Executable Only';
 $string['nonexecutableonly'] = 'Non-Executable Only';
+
+// Manage Deployments page
+$string['manage_deployments_pageheading'] = 'Manage Deployments';
+$string['rolefilter_all'] = 'All Roles';
+$string['select_all'] = 'Select All';
+$string['deselect_all'] = 'Deselect All';
+$string['select_all_help'] = 'Select all users in the table';
+$string['deselect_all_help'] = 'Clear all selections';
+$string['deploy_selected_now'] = 'Deploy Selected Now';
+$string['deploy_selected_help'] = 'Immediately deploy events for selected users';
+$string['schedule_selected'] = 'Schedule Selected...';
+$string['schedule_selected_help'] = 'Schedule event deployment for selected users at a future time';
+$string['cancel_selected'] = 'Cancel Selected';
+$string['cancel_selected_help'] = 'Cancel pending/queued deployments for selected users';
+$string['end_selected'] = 'End Selected';
+$string['end_selected_help'] = 'End active attempts for selected users';
+$string['no_users_selected'] = 'No users selected';
+$string['deployment_queued'] = 'Deployment queued for {$a} user(s)';
+$string['deployment_scheduled'] = 'Deployment scheduled for {$a} user(s)';
+$string['deployments_cancelled'] = 'Cancelled {$a} deployment(s)';
+$string['attempts_ended'] = 'Ended {$a} attempt(s)';
+$string['viewattempt'] = 'View Attempt';
+$string['deploy_confirm_message'] = 'Deploy events for selected users?';
+$string['scheduledfor'] = 'Scheduled time';
+$string['schedule_past_error'] = 'Scheduled time must be in the future';
+
+// Status legend - deployment statuses
+$string['status_legend_none'] = 'None: no deployment or attempt for this user.';
+$string['status_legend_scheduled'] = 'Scheduled: deployment is queued for a future time.';
+$string['status_legend_pending'] = 'Pending: deployment is queued and waiting to launch.';
+$string['status_legend_launched'] = 'Launched: deployment has started and the event is being created.';
+$string['status_legend_failed'] = 'Failed: deployment failed (hover for error).';
+$string['status_legend_cancelled'] = 'Cancelled: deployment was cancelled before completing.';
+$string['status_legend_inprogress'] = 'In Progress: the lab is active and running.';
+$string['status_legend_finished'] = 'Finished: user completed the attempt.';
+$string['status_legend_abandoned'] = 'Abandoned: user left the attempt without finishing.';
+$string['status_legend_overdue'] = 'Overdue: attempt is past its expiration time.';
+$string['status_active_at'] = 'Started: {$a}';
+$string['status_ends_at'] = 'Expires: {$a}';
