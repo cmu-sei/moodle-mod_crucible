@@ -202,7 +202,7 @@ foreach ($users as $u) {
         // Fall back to attempt eventid
         $eventid = $u->attemptgamespaceid;
     }
-    $eventtext = $eventid ? s(substr($eventid, 0, 8)) : '─';
+    $eventtext = $eventid ? s($eventid) : '─';
 
     // Show scheduled time if deployment is scheduled (pending with future time)
     $scheduledtext = '─';
