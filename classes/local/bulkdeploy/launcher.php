@@ -56,16 +56,36 @@ class launcher {
         try {
             $eventid = start_event($auth, $crucible->eventtemplateid);
             if (!$eventid) {
-                $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to start event (no eventid returned)');
+                $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to start event (no eventid returned)', '');
                 return;
             }
+
+            debugging("Event $eventid created for user {$user->username}", DEBUG_DEVELOPER);
+
+            // Get user's Alloy GUID
+            $useralloyguid = get_user_alloy_guid($user->id);
+            if (!$useralloyguid) {
+                $this->repo->set_user_status($rowid, user_status::FAILED, 'User does not have Alloy GUID (not OAuth2 user)', '');
+                stop_event($auth, $eventid);
+                return;
+            }
+
+            // Add user to event via EventMembership
+            if (!add_user_to_event($auth, $eventid, $useralloyguid)) {
+                $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to add user to event membership', '');
+                stop_event($auth, $eventid);
+                return;
+            }
+
+            debugging("User {$user->username} added to event $eventid via EventMembership", DEBUG_DEVELOPER);
+
         } catch (\Exception $e) {
-            $this->repo->set_user_status($rowid, user_status::FAILED, 'Exception starting event: ' . $e->getMessage());
+            $this->repo->set_user_status($rowid, user_status::FAILED, 'Exception starting event: ' . $e->getMessage(), '');
             return;
         }
 
         // Mark as launched
-        $this->repo->set_user_status($rowid, user_status::LAUNCHED, null, $eventid);
+        $this->repo->set_user_status($rowid, user_status::LAUNCHED, '', $eventid);
 
         // Wait phase: poll until event is ready
         $start = time();

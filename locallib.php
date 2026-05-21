@@ -77,6 +77,82 @@ function setup_system() {
 }
 
 /**
+ * Get the Alloy user GUID for a Moodle user.
+ * For OAuth2 users, this is stored in the idnumber field.
+ *
+ * @param int $userid Moodle user ID
+ * @return string|null User's Alloy GUID or null if not found
+ */
+function get_user_alloy_guid($userid) {
+    global $DB;
+
+    $user = $DB->get_record('user', ['id' => $userid], 'id, auth, idnumber');
+
+    if (!$user) {
+        return null;
+    }
+
+    // For OAuth2 users, the Alloy GUID is stored in idnumber.
+    if ($user->auth === 'oauth2' && !empty($user->idnumber)) {
+        return $user->idnumber;
+    }
+
+    // For non-OAuth2 users, we can't determine their Alloy GUID.
+    return null;
+}
+
+/**
+ * Add a user to an event via EventMembership in Alloy API.
+ * This grants the user access to an event they didn't create.
+ *
+ * @param \core\oauth2\client $client System OAuth2 client
+ * @param string $eventid Event GUID
+ * @param string $useralloyguid User's Alloy GUID
+ * @return bool True if membership created successfully, false otherwise
+ */
+function add_user_to_event($client, $eventid, $useralloyguid) {
+    $eventmemberroleid = 'f870d8ee-7332-4f7f-8ee0-63bd07cfd7e4';
+
+    $payload = [
+        'eventId' => $eventid,
+        'userId' => $useralloyguid,
+        'roleId' => $eventmemberroleid
+    ];
+
+    $url = get_config('crucible', 'alloyapiurl') . '/events/' . $eventid . '/memberships';
+
+    try {
+        $token = get_token($client);
+        $headers = [
+            'Authorization: Bearer ' . $token,
+            'Content-Type: application/json'
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        // 201 Created is success.
+        if ($httpcode === 201) {
+            return true;
+        }
+
+        debugging("Failed to add user to event. HTTP $httpcode: $response", DEBUG_DEVELOPER);
+        return false;
+
+    } catch (\Exception $e) {
+        debugging("Exception adding user to event: " . $e->getMessage(), DEBUG_DEVELOPER);
+        return false;
+    }
+}
+
+/**
  * Initializes and returns an OAuth2 client authenticated as the current user.
  *
  * Redirects to the OAuth2 login page if the user is not already authenticated.
