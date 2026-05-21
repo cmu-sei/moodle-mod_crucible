@@ -109,8 +109,16 @@ class launcher {
                     continue;
                 }
 
+                // Check if event failed/ended
+                $status = strtolower($event->status ?? '');
+                if ($status === 'ended' || $status === 'failed' || $status === 'error') {
+                    $errmsg = $event->errorMessage ?? 'Event ended without becoming active';
+                    $this->repo->set_user_status($rowid, user_status::FAILED, "Event deployment failed: $errmsg");
+                    return;
+                }
+
                 // Check if event is ready (has status or isActive flag)
-                $isReady = !empty($event->status) && strtolower($event->status) === 'active';
+                $isReady = $status === 'active';
                 if (!$isReady && isset($event->isActive)) {
                     $isReady = (bool) $event->isActive;
                 }
