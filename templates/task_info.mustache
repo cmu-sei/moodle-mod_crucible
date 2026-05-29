@@ -42,64 +42,41 @@ DM20-0196
     }
 }}
 
-{{#executiontype}}
-    <div class="form-group row">
-        <div class="col-md-12">
-            <strong>Execution Type:</strong> {{{executiontype}}}
-        </div>
-    </div>
-{{/executiontype}}
+<div class="bg-light rounded p-3 mb-3">
+    <dl class="row mb-0">
+        {{#executiontype}}
+        <dt class="col-sm-4">Execution Type</dt>
+        <dd class="col-sm-8">{{{executiontype}}}</dd>
+        {{/executiontype}}
 
-{{#description}}
-    <div class="form-group row">
-        <div class="col-md-12">
-            <strong>Description:</strong>
-            <pre>{{description}}</pre>
-        </div>
-    </div>
-{{/description}}
+        {{#description}}
+        <dt class="col-sm-4">Description</dt>
+        <dd class="col-sm-8"><code>{{description}}</code></dd>
+        {{/description}}
 
-{{#taskid}}
-    <div class="form-group row">
-        <div class="col-md-12">
-            <strong>Task ID:</strong>
-            <pre>{{taskid}}</pre>
-        </div>
-    </div>
-{{/taskid}}
+        {{#taskid}}
+        <dt class="col-sm-4">Task ID</dt>
+        <dd class="col-sm-8"><code class="small">{{taskid}}</code></dd>
+        {{/taskid}}
 
-{{#scenariotemplateid}}
-    <div class="form-group row">
-        <div class="col-md-12">
-            <strong>Scenario Template ID:</strong>
-            <pre>{{scenariotemplateid}}</pre>
-        </div>
-    </div>
-{{/scenariotemplateid}}
+        {{#scenariotemplateid}}
+        <dt class="col-sm-4">Scenario Template ID</dt>
+        <dd class="col-sm-8"><code class="small">{{scenariotemplateid}}</code></dd>
+        {{/scenariotemplateid}}
 
-{{#vmmask}}
-    <div class="form-group row">
-        <div class="col-md-12">
-            <strong>VM Mask:</strong>
-            <pre>{{vmmask}}</pre>
-        </div>
-    </div>
-{{/vmmask}}
+        {{#vmmask}}
+        <dt class="col-sm-4">VM Mask</dt>
+        <dd class="col-sm-8"><code>{{vmmask}}</code></dd>
+        {{/vmmask}}
 
-{{#inputstring}}
-    <div class="form-group row">
-        <div class="col-md-12">
-            <strong>Input String:</strong>
-            <pre>{{inputstring}}</pre>
-        </div>
-    </div>
-{{/inputstring}}
+        {{#inputstring}}
+        <dt class="col-sm-4">Input String</dt>
+        <dd class="col-sm-8"><code>{{inputstring}}</code></dd>
+        {{/inputstring}}
 
-{{#expectedoutput}}
-    <div class="form-group row">
-        <div class="col-md-12">
-            <strong>Expected Output:</strong>
-            <pre>{{expectedoutput}}</pre>
-        </div>
-    </div>
-{{/expectedoutput}}
+        {{#expectedoutput}}
+        <dt class="col-sm-4">Expected Output</dt>
+        <dd class="col-sm-8"><code>{{expectedoutput}}</code></dd>
+        {{/expectedoutput}}
+    </dl>
+</div>

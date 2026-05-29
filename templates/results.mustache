@@ -36,33 +36,40 @@ DM20-0196
             }
 }}
 
-<div class = "table-responsive">
-    <table class = "table table-striped">
-        {{! Using a get_string helper }}
-        <caption>
-            {{# str }} taskcaption, mod_crucible {{/ str }}
-        </caption>
-        <thead>
-            {{#tableheaders}}
-                <th>{{.}}</th>
-            {{/tableheaders}}
-        </thead>
-        <tbody>
-            {{#tabledata}}
-                <tr>
-                    <td>{{name}}</td>
-                    <td>{{desc}}</td>
-                    {{#action}}<td><button id="{{id}}" class="btn btn-primary exec-task">{{action}}</button></td>{{/action}}
-                    {{#noaction}}<td><button id="{{id}}" class="btn btn-secondary" disabled>{{noaction}}</button></td>{{/noaction}}
-                    {{#comment}}
-                        <td>{{comment}}</td>
-                    {{/comment}}
-                    <td id="result-{{id}}" class="result">{{result}}</td>
-                    <td>{{points}}</td>
-                    <td id="score-{{id}}" class="score">{{score}}</td>
-                </tr>
-            {{/tabledata}}
-        </tbody>
-    </table>
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">{{# str }} taskcaption, mod_crucible {{/ str }}</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                    {{#tableheaders}}
+                        <th class="pl-3">{{.}}</th>
+                    {{/tableheaders}}
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#tabledata}}
+                        <tr>
+                            <td class="pl-3">{{name}}</td>
+                            <td>{{desc}}</td>
+                            {{#action}}<td><button id="{{id}}" class="btn btn-sm btn-primary exec-task">{{action}}</button></td>{{/action}}
+                            {{#noaction}}<td><button id="{{id}}" class="btn btn-sm btn-secondary" disabled>{{noaction}}</button></td>{{/noaction}}
+                            {{#comment}}
+                                <td>{{comment}}</td>
+                            {{/comment}}
+                            <td id="result-{{id}}" class="result">
+                                {{#result}}<span class="badge badge-info p-1">{{result}}</span>{{/result}}
+                            </td>
+                            <td>{{points}}</td>
+                            <td id="score-{{id}}" class="score"><strong>{{score}}</strong></td>
+                        </tr>
+                    {{/tabledata}}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 

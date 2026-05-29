@@ -35,10 +35,10 @@ DM20-0196
             }
 }}
 
-<div id="attempt-score">
-    <caption>
-        {{# str }} attemptscore, mod_crucible {{/ str }}
-    </caption>
-    {{score}} / {{maxgrade}}
+<div id="attempt-score" class="card mb-4">
+    <div class="card-body d-flex align-items-center">
+        <strong class="mr-2">{{# str }} attemptscore, mod_crucible {{/ str }}</strong>
+        <span class="badge badge-secondary p-2">{{score}} / {{maxgrade}}</span>
+    </div>
 </div>
 

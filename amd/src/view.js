@@ -214,7 +214,7 @@ define(['jquery'], function($) {
                 x.setAttribute('src', vm_app_url + '/views/' + view_id);
             }
             if (x.getAttribute('href')) {
-                x.setAttribute('href', player_app_url + '/view/' + view_id);
+                x.setAttribute('href', vm_app_url + '/views/' + view_id);
                 // Hide fullscreen button in link mode (not embed mode).
                 editStyle('enable-fullscreen', 'display', 'none');
             }

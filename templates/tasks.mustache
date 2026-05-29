@@ -36,26 +36,31 @@ DM20-0196
             }
 }}
 
-<div class = "table-responsive">
-    <table class = "table table-striped">
-        {{! Using a get_string helper }}
-        <caption>
-            {{# str }} taskcaption, mod_crucible {{/ str }}
-        </caption>
-        <thead>
-            {{#tableheaders}}
-                <th>{{.}}</th>
-            {{/tableheaders}}
-        </thead>
-        <tbody>
-            {{#tabledata}}
-                <tr>
-                    {{#.}}
-                        <td>{{.}}</td>
-                    {{/.}}
-                </tr>
-            {{/tabledata}}
-        </tbody>
-    </table>
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">{{# str }} taskcaption, mod_crucible {{/ str }}</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                    {{#tableheaders}}
+                        <th class="pl-3">{{.}}</th>
+                    {{/tableheaders}}
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#tabledata}}
+                        <tr>
+                            {{#.}}
+                                <td class="pl-3">{{.}}</td>
+                            {{/.}}
+                        </tr>
+                    {{/tabledata}}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 

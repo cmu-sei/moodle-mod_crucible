@@ -18,24 +18,11 @@ subject to its own license:
 DM20-0196
  */
 
-define(['jquery', 'core/config', 'core/log'], function($, config, log) {
-
-    var eventid;
+define([], function() {
 
     return {
 
-        init: function(endtime, id) {
-
-            eventid = id;
-
-            var button = document.getElementById('extend-event');
-            if (button) {
-                button.setAttribute('data-original-text', button.innerHTML);
-                button.onclick = function() {
-                    extend_event();
-                };
-                console.log('set event for extend-event button');
-            }
+        init: function(endtime) {
 
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
@@ -104,53 +91,4 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             }, 1000);
         },
     };
-
-    function extend_event() {
-        var button = document.getElementById('extend-event');
-        if (button) {
-            button.disabled = true;
-            button.innerHTML = 'Extending...';
-        }
-
-        $.ajax({
-            url: config.wwwroot + '/mod/crucible/extendevent.php',
-            type: 'POST',
-            data: {
-                'sesskey': config.sesskey,
-                'id': eventid
-            },
-            headers: {
-                'Cache-Control': 'no-cache',
-                'Expires': '-1'
-            },
-            success: function(result) {
-                console.log('extended lab');
-                console.log(result);
-                if (result.message === 'success') {
-                    window.location.replace(window.location.href);
-                } else {
-                    alert('Extend failed: ' + (result.message || 'Unknown error'));
-                    if (button) {
-                        button.disabled = false;
-                        button.innerHTML = button.getAttribute('data-original-text');
-                    }
-                }
-            },
-            error: function(request) {
-                console.log("extend-event request failed");
-                var errorMsg = 'Failed to extend lab. Please try again.';
-                if (request.responseJSON && request.responseJSON.message) {
-                    errorMsg = request.responseJSON.message;
-                }
-                alert(errorMsg);
-                console.log(request);
-                log.debug('moodle-mod_crucible-extend-event: ' . request);
-                if (button) {
-                    button.disabled = false;
-                    button.innerHTML = button.getAttribute('data-original-text');
-                }
-            }
-        });
-
-    }
 });

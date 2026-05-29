@@ -297,21 +297,17 @@ if ($object->openattempt && $object->openattempt->userid == $USER->id) {
 
 if ($object->event) {
 
-    $extend = false;
-    if ($object->systemauth && !empty($crucible->extendevent)) {
-        $extend = true;
-    }
-
     // TODO add mod setting to pick format.
     if ($crucible->clock == 1) {
-        $renderer->display_clock($starttime, $endtime, $extend);
+        $renderer->display_clock($starttime, $endtime);
         $PAGE->requires->js_call_amd('mod_crucible/clock', 'countdown', ['endtime' => $endtime]);
     } else if ($crucible->clock == 2) {
-        $renderer->display_clock($starttime, $endtime, $extend);
+        $renderer->display_clock($starttime, $endtime);
         $PAGE->requires->js_call_amd('mod_crucible/clock', 'countup', ['starttime' => $starttime]);
     }
     // No matter what, start our session timer.
-    $PAGE->requires->js_call_amd('mod_crucible/clock', 'init', ['endtime' => $endtime, 'id' => $object->event->id]);
+    $PAGE->requires->js_call_amd('mod_crucible/clock', 'init', ['endtime' => $endtime]);
+
 } else if ($showgrade) {
     $renderer->display_grade($crucible);
 }
@@ -326,7 +322,7 @@ if ($object->event && $object->event->status === 'Active') {
     if ($vmapp == 1) {
         $renderer->display_embed_page($crucible);
     } else {
-        $renderer->display_link_page($playerappurl, $viewid);
+        $renderer->display_link_page($vmappurl, $viewid);
     }
 
     if ($scenarioid) {

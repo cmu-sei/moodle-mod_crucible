@@ -48,25 +48,29 @@ DM20-0196
     }
 }}
 
-<div class="mb-3">
-    <h3>{{title}}</h3>
-    <div class="btn-group" role="group" aria-label="Task filter">
-        <a href="{{allurl}}" class="btn {{#allactive}}btn-primary{{/allactive}}{{^allactive}}btn-secondary{{/allactive}}">
-            {{showall}}
-        </a>
-        <a href="{{executableurl}}" class="btn {{#executableactive}}btn-primary{{/executableactive}}{{^executableactive}}btn-secondary{{/executableactive}}">
-            {{userexecutableonly}}
-        </a>
-        <a href="{{nonexecutableurl}}" class="btn {{#nonexecutableactive}}btn-primary{{/nonexecutableactive}}{{^nonexecutableactive}}btn-secondary{{/nonexecutableactive}}">
-            {{nonexecutableonly}}
-        </a>
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">{{title}}</h5>
     </div>
-    {{#showfilterinfo}}
-        <div class="alert alert-info mt-2">
-            Showing {{filteredcount}} of {{totaltasks}} tasks
+    <div class="card-body">
+        <div class="btn-group mb-2" role="group" aria-label="Task filter">
+            <a href="{{allurl}}" class="btn btn-sm {{#allactive}}btn-primary{{/allactive}}{{^allactive}}btn-outline-secondary{{/allactive}}">
+                {{showall}}
+            </a>
+            <a href="{{executableurl}}" class="btn btn-sm {{#executableactive}}btn-primary{{/executableactive}}{{^executableactive}}btn-outline-secondary{{/executableactive}}">
+                {{userexecutableonly}}
+            </a>
+            <a href="{{nonexecutableurl}}" class="btn btn-sm {{#nonexecutableactive}}btn-primary{{/nonexecutableactive}}{{^nonexecutableactive}}btn-outline-secondary{{/nonexecutableactive}}">
+                {{nonexecutableonly}}
+            </a>
         </div>
-    {{/showfilterinfo}}
-    {{^showfilterinfo}}
-        <div class="mt-2"><small>Total tasks: {{totaltasks}}</small></div>
-    {{/showfilterinfo}}
+        {{#showfilterinfo}}
+            <div class="alert alert-info mb-0 mt-2 p-2">
+                Showing <strong>{{filteredcount}}</strong> of <strong>{{totaltasks}}</strong> tasks
+            </div>
+        {{/showfilterinfo}}
+        {{^showfilterinfo}}
+            <div class="mt-1"><small class="text-muted">Total tasks: {{totaltasks}}</small></div>
+        {{/showfilterinfo}}
+    </div>
 </div>

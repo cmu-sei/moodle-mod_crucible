@@ -498,6 +498,14 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
     }
 
     if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
+        $url = new moodle_url('/mod/crucible/manageevent.php', ['id' => $PAGE->cm->id]);
+        $node = navigation_node::create(get_string('manageevent', 'mod_crucible'),
+                new moodle_url($url),
+                navigation_node::TYPE_SETTING, null, 'mod_crucible_manageevent', new pix_icon('i/settings', 'event'));
+        $context->add_node($node, $beforekey);
+    }
+
+    if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
         $url = new moodle_url('/mod/crucible/tasks.php', ['id' => $PAGE->cm->id]);
         $node = navigation_node::create(get_string('managetasks', 'mod_crucible'),
                 new moodle_url($url),

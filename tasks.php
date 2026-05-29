@@ -135,11 +135,13 @@ if (!empty($tasks) && is_array($tasks)) {
             $filtername = get_string('nonexecutableonly', 'crucible');
         }
 
-        echo '<div class="alert alert-info">';
+        echo '<div class="card mb-4"><div class="card-body">';
+        echo '<div class="alert alert-info mb-3">';
         echo 'No tasks found with the current filter' . ($filtername ? ': <strong>' . $filtername . '</strong>' : '');
-        echo '<br><a href="?id=' . $cm->id . '&filter=all" class="btn btn-primary">' .
-             get_string('showall', 'crucible') . '</a>';
         echo '</div>';
+        echo '<a href="?id=' . $cm->id . '&filter=all" class="btn btn-primary">' .
+             get_string('showall', 'crucible') . '</a>';
+        echo '</div></div>';
 
         echo $renderer->footer();
         exit;
@@ -201,13 +203,16 @@ if (!empty($tasks) && is_array($tasks)) {
             $index++;
         }
     }    
+        echo '<div class="card mb-4"><div class="card-body">';
         $mform->display();
+        echo '</div></div>';
 } else {
+    echo '<div class="card mb-4"><div class="card-body">';
     \core\notification::warning(get_string('notasksavailable', 'mod_crucible'));
 
-    // Redirect button back to Crucible activity view.
     $backurl = new moodle_url('/mod/crucible/view.php', ['id' => $cm->id]);
     echo $OUTPUT->single_button($backurl, get_string('backtocruclanding', 'mod_crucible'));
+    echo '</div></div>';
 }
 
 echo $renderer->footer();

@@ -1,0 +1,114 @@
+{{!
+    @template mod_crucible/manageevent
+
+    Manage Event page template for instructors.
+
+    Example context (json):
+    {
+        "status": "Active",
+        "statusclass": "badge-success",
+        "starttime": "May 8, 2026, 2:00 PM",
+        "endtime": "May 8, 2026, 4:00 PM",
+        "remaining": "1h 30m",
+        "users": "Admin User, Test Student",
+        "usercount": 2,
+        "eventid": "abc-123",
+        "cmid": 2,
+        "sesskey": "xyz",
+        "extendenabled": true,
+        "extendlabel": "Extend Event",
+        "durationlabel": "Hours",
+        "stoplabel": "Stop Event",
+        "restartlabel": "Restart Event"
+    }
+}}
+
+<div class="crucible-manage-event">
+
+    {{! Event Status Card }}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Event Status</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8"><span class="badge {{statusclass}} p-2">{{status}}</span></dd>
+
+                        <dt class="col-sm-4">Started</dt>
+                        <dd class="col-sm-8">{{starttime}}</dd>
+
+                        <dt class="col-sm-4">Expires</dt>
+                        <dd class="col-sm-8">{{endtime}}</dd>
+
+                        <dt class="col-sm-4">Time Remaining</dt>
+                        <dd class="col-sm-8"><strong>{{remaining}}</strong></dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Users ({{usercount}})</dt>
+                        <dd class="col-sm-8">{{#users}}{{users}}{{/users}}{{^users}}<em>None</em>{{/users}}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{! Actions }}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Actions</h5>
+        </div>
+        <div class="card-body">
+
+            {{#extendenabled}}
+            {{! Extend Event }}
+            <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                <div class="mr-3">
+                    <strong>{{extendlabel}}</strong>
+                    <small class="d-block text-muted">Add time to the running event</small>
+                </div>
+                <div class="d-flex align-items-center ml-auto">
+                    <label for="extend-duration-{{eventid}}" class="sr-only">{{durationlabel}}</label>
+                    <input type="number" id="extend-duration-{{eventid}}" class="form-control mr-2" value="1" min="0.5" max="168" step="0.5" style="width: 80px;">
+                    <span class="mr-3 text-muted">{{durationlabel}}</span>
+                    <button class="btn btn-primary extend-event-btn" data-eventid="{{eventid}}" data-cmid="{{cmid}}" data-sesskey="{{sesskey}}">{{extendlabel}}</button>
+                </div>
+            </div>
+            {{/extendenabled}}
+
+            {{! Stop Event }}
+            <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                <div class="mr-3">
+                    <strong>{{stoplabel}}</strong>
+                    <small class="d-block text-muted">End the event and close all active attempts</small>
+                </div>
+                <div class="ml-auto">
+                    <form method="post" action="?id={{cmid}}&action=stop" class="d-inline" onsubmit="return confirm('Are you sure you want to stop this event? All active attempts will be closed.');">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <button type="submit" class="btn btn-danger">{{stoplabel}}</button>
+                    </form>
+                </div>
+            </div>
+
+            {{! Restart Event }}
+            <div class="d-flex align-items-center">
+                <div class="mr-3">
+                    <strong>{{restartlabel}}</strong>
+                    <small class="d-block text-muted">Stop the current event and launch a new one</small>
+                </div>
+                <div class="ml-auto">
+                    <form method="post" action="?id={{cmid}}&action=restart" class="d-inline" onsubmit="return confirm('Are you sure? This will stop the current event, close all attempts, and start a new event.');">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <button type="submit" class="btn btn-warning">{{restartlabel}}</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>

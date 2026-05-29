@@ -47,6 +47,7 @@ require_login();
 require_sesskey();
 
 $id = required_param('id', PARAM_ALPHANUMEXT);
+$duration = optional_param('duration', 60, PARAM_INT);
 
 // Require the session key - want to make sure that this isn't called
 // maliciously to keep a session alive longer than intended.
@@ -55,17 +56,21 @@ if (!confirm_sesskey()) {
     throw new \moodle_exception('invalidsesskey', 'error');
 }
 
-$response = [];
+// Only instructors can extend events.
+$cmid = required_param('cmid', PARAM_INT);
+$context = context_module::instance($cmid);
+require_capability('mod/crucible:manage', $context);
 
-$client = setup_system();
-if (!$client) {
-    header('HTTP/1.1 500 Error');
-    $response['message'] = "System OAuth account not configured. Cannot extend event.";
-    $response['id'] = $id;
-    echo json_encode($response);
-    exit;
+if ($duration < 1) {
+    $duration = 60;
+}
+if ($duration > 10080) {
+    $duration = 10080;
 }
 
+$response = [];
+
+$client = setup();
 $event = get_event($client, $id);
 if (!$event) {
     header('HTTP/1.1 500 Error');
@@ -74,7 +79,7 @@ if (!$event) {
     $data = $event;
     $response['oldtime'] = $event->expirationDate;
     $timestamp = new DateTime($event->expirationDate);
-    $timestamp->add(new DateInterval('PT1H'));
+    $timestamp->add(new DateInterval('PT' . $duration . 'M'));
     $posttime = $timestamp->format('Y-m-d\TH:i:s.u\Z');
     $response['posttime'] = $posttime;
     $data->expirationDate = $posttime;

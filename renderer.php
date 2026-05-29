@@ -149,9 +149,9 @@ class mod_crucible_renderer extends plugin_renderer_base {
      * @param string $playerappurl The base URL of the player application.
      * @param int $viewid The view ID to append to the URL.
      */
-    public function display_link_page($playerappurl, $viewid) {
+    public function display_link_page($vmappurl, $viewid) {
         $data = new stdClass();
-        $data->url = $playerappurl . '/view/' .  $viewid;
+        $data->url = $vmappurl . '/views/' .  $viewid;
         $data->playerlinktext = get_string('playerlinktext', 'mod_crucible');
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_crucible/link', $data);
@@ -526,18 +526,73 @@ class mod_crucible_renderer extends plugin_renderer_base {
      *
      * @param int $starttime The Unix timestamp when the event starts.
      * @param int $endtime The Unix timestamp when the event ends.
-     * @param bool $extend Whether the event allows for extension.
      */
-    public function display_clock($starttime, $endtime, $extend = false) {
+    public function display_clock($starttime, $endtime) {
 
         $data = new stdClass();
         $data->starttime = $starttime;
         $data->endtime = $endtime;
-        if ($extend) {
-            $data->extend = get_string('extendevent', 'mod_crucible');
-        }
 
         echo $this->render_from_template('mod_crucible/clock', $data);
+    }
+
+    /**
+     * Displays the instructor-only extend event panel.
+     *
+     * @param string $eventid The Alloy event ID.
+     * @param int $cmid The course module ID.
+     * @param string $activityname Optional activity name for context.
+     */
+    public function display_extend_panel($eventid, $cmid, $activityname = '') {
+        $data = new stdClass();
+        $data->eventid = $eventid;
+        $data->cmid = $cmid;
+        $data->extendlabel = get_string('extendevent', 'mod_crucible');
+        $data->durationlabel = get_string('extendduration', 'mod_crucible');
+        $data->sesskey = sesskey();
+        if ($activityname) {
+            $data->activityname = $activityname;
+        }
+
+        echo $this->render_from_template('mod_crucible/extend', $data);
+    }
+
+    /**
+     * Displays the full Manage Event page content.
+     *
+     * @param object $event The Alloy event object.
+     * @param int $starttime Unix timestamp of event start.
+     * @param int $endtime Unix timestamp of event end.
+     * @param array $users Array of user full names in the event.
+     * @param int $cmid The course module ID.
+     * @param object $crucible The crucible activity instance.
+     */
+    public function display_manage_event($event, $starttime, $endtime, $users, $cmid, $crucible) {
+        $data = new stdClass();
+        $data->status = $event->status;
+        $data->statusclass = ($event->status === 'Active') ? 'badge-success' : 'badge-secondary';
+        $data->starttime = userdate($starttime);
+        $data->endtime = userdate($endtime);
+        $remaining = $endtime - time();
+        if ($remaining > 0) {
+            $hours = floor($remaining / 3600);
+            $minutes = floor(($remaining % 3600) / 60);
+            $data->remaining = "{$hours}h {$minutes}m";
+        } else {
+            $data->remaining = get_string('expired', 'mod_crucible');
+        }
+        $data->users = implode(', ', $users);
+        $data->usercount = count($users);
+        $data->eventid = $event->id;
+        $data->cmid = $cmid;
+        $data->sesskey = sesskey();
+        $data->extendenabled = !empty($crucible->extendevent);
+        $data->extendlabel = get_string('extendevent', 'mod_crucible');
+        $data->durationlabel = get_string('extendduration', 'mod_crucible');
+        $data->stoplabel = get_string('stopevent', 'mod_crucible');
+        $data->restartlabel = get_string('restartevent', 'mod_crucible');
+
+        echo $this->render_from_template('mod_crucible/manageevent', $data);
     }
 
     /**

@@ -36,53 +36,63 @@ DM20-0196
             }
 }}
 
-<div class = "table-responsive">
-    <table class = "table table-striped">
-        {{! Using a get_string helper }}
-        <caption>
-            {{# str }} historycaption, mod_crucible {{/ str }}
-        </caption>
-        <thead>
-            {{#tableheaders}}
-                    {{#username}}
-                        <th>{{username}}</th>
-                    {{/username}}
-                    {{#eventguid}}
-                        <th>{{eventguid}}</th>
-                    {{/eventguid}}
-                    {{#name}}
-                        <th>{{name}}</th>
-                    {{/name}}
-                    <th>{{timestart}}</th>
-                    <th>{{timefinish}}</th>
-                    {{#score}}
-                        <th>{{score}}</th>
-                    {{/score}}
-            {{/tableheaders}}
-        </thead>
-        <tbody>
-            {{#tabledata}}
-                <tr>
-                    {{#username}}
-                        <td>{{username}}</td>
-                    {{/username}}
-                    {{#eventguid}}
-                        <td>{{eventguid}}</td>
-                    {{/eventguid}}
-                    {{#moduleurl}}
-                        <td><a href="{{moduleurl}}">{{name}}</a></td>
-                    {{/moduleurl}}
-                    <td>{{timestart}}</td>
-                    <td>{{timefinish}}</td>
-                    {{#attempturl}}
-                        <td><a href="{{attempturl}}">{{score}}</a></td>
-                    {{/attempturl}}
-                    {{^attempturl}}
-                        <td>{{score}}</td>
-                    {{/attempturl}}
-                </tr>
-            {{/tabledata}}
-        </tbody>
-    </table>
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">{{# str }} historycaption, mod_crucible {{/ str }}</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead>
+                    {{#tableheaders}}
+                    <tr>
+                        {{#username}}
+                            <th>{{username}}</th>
+                        {{/username}}
+                        {{#eventguid}}
+                            <th>{{eventguid}}</th>
+                        {{/eventguid}}
+                        {{#name}}
+                            <th>{{name}}</th>
+                        {{/name}}
+                        <th>{{timestart}}</th>
+                        <th>{{timefinish}}</th>
+                        {{#score}}
+                            <th>{{score}}</th>
+                        {{/score}}
+                    </tr>
+                    {{/tableheaders}}
+                </thead>
+                <tbody>
+                    {{#tabledata}}
+                        <tr>
+                            {{#username}}
+                                <td>{{username}}</td>
+                            {{/username}}
+                            {{#eventguid}}
+                                <td><small class="text-muted">{{eventguid}}</small></td>
+                            {{/eventguid}}
+                            {{#moduleurl}}
+                                <td><a href="{{moduleurl}}">{{name}}</a></td>
+                            {{/moduleurl}}
+                            <td>{{timestart}}</td>
+                            <td>{{timefinish}}</td>
+                            {{#attempturl}}
+                                <td><a href="{{attempturl}}" class="badge badge-primary p-2">{{score}}</a></td>
+                            {{/attempturl}}
+                            {{^attempturl}}
+                                <td>{{score}}</td>
+                            {{/attempturl}}
+                        </tr>
+                    {{/tabledata}}
+                    {{^tabledata}}
+                        <tr>
+                            <td colspan="100%" class="text-center text-muted p-3">No attempts recorded.</td>
+                        </tr>
+                    {{/tabledata}}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 

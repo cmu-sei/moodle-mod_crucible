@@ -92,7 +92,8 @@ $string['grademethod'] = 'Grading method';
 $string['grademethod_help'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
 $string['grademethoddesc'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
 $string['extendeventsetting'] = 'Extend Event';
-$string['extendeventsetting_help'] = 'Setting this allows the user to extend the lab by one hour increments.';
+$string['extendeventsetting_help'] = 'Setting this allows instructors to extend the active event duration from the activity view page.';
+$string['extendduration'] = 'Hours';
 
 // Time options
 $string['timing'] = 'Timing';
@@ -137,6 +138,14 @@ $string['attemptalreadyexists'] = 'An open attempt already exists for this event
 $string['overallgrade'] = 'Overall Grade: ';
 $string['fullscreen'] = 'Fullscreen VM App';
 $string['extendevent'] = 'Extend Event';
+$string['manageevent'] = 'Manage Event';
+$string['noactiveevent'] = 'No active event is currently running for this activity.';
+$string['stopevent'] = 'Stop Event';
+$string['restartevent'] = 'Restart Event';
+$string['eventstopped'] = 'Event stopped successfully.';
+$string['eventrestarted'] = 'Event restarted successfully.';
+$string['eventrestartfailed'] = 'Failed to restart event.';
+$string['expired'] = 'Expired';
 $string['reviewtext'] = 'Review Activity Attempts';
 $string['managetext'] = 'Review Course Attempts';
 $string['durationtext'] = 'Scheduled Duration';
