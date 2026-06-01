@@ -8,6 +8,16 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                 return;
             }
 
+            // Initialize Bootstrap popovers for help icons
+            const initPopovers = () => {
+                document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
+                    if (!el._popover) {
+                        el._popover = new bootstrap.Popover(el);
+                    }
+                });
+            };
+            initPopovers();
+
             let timer = null;
             let inactivePollCount = 0;
             const MAX_INACTIVE_POLLS = 6; // Stop after 6 polls (30 seconds) with no activity
@@ -50,6 +60,8 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                 if (statusCell) {
                     if (user.tooltip_html) {
                         statusCell.innerHTML = user.tooltip_html;
+                        // Re-initialize popover for new content
+                        initPopovers();
                     } else {
                         statusCell.textContent = user.status_label || '';
                     }
