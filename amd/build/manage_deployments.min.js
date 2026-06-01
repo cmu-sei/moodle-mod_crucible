@@ -1,4 +1,5 @@
-define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, ModalSaveCancel, ModalEvents) {
+define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bootstrap/popover'],
+    function($, ModalSaveCancel, ModalEvents, Popover) {
     const POLL_MS = 5000;
 
     return {
@@ -11,9 +12,13 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
             // Initialize Bootstrap popovers for help icons
             const initPopovers = () => {
                 document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
-                    if (!el._popover) {
-                        el._popover = new bootstrap.Popover(el);
+                    // Dispose existing popover instance if present
+                    const existingPopover = Popover.getInstance(el);
+                    if (existingPopover) {
+                        existingPopover.dispose();
                     }
+                    // Create new popover instance
+                    new Popover(el);
                 });
             };
             initPopovers();
