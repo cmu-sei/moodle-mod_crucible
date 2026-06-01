@@ -222,3 +222,21 @@ $string['status_legend_abandoned'] = 'Abandoned: user left the attempt without f
 $string['status_legend_overdue'] = 'Overdue: attempt is past its expiration time.';
 $string['status_active_at'] = 'Started: {$a}';
 $string['status_ends_at'] = 'Expires: {$a}';
+$string['status_started_at'] = 'Started at: {$a}';
+$string['status_ended_at'] = 'Ended at: {$a}';
+$string['status'] = 'Status';
+$string['status_help'] = 'Status values used in this table:
+
+* **None**: no deployment or attempt for this user.
+* **Scheduled**: deployment is queued for a future time.
+* **Pending**: deployment is queued and waiting to launch.
+* **Launched**: deployment has started and the event is being created.
+* **Ready**: deployment completed, attempt created.
+* **Failed**: deployment failed (click ⓘ for error details).
+* **Cancelled**: deployment was cancelled before completing.
+* **In Progress**: the lab is active and running (click ⓘ for timestamps).
+* **Finished**: user completed the attempt.
+* **Abandoned**: user left the attempt without finishing.
+* **Overdue**: attempt is past its expiration time.';
+$string['manage_deploy_running_summary'] = 'Deployments running ({$a->progress}). {$a->link}';
+$string['manage_deploy_running_link'] = 'View adhoc task details';

@@ -9,7 +9,6 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
             }
 
             let timer = null;
-            let lastSeenStatuses = new Map(); // Track status per user
             let inactivePollCount = 0;
             const MAX_INACTIVE_POLLS = 6; // Stop after 6 polls (30 seconds) with no activity
 
@@ -17,31 +16,77 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
 
             const hasActiveDeploys = () => {
                 const table = document.querySelector('.mod-crucible-users-table tbody');
-                if (!table) return false;
+                if (!table) {
+                    return false;
+                }
                 const rows = table.querySelectorAll('tr');
-                let hasActive = false;
-
-                rows.forEach(row => {
-                    const userid = row.getAttribute('data-userid');
-                    const scheduledCell = row.querySelector('td:nth-child(6)');
-                    if (userid) {
-                        const status = rowStatus(row);
-                        const scheduled = scheduledCell ? scheduledCell.textContent.trim() : '';
-                        lastSeenStatuses.set(userid, status);
-                        if (status === 'pending' || status === 'launched' || status === 'in progress' ||
-                            (scheduled && scheduled !== '─')) {
-                            hasActive = true;
-                        }
+                for (const row of rows) {
+                    const status = rowStatus(row);
+                    if (status === 'pending' || status === 'launched'
+                        || status === 'in progress' || status === 'scheduled') {
+                        return true;
                     }
-                });
-
-                return hasActive;
+                }
+                return false;
             };
 
             const stop = () => {
                 if (timer) {
                     window.clearTimeout(timer);
                     timer = null;
+                }
+            };
+
+            const applyUpdate = (user) => {
+                const safeId = String(user.userid).replace(/"/g, '\\"');
+                const row = document.querySelector('tr[data-userid="' + safeId + '"]');
+                if (!row) {
+                    return;
+                }
+
+                row.setAttribute('data-status', user.status_class || 'none');
+
+                const statusCell = row.querySelector('.cell-status');
+                if (statusCell) {
+                    if (user.tooltip_html) {
+                        statusCell.innerHTML = user.tooltip_html;
+                    } else {
+                        statusCell.textContent = user.status_label || '';
+                    }
+                }
+                const eventCell = row.querySelector('.cell-event');
+                if (eventCell) {
+                    eventCell.textContent = user.event_text || '─';
+                }
+                const schedCell = row.querySelector('.cell-scheduled');
+                if (schedCell) {
+                    schedCell.textContent = user.scheduled_text || '─';
+                }
+                const actionsCell = row.querySelector('.cell-actions');
+                if (actionsCell) {
+                    actionsCell.innerHTML = user.action_html || '─';
+                }
+            };
+
+            const updateNotification = (data) => {
+                const note = document.getElementById('deploy-notification');
+                if (!note) {
+                    return;
+                }
+                if (!data.has_active) {
+                    note.style.display = 'none';
+                    return;
+                }
+                note.style.display = '';
+                const ready = data.progress_summary ? data.progress_summary.ready : 0;
+                const total = data.progress_summary ? data.progress_summary.total : 0;
+                const readySpan = note.querySelector('.deploy-summary-ready');
+                if (readySpan) {
+                    readySpan.textContent = String(ready);
+                }
+                const totalSpan = note.querySelector('.deploy-summary-total');
+                if (totalSpan) {
+                    totalSpan.textContent = String(total);
                 }
             };
 
@@ -281,53 +326,19 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                 try {
                     const url = M.cfg.wwwroot + '/mod/crucible/manage_deployments_status_ajax.php?cmid='
                         + encodeURIComponent(cmid) + '&sesskey=' + encodeURIComponent(sesskey);
-                    console.log('[Manage] Polling status');
                     const resp = await fetch(url, {credentials: 'same-origin'});
                     const data = await resp.json();
 
-                    // Check if any users changed status
-                    let hasChanges = false;
-                    if (data.updated_users) {
-                        for (const user of data.updated_users) {
-                            // Determine new status (attempt takes priority)
-                            let newStatus = 'none';
-                            if (user.attemptstate) {
-                                const statemap = {
-                                    'inprogress': 'in progress',
-                                    'finished': 'finished',
-                                    'abandoned': 'abandoned',
-                                    'overdue': 'overdue'
-                                };
-                                newStatus = (statemap[user.attemptstate] || user.attemptstate).toLowerCase();
-                            } else if (user.deploystatus) {
-                                newStatus = user.deploystatus.toLowerCase();
-                            }
-
-                            const oldStatus = lastSeenStatuses.get(user.userid.toString());
-
-                            // If status changed from pending/launched/in progress to something else, reload
-                            if (oldStatus &&
-                                (oldStatus === 'pending' || oldStatus === 'launched' || oldStatus === 'in progress') &&
-                                newStatus !== oldStatus) {
-                                console.log('[Manage] User ' + user.userid + ' changed from ' + oldStatus + ' to ' + newStatus);
-                                hasChanges = true;
-                                break;
-                            }
-                        }
+                    if (Array.isArray(data.updated_users)) {
+                        data.updated_users.forEach(applyUpdate);
                     }
+                    updateNotification(data);
+                    updateBulkActionButtons();
 
-                    if (hasChanges) {
-                        console.log('[Manage] Status changed, reloading page');
-                        window.location.reload();
-                        return;
-                    }
-
-                    // Check if page still has pending/launched/in progress/scheduled
                     const hasActive = hasActiveDeploys();
                     if (!hasActive) {
                         inactivePollCount++;
                         if (inactivePollCount >= MAX_INACTIVE_POLLS) {
-                            console.log('[Manage] No active deploys for ' + MAX_INACTIVE_POLLS + ' polls, stopping');
                             stop();
                             return;
                         }
@@ -335,10 +346,9 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                         inactivePollCount = 0;
                     }
 
-                    // Continue polling
                     timer = window.setTimeout(poll, POLL_MS);
-
                 } catch (e) {
+                    // eslint-disable-next-line no-console
                     console.error('[Manage] Poll error:', e);
                     stop();
                 }
