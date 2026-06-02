@@ -41,7 +41,6 @@ DM20-0196
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class scaletypes {
-
     /** Define grading scale types */
     /** @var int Grading method: use score from the first attempt. */
     const CRUCIBLE_FIRSTATTEMPT = 1;
@@ -86,7 +85,4 @@ class scaletypes {
             self::CRUCIBLE_HIGHESTATTEMPTGRADE => get_string('highestattempt', 'crucible'),
         ];
     }
-
 }
-
-

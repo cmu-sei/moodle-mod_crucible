@@ -40,7 +40,7 @@ DM20-0196
 
 use mod_crucible\crucible;
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 
@@ -66,7 +66,7 @@ $context = context_module::instance($cm->id);
 require_capability('mod/crucible:manage', $context);
 
 // Print the page header.
-$url = new moodle_url ( '/mod/crucible/tasks.php', ['id' => $cm->id]);
+$url = new moodle_url('/mod/crucible/tasks.php', ['id' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -115,11 +115,11 @@ if (!empty($tasks) && is_array($tasks)) {
 
     // Apply filter
     if ($filter === 'executable') {
-        $tasks = array_filter($tasks, function($task) {
+        $tasks = array_filter($tasks, function ($task) {
             return !empty($task->userExecutable);
         });
     } else if ($filter === 'nonexecutable') {
-        $tasks = array_filter($tasks, function($task) {
+        $tasks = array_filter($tasks, function ($task) {
             return empty($task->userExecutable);
         });
     }
@@ -150,7 +150,7 @@ if (!empty($tasks) && is_array($tasks)) {
         'cm' => $cm,
         'filter' => $filter,
         'totaltasks' => $totaltasks,
-        'filteredcount' => $filteredcount
+        'filteredcount' => $filteredcount,
     ]);
 
     // Form processing and displaying is done here.
@@ -172,12 +172,12 @@ if (!empty($tasks) && is_array($tasks)) {
                 $index++;
                 continue;
             }
-    
+
             $rec = $DB->get_record_sql(
                 'SELECT * FROM {crucible_tasks}
                  WHERE ' . $DB->sql_compare_text('dispatchtaskid') . ' = ' . $DB->sql_compare_text(':dispatchtaskid'),
                 ['dispatchtaskid' => $dispatchtaskid]
-            );            
+            );
             $data = new stdClass();
             $data->crucibleid = $crucible->id;
             $data->dispatchtaskid = $dispatchtaskid;
@@ -190,17 +190,17 @@ if (!empty($tasks) && is_array($tasks)) {
             $data->points = ($data->gradable && isset($fromform->{$taskprefix . '_points'}))
                 ? intval($fromform->{$taskprefix . '_points'})
                 : 0;
-    
+
             if ($rec) {
                 $data->id = $rec->id;
                 $DB->update_record('crucible_tasks', $data);
             } else {
                 $DB->insert_record('crucible_tasks', $data);
             }
-    
+
             $index++;
         }
-    }    
+    }
         $mform->display();
 } else {
     \core\notification::warning(get_string('notasksavailable', 'mod_crucible'));
@@ -211,5 +211,3 @@ if (!empty($tasks) && is_array($tasks)) {
 }
 
 echo $renderer->footer();
-
-

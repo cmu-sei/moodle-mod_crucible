@@ -106,7 +106,6 @@ $result = create_and_exec_task($system, $data);
 if (!$result) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error";
-
 } else {
     header('HTTP/1.1 200 OK');
     $response['status'] = $result[0]->status;
@@ -114,5 +113,3 @@ if (!$result) {
     $response['output'] = $result[0]->actualOutput;
 }
 echo json_encode($response);
-
-

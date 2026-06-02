@@ -92,5 +92,3 @@ if (!$event) {
 $response['id'] = $id;
 
 echo json_encode($response);
-
-

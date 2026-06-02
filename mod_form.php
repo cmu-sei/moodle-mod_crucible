@@ -40,8 +40,8 @@ DM20-0196
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->dirroot.'/course/moodleform_mod.php');
-require_once($CFG->dirroot.'/mod/crucible/locallib.php');
+require_once($CFG->dirroot . '/course/moodleform_mod.php');
+require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 require_once("$CFG->dirroot/lib/licenselib.php");
 
 /**
@@ -52,7 +52,6 @@ require_once("$CFG->dirroot/lib/licenselib.php");
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_crucible_mod_form extends moodleform_mod {
-
     /** @var array options to be used with date_time_selector fields in the activity. */
     public static $datefieldoptions = ['optional' => true];
 
@@ -151,9 +150,12 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->setType('grade', PARAM_FLOAT);
         // $mform->addHelpButton('grade', 'grade', 'crucible');
 
-        $mform->addElement('select', 'grademethod',
+        $mform->addElement(
+            'select',
+            'grademethod',
             get_string('grademethod', 'crucible'),
-            \mod_crucible\utils\scaletypes::get_display_types());
+            \mod_crucible\utils\scaletypes::get_display_types()
+        );
         $mform->setType('grademethod', PARAM_INT);
         $mform->addHelpButton('grademethod', 'grademethod', 'crucible');
         // $mform->hideIf('grademethod', 'grade', 'eq', '0');
@@ -161,12 +163,20 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->addElement('header', 'timing', get_string('timing', 'crucible'));
 
         // Open and close dates.
-        $mform->addElement('date_time_selector', 'timeopen', get_string('eventopen', 'crucible'),
-                self::$datefieldoptions);
+        $mform->addElement(
+            'date_time_selector',
+            'timeopen',
+            get_string('eventopen', 'crucible'),
+            self::$datefieldoptions
+        );
         $mform->addHelpButton('timeopen', 'eventopen', 'crucible');
 
-        $mform->addElement('date_time_selector', 'timeclose', get_string('eventclose', 'crucible'),
-                self::$datefieldoptions);
+        $mform->addElement(
+            'date_time_selector',
+            'timeclose',
+            get_string('eventclose', 'crucible'),
+            self::$datefieldoptions
+        );
         $mform->addHelpButton('timeclose', 'eventclose', 'crucible');
 
         $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'crucible'));
@@ -175,7 +185,6 @@ class mod_crucible_mod_form extends moodleform_mod {
         $this->standard_coursemodule_elements();
 
         $this->add_action_buttons();
-
     }
 
     /**
@@ -189,8 +198,10 @@ class mod_crucible_mod_form extends moodleform_mod {
         $errors = parent::validation($data, $files);
 
         // Check open and close times are consistent.
-        if ($data['timeopen'] != 0 && $data['timeclose'] != 0 &&
-                $data['timeclose'] < $data['timeopen']) {
+        if (
+            $data['timeopen'] != 0 && $data['timeclose'] != 0 &&
+                $data['timeclose'] < $data['timeopen']
+        ) {
             $errors['timeclose'] = get_string('closebeforeopen', 'quiz');
         }
 
@@ -219,7 +230,6 @@ class mod_crucible_mod_form extends moodleform_mod {
         if (empty($toform['completionusegrade'])) {
             $toform['completionpass'] = 0; // Forced unchecked.
         }
-
     }
 
     /**
@@ -248,7 +258,4 @@ class mod_crucible_mod_form extends moodleform_mod {
 
         // TODO if grade method changed, update all grades.
     }
-
-
 }
-
