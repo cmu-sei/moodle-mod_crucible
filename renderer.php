@@ -48,7 +48,6 @@ DM20-0196
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_crucible_renderer extends plugin_renderer_base {
-
     /**
      * Displays the crucible activity detail block.
      *
@@ -71,7 +70,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
             'days' => $days,
             'hours' => $hours,
             'minutes' => $minutes,
-            'seconds' => $seconds
+            'seconds' => $seconds,
         ];
 
         if ($content_license) {
@@ -103,7 +102,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data->activeattempts = !empty($attempts);
         $data->id = $id;
 
-        $filteredarray = array_filter($attempts, function($attempt) use($selectedattempt) {
+        $filteredarray = array_filter($attempts, function ($attempt) use ($selectedattempt) {
             return $selectedattempt == $attempt->id;
         });
 
@@ -139,7 +138,8 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data = new stdClass();
         $data->url = $url;
         $data->id = $id;
-        $data->returntext = get_string('returntext', 'mod_crucible');;
+        $data->returntext = get_string('returntext', 'mod_crucible');
+        ;
         echo $this->render_from_template('mod_crucible/returnform', $data);
     }
 
@@ -155,7 +155,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data->playerlinktext = get_string('playerlinktext', 'mod_crucible');
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_crucible/link', $data);
-
     }
 
     /**
@@ -168,7 +167,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data->fullscreen = get_string('fullscreen', 'mod_crucible');
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_crucible/embed', $data);
-
     }
 
     /**
@@ -332,7 +330,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
         }
 
         echo $this->render_from_template('mod_crucible/tasks', $data);
-
     }
 
     /**
@@ -376,11 +373,9 @@ class mod_crucible_renderer extends plugin_renderer_base {
             $rowdata[] = $rec->multiple;
             $rowdata[] = $rec->points;
             $data->tabledata[] = $rowdata;
-
         }
 
         echo $this->render_from_template('mod_crucible/tasks_form', $data);
-
     }
 
     /**
@@ -418,7 +413,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
         }
 
         if ($tasks) {
-
             foreach ($tasks as $task) {
                 $rowdata = new stdClass();
                 $rowdata->id = $task->id;
@@ -479,7 +473,6 @@ class mod_crucible_renderer extends plugin_renderer_base {
         ];
 
         if ($tasks) {
-
             foreach ($tasks as $task) {
                 $rowdata = new stdClass();
                 $rowdata->id = $task->id;
@@ -490,13 +483,17 @@ class mod_crucible_renderer extends plugin_renderer_base {
                 }
                 if ($task->vmname == null) {
                     $rowdata->action = get_string('taskregrade', 'mod_crucible');
-                    $rowdata->url = new moodle_url('/mod/crucible/viewattempt.php',
-                                    ["a" => $a, "id" => $task->id, "action" => "edit"]);
+                    $rowdata->url = new moodle_url(
+                        '/mod/crucible/viewattempt.php',
+                        ["a" => $a, "id" => $task->id, "action" => "edit"]
+                    );
                     $rowdata->vmname = "-";
                 } else if ($task->vmname === "SUMMARY") {
                     $rowdata->action = get_string('taskregrade', 'mod_crucible');
-                    $rowdata->url = new moodle_url('/mod/crucible/viewattempt.php',
-                                    ["a" => $a, "id" => $task->id, "action" => "edit"]);
+                    $rowdata->url = new moodle_url(
+                        '/mod/crucible/viewattempt.php',
+                        ["a" => $a, "id" => $task->id, "action" => "edit"]
+                    );
                     $rowdata->vmname = $task->vmname;
                 } else {
                     $rowdata->vmname = $task->vmname;

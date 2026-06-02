@@ -51,7 +51,6 @@ DM20-0196
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class grade {
-
     /** @var \mod_crucible\crucible */
     public $crucible;
 
@@ -87,8 +86,12 @@ class grade {
     public static function get_user_grade($crucible, $userid = 0) {
 
         global $DB;
-        $recs = $DB->get_records_select('crucible_grades', 'userid = ? AND crucibleid = ?',
-                [$userid, $crucible->id], 'grade');
+        $recs = $DB->get_records_select(
+            'crucible_grades',
+            'userid = ? AND crucibleid = ?',
+            [$userid, $crucible->id],
+            'grade'
+        );
         $grades = [];
         foreach ($recs as $rec) {
             array_push($grades, $rec->grade);
@@ -129,11 +132,11 @@ class grade {
                 array_push($attemptsgrades, $atmpt->score);
             }
 
-            $finishedattempts = array_filter($attempts, function($atmpt) {
+            $finishedattempts = array_filter($attempts, function ($atmpt) {
                 return $atmpt->timefinish != null;
             });
 
-            usort($finishedattempts, function($a, $b) {
+            usort($finishedattempts, function ($a, $b) {
                 return $a->timefinish - $b->timefinish;
             });
 
@@ -216,8 +219,11 @@ class grade {
     public function get_grade_item_passing_grade() {
         global $DB;
 
-        $gradetopass = $DB->get_field('grade_items', 'gradepass',
-                        ['iteminstance' => $this->crucible->crucible->id, 'itemmodule' => 'crucible']);
+        $gradetopass = $DB->get_field(
+            'grade_items',
+            'gradepass',
+            ['iteminstance' => $this->crucible->crucible->id, 'itemmodule' => 'crucible']
+        );
 
         return $gradetopass;
     }
@@ -280,9 +286,12 @@ class grade {
         global $DB;
 
         foreach ($grades as $userid => $grade) {
-
-            if ($usergrade = $DB->get_record('crucible_grades',
-                ['userid' => $userid, 'crucibleid' => $this->crucible->crucible->id])) {
+            if (
+                $usergrade = $DB->get_record(
+                    'crucible_grades',
+                    ['userid' => $userid, 'crucibleid' => $this->crucible->crucible->id]
+                )
+            ) {
                 // We're updating.
 
                 $usergrade->grade = $grade;
@@ -303,12 +312,10 @@ class grade {
                 if (!$DB->insert_record('crucible_grades', $usergrade)) {
                     $transaction->rollback(new \Exception('Can\'t insert user grades'));
                 }
-
             }
             debugging("persisted $grade for $userid in crucible " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
         }
 
         return true;
-
     }
 }

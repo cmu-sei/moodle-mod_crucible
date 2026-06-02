@@ -72,7 +72,6 @@ function xmldb_crucible_upgrade($oldversion) {
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2020011500) {
-
         // Define table crucible_grades to be created.
         $table = new xmldb_table('crucible_grades');
 
@@ -116,7 +115,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020040300) {
-
         // Define field clock to be added to crucible.
         $table = new xmldb_table('crucible');
         $field = new xmldb_field('clock', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'vmapp');
@@ -149,7 +147,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020040800) {
-
         // Define field sessionid to be added to crucible_attempts.
         $table = new xmldb_table('crucible_attempts');
         $field = new xmldb_field('sessionid', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null, 'crucibleid');
@@ -196,7 +193,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020040805) {
-
         // Changing nullability of field sessionid on table crucible_attempts to not null.
         $table = new xmldb_table('crucible_attempts');
         $field = new xmldb_field('sessionid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'crucibleid');
@@ -209,7 +205,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020040900) {
-
         // Changing nullability of field eventid on table crucible_attempts to not null.
         $table = new xmldb_table('crucible_attempts');
         $field = new xmldb_field('eventid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'sessionid');
@@ -231,7 +226,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020040903) {
-
         // Define field timeopen to be added to crucible.
         $table = new xmldb_table('crucible');
         $field = new xmldb_field('timeopen', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'clock');
@@ -273,7 +267,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020040904) {
-
         // Define field introformat to be added to crucible.
         $table = new xmldb_table('crucible');
         $field = new xmldb_field('introformat', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'intro');
@@ -288,7 +281,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020041000) {
-
         // Changing type of field grade on table crucible to int.
         $table = new xmldb_table('crucible');
         $field = new xmldb_field('grade', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'timeclose');
@@ -301,7 +293,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020041300) {
-
         // Rename field eventtemplate on table crucible to eventtemplateid.
         $table = new xmldb_table('crucible');
         $field = new xmldb_field('eventtemplate', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null, 'introformat');
@@ -314,7 +305,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020041307) {
-
         // Define field endtime to be added to crucible_attempts.
         $table = new xmldb_table('crucible_attempts');
         $field = new xmldb_field('endtime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 1586788681, 'score');
@@ -329,7 +319,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020050602) {
-
         // Define field extendevent to be added to crucible.
         $table = new xmldb_table('crucible');
         $field = new xmldb_field('extendevent', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'clock');
@@ -344,7 +333,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020051801) {
-
         // Define table crucible_tasks to be created.
         $table = new xmldb_table('crucible_tasks');
 
@@ -373,7 +361,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020051802) {
-
         // Define table crucible_task_results to be created.
         $table = new xmldb_table('crucible_task_results');
 
@@ -399,7 +386,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020052000) {
-
         // Rename field sessionid on table crucible_attempts to scenarioid.
         $table = new xmldb_table('crucible_attempts');
         $field = new xmldb_field('sessionid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'crucibleid');
@@ -412,7 +398,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020052001) {
-
         // Rename field scenarioid on table crucible_tasks to scenariotemplateid.
         $table = new xmldb_table('crucible_tasks');
         $field = new xmldb_field('scenarioid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'crucibleid');
@@ -425,7 +410,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020052200) {
-
         // Define field timemodified to be added to crucible_task_results.
         $table = new xmldb_table('crucible_task_results');
         $field = new xmldb_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'comment');
@@ -440,7 +424,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020052202) {
-
         // Changing type of field score on table crucible_attempts to number.
         $table = new xmldb_table('crucible_attempts');
         $field = new xmldb_field('score', XMLDB_TYPE_NUMBER, '10', null, null, null, '0.00000', 'tasks');
@@ -453,7 +436,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020052203) {
-
         // Changing type of field score on table crucible_task_results to number.
         $table = new xmldb_table('crucible_task_results');
         $field = new xmldb_field('score', XMLDB_TYPE_NUMBER, '10', null, null, null, '0.00000', 'status');
@@ -466,7 +448,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020052600) {
-
         // Define field dispatchtaskid to be added to crucible_task_results.
         $table = new xmldb_table('crucible_task_results');
         $field = new xmldb_field('dispatchtaskid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'taskid');
@@ -481,7 +462,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020080300) {
-
         // Changing precision of field score on table crucible_attempts to (6, 2).
         $table = new xmldb_table('crucible_attempts');
         $field = new xmldb_field('score', XMLDB_TYPE_NUMBER, '6, 2', null, null, null, '0.00', 'tasks');
@@ -494,7 +474,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2020080301) {
-
         // Changing precision of field grade on table crucible_grades to (6, 2).
         $table = new xmldb_table('crucible_grades');
         $field = new xmldb_field('grade', XMLDB_TYPE_NUMBER, '6, 2', null, XMLDB_NOTNULL, null, '0.00', 'userid');
@@ -514,7 +493,6 @@ function xmldb_crucible_upgrade($oldversion) {
     }
 
     if ($oldversion < 2021082301) {
-
         // Define table crucible_attempt_users to be created.
         $table = new xmldb_table('crucible_attempt_users');
 

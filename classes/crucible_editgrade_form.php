@@ -48,7 +48,6 @@ require_once($CFG->libdir . '/formslib.php');
  * Define a form that acts on just one field, e.g "name", in an existing table
  */
 class crucible_editgrade_form extends \moodleform {
-
     /**
      * Defines forms elements
      */
@@ -58,20 +57,38 @@ class crucible_editgrade_form extends \moodleform {
         $mform = $this->_form;
 
         $fieldname = "comment";
-        $mform->addElement('text', $fieldname, $fieldname,
-                ['size' => '64']);
+        $mform->addElement(
+            'text',
+            $fieldname,
+            $fieldname,
+            ['size' => '64']
+        );
         $mform->setType($fieldname, PARAM_TEXT);
         $mform->addRule($fieldname, null, 'required', null, 'client');
-        $mform->addRule($fieldname, get_string('maximumchars', '', 255),
-                'maxlength', 255, 'client');
+        $mform->addRule(
+            $fieldname,
+            get_string('maximumchars', '', 255),
+            'maxlength',
+            255,
+            'client'
+        );
 
         $fieldname = "score";
-        $mform->addElement('text', $fieldname, $fieldname,
-                ['size' => '64']);
+        $mform->addElement(
+            'text',
+            $fieldname,
+            $fieldname,
+            ['size' => '64']
+        );
         $mform->setType($fieldname, PARAM_FLOAT);
         $mform->addRule($fieldname, null, 'required', null, 'client');
-        $mform->addRule($fieldname, get_string('maximumchars', '', 255),
-                'maxlength', 255, 'client');
+        $mform->addRule(
+            $fieldname,
+            get_string('maximumchars', '', 255),
+            'maxlength',
+            255,
+            'client'
+        );
 
         $mform->addElement('hidden', 'action', 'update');
         $mform->setType('action', PARAM_TEXT);
@@ -85,4 +102,3 @@ class crucible_editgrade_form extends \moodleform {
         $this->add_action_buttons();
     }
 }
-
