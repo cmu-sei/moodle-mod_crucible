@@ -52,17 +52,17 @@ DM20-0196
 class crucible_attempt {
 
     /** Constants for the status of the attempt */
-    /** @var int Status constant representing a not-yet-started attempt. */
-    const NOTSTARTED = 0;
+    /** @var string Status constant representing a not-yet-started attempt. */
+    const NOTSTARTED = 'notstarted';
 
-    /** @var int Status constant representing an in-progress attempt. */
-    const INPROGRESS = 10;
+    /** @var string Status constant representing an in-progress attempt. */
+    const INPROGRESS = 'inprogress';
 
-    /** @var int Status constant representing an abandoned attempt. */
-    const ABANDONED = 20;
+    /** @var string Status constant representing an abandoned attempt. */
+    const ABANDONED = 'abandoned';
 
-    /** @var int Status constant representing a finished attempt. */
-    const FINISHED = 30;
+    /** @var string Status constant representing a finished attempt. */
+    const FINISHED = 'finished';
 
     /** @var \stdClass The attempt record */
     protected $attempt;
