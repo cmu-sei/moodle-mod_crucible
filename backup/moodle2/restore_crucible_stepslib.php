@@ -31,7 +31,6 @@
  * Structure step to restore one crucible activity
  */
 class restore_crucible_activity_structure_step extends restore_activity_structure_step {
-
     /**
      * Define the structure to be restored for the Crucible activity.
      *
@@ -60,10 +59,12 @@ class restore_crucible_activity_structure_step extends restore_activity_structur
 
         // Validate required fields
         if (empty($data->eventtemplateid)) {
-            throw new restore_step_exception('crucible_missing_eventtemplateid',
+            throw new restore_step_exception(
+                'crucible_missing_eventtemplateid',
                 'This backup is missing the event template ID. ' .
                 'The activity cannot be restored without selecting an Alloy event template. ' .
-                'Please contact your administrator.');
+                'Please contact your administrator.'
+            );
         }
 
         // Validate that event template exists in Alloy (warning only, doesn't block restore)
@@ -107,5 +108,4 @@ class restore_crucible_activity_structure_step extends restore_activity_structur
         // Add Crucible related files, no need to match by itemname (just internally handled context).
         $this->add_related_files('mod_crucible', 'intro', null);
     }
-
 }

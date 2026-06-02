@@ -50,7 +50,6 @@ DM20-0196
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class crucible_attempt {
-
     /** Constants for the status of the attempt */
     /** @var string Status constant representing a not-yet-started attempt. */
     const NOTSTARTED = 'notstarted';
@@ -85,7 +84,6 @@ class crucible_attempt {
         // If empty create new attempt.
         if (empty($dbattempt)) {
             $this->attempt = new \stdClass();
-
         } else { // Else load it up in this class instance.
             $this->attempt = $dbattempt;
         }
@@ -169,7 +167,6 @@ class crucible_attempt {
         $this->attempt->timemodified = time();
 
         if (isset($this->attempt->id)) { // Update the record.
-
             try {
                 $DB->update_record('crucible_attempts', $this->attempt);
             } catch (\Exception $e) {
@@ -234,7 +231,6 @@ class crucible_attempt {
 
         // Otherwise throw a new exception.
         throw new \Exception('undefined property(' . $prop . ') on crucible attempt');
-
     }
 
 
@@ -254,5 +250,4 @@ class crucible_attempt {
 
         return $this;
     }
-
 }

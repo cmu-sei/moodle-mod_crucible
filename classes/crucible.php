@@ -52,7 +52,6 @@ DM20-0196
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class crucible {
-
     /** @var object Event object for the current session */
     public $event;
 
@@ -464,7 +463,6 @@ class crucible {
                 $data->timemodified = time();
 
                 $rec = $DB->insert_record("crucible_task_results", $data);
-
             }
         }
 
@@ -546,7 +544,7 @@ class crucible {
 
         $attempts = array_filter(
             $attempts,
-            function($attempt) use($USER) {
+            function ($attempt) use ($USER) {
                 return $attempt->userid != $USER->id;
             }
         );

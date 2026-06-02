@@ -48,7 +48,6 @@ namespace mod_crucible\task;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class close_attempts extends \core\task\scheduled_task {
-
     /**
      * Get a descriptive name for this task.
      *
@@ -72,7 +71,6 @@ class close_attempts extends \core\task\scheduled_task {
             debugging("scheduled task is closing attempt $attempt->id", DEBUG_DEVELOPER);
             $attempt->close_attempt();
         }
-
     }
 
     /**
@@ -114,7 +112,5 @@ class close_attempts extends \core\task\scheduled_task {
             $attempts[] = new \mod_crucible\crucible_attempt($dbattempt);
         }
         return $attempts;
-
     }
-
 }

@@ -44,7 +44,7 @@ DM20-0196
  * @return mixed True if module supports feature, false if not, null if doesn't know
  */
 function crucible_supports($feature) {
-    switch($feature) {
+    switch ($feature) {
         case FEATURE_MOD_ARCHETYPE: {
             return MOD_ARCHETYPE_OTHER;
         }
@@ -121,7 +121,7 @@ function crucible_get_post_actions() {
  */
 function crucible_add_instance($crucible, $mform) {
     global $CFG, $DB;
-    require_once($CFG->dirroot.'/mod/crucible/locallib.php');
+    require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 
     $cmid = $crucible->coursemodule;
 
@@ -173,7 +173,6 @@ function crucible_update_instance(stdClass $crucible, $mform) {
 
     // Do the processing required after an add or an update.
     return true;
-
 }
 
 /**
@@ -204,7 +203,6 @@ function crucible_process_options($crucible) {
     global $CFG;
     require_once($CFG->dirroot . '/mod/crucible/locallib.php');
     $crucible->timemodified = time();
-
 }
 
 /**
@@ -311,8 +309,10 @@ function crucible_check_updates_since(cm_info $cm, $from, $filter = []) {
  * @param \core_calendar\action_factory $factory
  * @return \core_calendar\local\event\entities\action_interface|null
  */
-function mod_crucible_core_calendar_provide_event_action(calendar_event $event,
-                                                       \core_calendar\action_factory $factory) {
+function mod_crucible_core_calendar_provide_event_action(
+    calendar_event $event,
+    \core_calendar\action_factory $factory
+) {
     $cm = get_fast_modinfo($event->courseid)->instances['crucible'][$event->instance];
 
     $completion = new \completion_info($cm->get_course());
@@ -346,7 +346,7 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
     $grades = [];
 
       // Case 1: All users.
-      if ($userid === 0) {
+    if ($userid === 0) {
         $grades = crucible_get_user_grades($crucible, 0);
     }
 
@@ -378,7 +378,7 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
         }
     }
 
-    return crucible_grade_item_update($crucible, $grades); 
+    return crucible_grade_item_update($crucible, $grades);
 }
 
 /**
@@ -424,8 +424,16 @@ function crucible_grade_item_delete($crucible) {
     global $CFG;
     require_once($CFG->libdir . '/gradelib.php');
 
-    return grade_update('mod/crucible', $crucible->course, 'mod', 'crucible', $crucible->id, 0,
-            null, ['deleted' => 1]);
+    return grade_update(
+        'mod/crucible',
+        $crucible->course,
+        'mod',
+        'crucible',
+        $crucible->id,
+        0,
+        null,
+        ['deleted' => 1]
+    );
 }
 
 /**
@@ -484,25 +492,39 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
     }
 
     $url = new moodle_url('/mod/crucible/review.php', ['id' => $PAGE->cm->id]);
-    $node = navigation_node::create(get_string('reviewtext', 'mod_crucible'),
-            new moodle_url($url),
-            navigation_node::TYPE_SETTING, null, 'mod_crucible_review', new pix_icon('i/grades', 'grades'));
+    $node = navigation_node::create(
+        get_string('reviewtext', 'mod_crucible'),
+        new moodle_url($url),
+        navigation_node::TYPE_SETTING,
+        null,
+        'mod_crucible_review',
+        new pix_icon('i/grades', 'grades')
+    );
     $context->add_node($node, $beforekey);
 
     if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
         $url = new moodle_url('/mod/crucible/manage.php', ['c' => $PAGE->cm->course]);
-        $node = navigation_node::create(get_string('managetext', 'mod_crucible'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_crucible_manage', new pix_icon('i/grades', 'grades'));
+        $node = navigation_node::create(
+            get_string('managetext', 'mod_crucible'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_crucible_manage',
+            new pix_icon('i/grades', 'grades')
+        );
         $context->add_node($node, $beforekey);
     }
 
     if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
         $url = new moodle_url('/mod/crucible/tasks.php', ['id' => $PAGE->cm->id]);
-        $node = navigation_node::create(get_string('managetasks', 'mod_crucible'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_crucible_tasks', new pix_icon('i/completion-manual-enabled', 'tasks'));
+        $node = navigation_node::create(
+            get_string('managetasks', 'mod_crucible'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_crucible_tasks',
+            new pix_icon('i/completion-manual-enabled', 'tasks')
+        );
         $context->add_node($node, $beforekey);
     }
-
 }
