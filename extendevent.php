@@ -108,6 +108,12 @@ if (!$event) {
         $response['event'] = $event;
         $response['data'] = $data;
     } else {
+        $attemptrecord = $DB->get_record('crucible_attempts', ['eventid' => $id], '*', IGNORE_MULTIPLE);
+        if ($attemptrecord) {
+            $attemptrecord->endtime = $timestamp->getTimestamp();
+            $attemptrecord->timemodified = time();
+            $DB->update_record('crucible_attempts', $attemptrecord);
+        }
         header('HTTP/1.1 200 OK');
         $response['message'] = "success";
     }

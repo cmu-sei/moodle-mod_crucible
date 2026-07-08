@@ -97,6 +97,8 @@ switch ($action) {
         $auth = setup_system();
         $cancelled = 0;
         $jobsToCancel = [];
+        $jobsToRefresh = [];
+        $repo = new job_repository();
 
         foreach ($userids as $uid) {
             $deployrow = $DB->get_record_sql(
@@ -121,9 +123,9 @@ switch ($action) {
                     }
                 }
 
-                $repo = new job_repository();
                 $repo->set_user_status($deployrow->id, 'cancelled', 'Manually cancelled', '');
                 $cancelled++;
+                $jobsToRefresh[$deployrow->jobid] = true;
 
                 // Track jobs that need adhoc task cancellation
                 if (!empty($deployrow->scheduledfor)) {
@@ -144,6 +146,13 @@ switch ($action) {
                 if (!empty($data->jobid) && $data->jobid == $jobid) {
                     $DB->delete_records('task_adhoc', ['id' => $task->id]);
                 }
+            }
+        }
+
+        foreach (array_keys($jobsToRefresh) as $jobid) {
+            if (!$repo->get_active_user_rows($jobid)) {
+                $repo->set_job_status($jobid, \mod_crucible\local\bulkdeploy\job_status::CANCELLED);
+                $repo->set_job_cancelled_by($jobid, (int) $USER->id);
             }
         }
 
@@ -190,6 +199,76 @@ switch ($action) {
         }
 
         \core\notification::success(get_string('attempts_ended', 'crucible', $ended));
+        redirect($returnurl);
+        break;
+
+    case 'extend_selected':
+        $userids = required_param('userids', PARAM_TEXT);
+        $userids = array_filter(array_map('intval', explode(',', $userids)));
+
+        if (empty($userids)) {
+            \core\notification::error(get_string('no_users_selected', 'crucible'));
+            redirect($returnurl);
+        }
+
+        $extendinterval = (int) $crucible->extendinterval;
+        $maxextendinterval = crucible_get_max_extend_interval();
+        if ($extendinterval < 1 || $extendinterval > $maxextendinterval) {
+            \core\notification::error(get_string('extendintervalinvalid', 'crucible'));
+            redirect($returnurl);
+        }
+
+        $auth = setup_system();
+        if (!$auth) {
+            \core\notification::error('Could not initialize Crucible API');
+            redirect($returnurl);
+        }
+
+        $extended = 0;
+        $failed = 0;
+
+        foreach ($userids as $uid) {
+            $attempt = $DB->get_record('crucible_attempts', [
+                'crucibleid' => $crucible->id,
+                'userid' => $uid,
+                'state' => 'inprogress',
+            ], '*', IGNORE_MULTIPLE);
+
+            if (!$attempt || empty($attempt->eventid)) {
+                continue;
+            }
+
+            try {
+                $event = get_event($auth, $attempt->eventid);
+                if (!$event || empty($event->expirationDate)) {
+                    $failed++;
+                    continue;
+                }
+
+                $data = $event;
+                $timestamp = new DateTime($event->expirationDate);
+                $timestamp->add(new DateInterval('PT' . $extendinterval . 'M'));
+                $data->expirationDate = $timestamp->format('Y-m-d\TH:i:s.u\Z');
+
+                if (extend_event($auth, $data)) {
+                    $attempt->endtime = $timestamp->getTimestamp();
+                    $attempt->timemodified = time();
+                    $DB->update_record('crucible_attempts', $attempt);
+                    $extended++;
+                } else {
+                    $failed++;
+                }
+            } catch (Exception $e) {
+                $failed++;
+                debugging("Failed to extend attempt for user $uid: " . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
+
+        \core\notification::success(get_string('attempts_extended', 'crucible',
+            (object) ['count' => $extended, 'minutes' => $extendinterval]));
+        if ($failed > 0) {
+            \core\notification::warning(get_string('attempts_extend_failed', 'crucible', $failed));
+        }
         redirect($returnurl);
         break;
 

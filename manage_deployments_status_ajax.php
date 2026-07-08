@@ -55,6 +55,7 @@ foreach ($users as $u) {
         'status_class'   => $state['status_class'],
         'event_text'     => $state['event_text'],
         'scheduled_text' => $state['scheduled_text'],
+        'end_time_text'  => $state['end_time_text'],
         'tooltip_html'   => $state['tooltip_html'],
         'action_html'    => $state['action_html'],
     ];

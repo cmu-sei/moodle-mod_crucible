@@ -199,6 +199,7 @@ class management_repository {
         $now = time();
         $statuslabel = 'None';
         $scheduledtext = '─';
+        $endtimelabel = '─';
         $tooltiphtml = null;
 
         $deploystatus = $row->deploystatus ?? null;
@@ -259,6 +260,10 @@ class management_repository {
             $eventtext = (string) $row->attemptgamespaceid;
         }
 
+        if (!empty($row->attemptendtime)) {
+            $endtimelabel = userdate((int) $row->attemptendtime, get_string('strftimedatetime', 'langconfig'));
+        }
+
         $actionhtml = '─';
         if (!empty($attemptid) && in_array($attemptstate, ['inprogress', 'finished', 'abandoned', 'overdue'], true)) {
             $url = new \moodle_url('/mod/crucible/view.php', ['id' => $row->cmid]);
@@ -271,6 +276,7 @@ class management_repository {
             'status_class'   => strtolower($statuslabel),
             'event_text'     => $eventtext,
             'scheduled_text' => $scheduledtext,
+            'end_time_text'  => $endtimelabel,
             'tooltip_html'   => $tooltiphtml,
             'action_html'    => $actionhtml,
         ];

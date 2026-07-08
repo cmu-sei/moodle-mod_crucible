@@ -45,7 +45,7 @@ foreach ($users as $u) {
 usort($users, function($a, $b) use ($sort, $dir) {
     $val1 = $a->$sort ?? '';
     $val2 = $b->$sort ?? '';
-    if ($sort === 'scheduledfor') {
+    if ($sort === 'scheduledfor' || $sort === 'attemptendtime') {
         $val1 = (int)$val1;
         $val2 = (int)$val2;
         $cmp = $val1 <=> $val2;
@@ -159,6 +159,14 @@ echo html_writer::tag('button', get_string('end_selected', 'crucible'), [
     'disabled' => 'disabled',
     'title' => get_string('end_selected_help', 'crucible')
 ]);
+echo ' ';
+echo html_writer::tag('button', get_string('extend_selected', 'crucible'), [
+    'id' => 'extend-selected-btn',
+    'class' => 'btn btn-info',
+    'type' => 'button',
+    'disabled' => 'disabled',
+    'title' => get_string('extend_selected_help', 'crucible')
+]);
 echo html_writer::end_div();
 
 // Build sort links for column headers
@@ -181,6 +189,7 @@ echo '<th>' . $sortlink('roletext', 'Role') . '</th>';
 echo '<th>' . $statusheader . '</th>';
 echo '<th>Current or Last Event</th>';
 echo '<th>' . $sortlink('scheduledfor', 'Scheduled For') . '</th>';
+echo '<th>' . $sortlink('attemptendtime', get_string('end_time', 'crucible')) . '</th>';
 echo '<th>Actions</th>';
 echo '</tr></thead><tbody>';
 
@@ -200,6 +209,7 @@ foreach ($users as $u) {
     echo '<td class="cell-status">' . $statushtml . '</td>';
     echo '<td class="cell-event">' . $state['event_text'] . '</td>';
     echo '<td class="cell-scheduled">' . $state['scheduled_text'] . '</td>';
+    echo '<td class="cell-end-time">' . s($state['end_time_text']) . '</td>';
     echo '<td class="cell-actions">' . $state['action_html'] . '</td>';
     echo '</tr>';
 }
@@ -222,6 +232,13 @@ echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', '
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'scheduledfor', 'id' => 'schedule-timestamp']);
 echo html_writer::end_tag('form');
 
+echo html_writer::start_tag('form', ['id' => 'extend-form', 'method' => 'post', 'action' => new moodle_url('/mod/crucible/manage_deployments_action.php'), 'style' => 'display:none;']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'extend_selected']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'userids', 'id' => 'extend-userids']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
+echo html_writer::end_tag('form');
+
 // Modal content templates (no batchsize input for Crucible)
 echo html_writer::start_div('', ['id' => 'deploy-modal-content', 'style' => 'display:none;']);
 echo html_writer::tag('p', get_string('deploy_confirm_message', 'crucible'));
@@ -238,6 +255,10 @@ echo html_writer::empty_tag('input', [
     'required' => 'required'
 ]);
 echo html_writer::tag('small', '', ['class' => 'form-text text-muted mb-3', 'id' => 'timezone-display']);
+echo html_writer::end_div();
+
+echo html_writer::start_div('', ['id' => 'extend-modal-content', 'style' => 'display:none;']);
+echo html_writer::tag('p', get_string('extend_confirm_message', 'crucible', (int) $crucible->extendinterval));
 echo html_writer::end_div();
 
 echo html_writer::end_div();

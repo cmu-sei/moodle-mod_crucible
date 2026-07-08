@@ -68,6 +68,7 @@ try {
 require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/crucible:view', $context);
+$isinstructor = has_capability('mod/crucible:manage', $context);
 
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
     // Completion and trigger events.
@@ -316,7 +317,9 @@ if ($object->event) {
 }
 
 // TODO if user is in two attempts, ask which attempt they want to be in, and redirect them to a url with that attempt
-$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode);
+$bulkdeployurl = $isinstructor ? new moodle_url('/mod/crucible/manage_deployments.php', ['id' => $cm->id]) : null;
+$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode,
+    $isinstructor, $bulkdeployurl);
 
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 

@@ -79,6 +79,10 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                 if (schedCell) {
                     schedCell.textContent = user.scheduled_text || '─';
                 }
+                const endTimeCell = row.querySelector('.cell-end-time');
+                if (endTimeCell) {
+                    endTimeCell.textContent = user.end_time_text || '─';
+                }
                 const actionsCell = row.querySelector('.cell-actions');
                 if (actionsCell) {
                     actionsCell.innerHTML = user.action_html || '─';
@@ -113,9 +117,10 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                 const scheduleBtn = document.getElementById('schedule-selected-btn');
                 const cancelBtn = document.getElementById('cancel-selected-btn');
                 const endBtn = document.getElementById('end-selected-btn');
+                const extendBtn = document.getElementById('extend-selected-btn');
 
                 // Count by status
-                let canDeploy = 0, canCancel = 0, canEnd = 0;
+                let canDeploy = 0, canCancel = 0, canEnd = 0, canExtend = 0;
 
                 checkboxes.forEach(cb => {
                     const row = cb.closest('tr');
@@ -134,6 +139,7 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                         // Can end: In Progress
                         if (status === 'in progress') {
                             canEnd++;
+                            canExtend++;
                         }
                     }
                 });
@@ -164,6 +170,13 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                     endBtn.textContent = canEnd > 0 ?
                         'End Selected (' + canEnd + ')' :
                         'End Selected';
+                }
+
+                if (extendBtn) {
+                    extendBtn.disabled = canExtend === 0;
+                    extendBtn.textContent = canExtend > 0 ?
+                        'Extend Selected (' + canExtend + ')' :
+                        'Extend Selected';
                 }
             };
 
@@ -338,6 +351,38 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                     }
                 });
             };
+
+            const extendSelectedBtn = document.getElementById('extend-selected-btn');
+            if (extendSelectedBtn) {
+                extendSelectedBtn.addEventListener('click', function() {
+                    const selected = Array.from(document.querySelectorAll('.user-checkbox:checked'))
+                        .filter(cb => {
+                            const row = cb.closest('tr');
+                            return row && rowStatus(row) === 'in progress';
+                        })
+                        .map(cb => cb.value);
+
+                    if (selected.length === 0) {
+                        alert('No active labs selected');
+                        return;
+                    }
+
+                    ModalSaveCancel.create({
+                        title: 'Extend Selected (' + selected.length + ')',
+                        body: $('#extend-modal-content').html()
+                    }).then(function(modal) {
+                        modal.setSaveButtonText('Extend');
+
+                        modal.getRoot().on(ModalEvents.save, function() {
+                            $('#extend-userids').val(selected.join(','));
+                            $('#extend-form').submit();
+                        });
+
+                        modal.show();
+                        return modal;
+                    });
+                });
+            }
 
             const poll = async () => {
                 try {

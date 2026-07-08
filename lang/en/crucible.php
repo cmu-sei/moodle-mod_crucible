@@ -205,15 +205,22 @@ $string['cancel_selected'] = 'Cancel Selected';
 $string['cancel_selected_help'] = 'Cancel pending/queued deployments for selected users';
 $string['end_selected'] = 'End Selected';
 $string['end_selected_help'] = 'End active attempts for selected users';
+$string['extend_selected'] = 'Extend Selected';
+$string['extend_selected_help'] = 'Extend active labs for selected users';
 $string['no_users_selected'] = 'No users selected';
 $string['deployment_queued'] = 'Deployment queued for {$a} user(s)';
 $string['deployment_scheduled'] = 'Deployment scheduled for {$a} user(s)';
 $string['deployments_cancelled'] = 'Cancelled {$a} deployment(s)';
 $string['attempts_ended'] = 'Ended {$a} attempt(s)';
+$string['attempts_extended'] = 'Extended {$a->count} active attempt(s) by {$a->minutes} minute(s)';
+$string['attempts_extend_failed'] = 'Failed to extend {$a} selected active attempt(s)';
 $string['viewattempt'] = 'View Attempt';
 $string['deploy_confirm_message'] = 'Deploy events for selected users?';
+$string['extend_confirm_message'] = 'Extend selected active labs by {$a} minute(s)?';
+$string['end_time'] = 'End Time';
 $string['scheduledfor'] = 'Scheduled time';
 $string['schedule_past_error'] = 'Scheduled time must be in the future';
+$string['extendintervalinvalid'] = 'The activity extend interval is invalid.';
 
 // Status legend - deployment statuses
 $string['status_legend_none'] = 'None: no deployment or attempt for this user.';

@@ -90,12 +90,17 @@ class mod_crucible_renderer extends plugin_renderer_base {
      * @param int $selectedattempt The ID of the selected attempt, if any.
      * @param array $attempts List of attempt objects.
      * @param string $code Optional access code.
+     * @param bool $isinstructor Whether the current user can manage the activity.
+     * @param moodle_url|null $bulkdeployurl URL for the manage deployments page.
      */
-    public function display_form($url, $eventtemplate, $id = 0, $selectedattempt = 0, $attempts = [], $code = '') {
+    public function display_form($url, $eventtemplate, $id = 0, $selectedattempt = 0, $attempts = [], $code = '',
+        $isinstructor = false, $bulkdeployurl = null) {
         $data = new stdClass();
         $data->url = $url;
         $data->eventtemplate = $eventtemplate;
         $data->fullscreen = get_string('fullscreen', 'mod_crucible');
+        $data->isinstructor = $isinstructor;
+        $data->bulkdeployurl = $bulkdeployurl ? $bulkdeployurl->out(false) : null;
 
         $data->code = $code;
         $data->selectedattempt = $selectedattempt;
