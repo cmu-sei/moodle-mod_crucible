@@ -1,0 +1,14 @@
+{
+  "name": "cmu-sei/moodle-mod_crucible",
+  "description": "Crucible activity module for Moodle",
+  "type": "moodle-mod",
+  "license": "GPL-3.0-or-later",
+  "require-dev": {
+    "moodlehq/moodle-cs": "^3.6"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  }
+}

@@ -61,4 +61,3 @@ echo json_encode($response);
 
 // Update the session.
 \core\session\manager::touch_session(session_id());
-

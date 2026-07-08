@@ -46,6 +46,4 @@ function xmldb_crucible_install() {
     global $CFG;
 
     echo "<p>This actity is used to access and display Crucible labs.</p>";
-
 }
-

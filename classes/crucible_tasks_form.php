@@ -54,12 +54,10 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
  */
 class crucible_tasks_form extends \moodleform
 {
-
     /**
      * Defines the form fields for configuring Crucible tasks.
      */
-    public function definition()
-    {
+    public function definition() {
         global $DB, $PAGE;
         $mform = $this->_form;
         $index = 0;
@@ -144,8 +142,7 @@ class crucible_tasks_form extends \moodleform
      * @param array $files Submitted files.
      * @return array An array of error messages, or an empty array if none.
      */
-    public function validation($data, $files)
-    {
+    public function validation($data, $files) {
         $errors = parent::validation($data, $files);
     }
 
@@ -154,15 +151,15 @@ class crucible_tasks_form extends \moodleform
      *
      * @param array $data The form data to preprocess.
      */
-    public function data_preprocessing(&$data) {}
+    public function data_preprocessing(&$data) {
+    }
 
     /**
      * Processes form data after it has been submitted.
      *
      * @param array $data The submitted form data to postprocess.
      */
-    public function data_postprocessing(&$data)
-    {
+    public function data_postprocessing(&$data) {
         // TODO save tasks to the db.
 
         // TODO if grade method changed, update all grades.

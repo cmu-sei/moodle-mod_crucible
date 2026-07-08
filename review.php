@@ -40,7 +40,7 @@ DM20-0196
 
 use mod_crucible\crucible;
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
@@ -72,8 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/crucible/review.php', ['id' => $cm->id]);
-$returnurl = new moodle_url ( '/mod/crucible/view.php', ['id' => $cm->id]);
+$url = new moodle_url('/mod/crucible/review.php', ['id' => $cm->id]);
+$returnurl = new moodle_url('/mod/crucible/view.php', ['id' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);

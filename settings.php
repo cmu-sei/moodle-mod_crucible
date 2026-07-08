@@ -46,35 +46,78 @@ defined('MOODLE_INTERNAL') || die();
 if ($ADMIN->fulltree) {
     // General settings.
     $options = ['Display Link to Player', 'Embed VM App'];
-    $settings->add(new admin_setting_configselect('crucible/vmapp',
-        get_string('vmapp', 'crucible'), get_string('configvmapp', 'crucible'), 1, $options));
+    $settings->add(new admin_setting_configselect(
+        'crucible/vmapp',
+        get_string('vmapp', 'crucible'),
+        get_string('configvmapp', 'crucible'),
+        1,
+        $options
+    ));
 
     $options = ['Dropdown', 'Searchable'];
-    $settings->add(new admin_setting_configselect('crucible/autocomplete',
-        get_string('autocomplete', 'crucible'), get_string('configautocomplete', 'crucible'), 1, $options));
+    $settings->add(new admin_setting_configselect(
+        'crucible/autocomplete',
+        get_string('autocomplete', 'crucible'),
+        get_string('configautocomplete', 'crucible'),
+        1,
+        $options
+    ));
 
     $options = [];
     $issuers = core\oauth2\api::get_all_issuers();
     foreach ($issuers as $issuer) {
         $options[$issuer->get('id')] = s($issuer->get('name'));
     }
-    $settings->add(new admin_setting_configselect('crucible/issuerid',
-        get_string('issuerid', 'crucible'), get_string('configissuerid', 'crucible'), 0, $options));
+    $settings->add(new admin_setting_configselect(
+        'crucible/issuerid',
+        get_string('issuerid', 'crucible'),
+        get_string('configissuerid', 'crucible'),
+        0,
+        $options
+    ));
 
-    $settings->add(new admin_setting_configtext('crucible/alloyapiurl',
-        get_string('alloyapiurl', 'crucible'), get_string('configalloyapiurl', 'crucible'), "", PARAM_URL, 60));
+    $settings->add(new admin_setting_configtext(
+        'crucible/alloyapiurl',
+        get_string('alloyapiurl', 'crucible'),
+        get_string('configalloyapiurl', 'crucible'),
+        "",
+        PARAM_URL,
+        60
+    ));
 
-    $settings->add(new admin_setting_configtext('crucible/alloyapiclienturl',
-        get_string('alloyapiclienturl', 'crucible'), get_string('configalloyapiclienturl', 'crucible'), "", PARAM_URL, 60));
+    $settings->add(new admin_setting_configtext(
+        'crucible/alloyapiclienturl',
+        get_string('alloyapiclienturl', 'crucible'),
+        get_string('configalloyapiclienturl', 'crucible'),
+        "",
+        PARAM_URL,
+        60
+    ));
 
-    $settings->add(new admin_setting_configtext('crucible/playerappurl',
-        get_string('playerappurl', 'crucible'), get_string('configplayerappurl', 'crucible'), "", PARAM_URL, 60));
+    $settings->add(new admin_setting_configtext(
+        'crucible/playerappurl',
+        get_string('playerappurl', 'crucible'),
+        get_string('configplayerappurl', 'crucible'),
+        "",
+        PARAM_URL,
+        60
+    ));
 
-    $settings->add(new admin_setting_configtext('crucible/vmappurl',
-        get_string('vmappurl', 'crucible'), get_string('configvmappurl', 'crucible'), "", PARAM_URL, 60));
+    $settings->add(new admin_setting_configtext(
+        'crucible/vmappurl',
+        get_string('vmappurl', 'crucible'),
+        get_string('configvmappurl', 'crucible'),
+        "",
+        PARAM_URL,
+        60
+    ));
 
-    $settings->add(new admin_setting_configtext('crucible/steamfitterapiurl',
-        get_string('steamfitterapiurl', 'crucible'), get_string('steamfitterapiurl', 'crucible'), "", PARAM_URL, 60));
-
+    $settings->add(new admin_setting_configtext(
+        'crucible/steamfitterapiurl',
+        get_string('steamfitterapiurl', 'crucible'),
+        get_string('steamfitterapiurl', 'crucible'),
+        "",
+        PARAM_URL,
+        60
+    ));
 }
-

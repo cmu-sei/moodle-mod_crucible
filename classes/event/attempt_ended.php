@@ -49,7 +49,6 @@ DM20-0196
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class attempt_ended extends \core\event\base {
-
     /**
      * Init method.
      */
@@ -86,5 +85,4 @@ class attempt_ended extends \core\event\base {
     public function get_url() {
         return new \moodle_url('/mod/crucible/view.php', ['id' => $this->contextinstanceid]);
     }
-
 }

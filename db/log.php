@@ -47,5 +47,3 @@ $logs = [
     ['module' => 'crucible', 'action' => 'update', 'mtable' => 'crucible', 'field' => 'name'],
     ['module' => 'crucible', 'action' => 'add', 'mtable' => 'crucible', 'field' => 'name'],
 ];
-
-

@@ -40,7 +40,7 @@ DM20-0196
 
 use mod_crucible\crucible;
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/crucible/viewattempt.php', ['a' => $a]);
+$url = new moodle_url('/mod/crucible/viewattempt.php', ['a' => $a]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -143,7 +143,6 @@ $tasks = $object->filter_scenario_tasks($tasks, true, false);
 
 // Get tasks from db.
 if ($isinstructor) {
-
     if ($showgrade) {
         $renderer->display_grade($crucible, $attempt->userid);
         $renderer->display_scenario_score($scenario);
@@ -156,8 +155,8 @@ if ($isinstructor) {
     }
 
     // if ($showgrade) {
-    //     $renderer->display_grade($crucible, $attempt->userid);
-    //     $renderer->display_score($attempt->id);
+    // $renderer->display_grade($crucible, $attempt->userid);
+    // $renderer->display_score($attempt->id);
     // }
 
     // // Get the editgrade form.
@@ -165,46 +164,46 @@ if ($isinstructor) {
 
     // // If the cancel button was pressed, we are out of here.
     // if ($mform->is_cancelled()) {
-    //     redirect($PAGE->url, get_string('cancelled'), 2);
-    //     exit;
+    // redirect($PAGE->url, get_string('cancelled'), 2);
+    // exit;
     // }
 
     // // If we have data, then our job here is to save it and return.
     // if ($data = $mform->get_data()) {
-    //     $data->vmname = "SUMMARY";
-    //     debugging("updating crucible_task_results", DEBUG_DEVELOPER);
-    //     $DB->update_record('crucible_task_results', $data);
-    //     $attempt = $object->get_attempt($a);
-	// $score = $grader->calculate_attempt_grade($attempt);
-	// $response['score'] = get_string("attemptscore", "crucible") . $score;
-	// debugging("grade " . $score, DEBUG_DEVELOPER);
+    // $data->vmname = "SUMMARY";
+    // debugging("updating crucible_task_results", DEBUG_DEVELOPER);
+    // $DB->update_record('crucible_task_results', $data);
+    // $attempt = $object->get_attempt($a);
+    // $score = $grader->calculate_attempt_grade($attempt);
+    // $response['score'] = get_string("attemptscore", "crucible") . $score;
+    // debugging("grade " . $score, DEBUG_DEVELOPER);
 
-    //     redirect($PAGE->url, get_string('updated', 'core', 'grade item; new grade ' . $score), 2);
+    // redirect($PAGE->url, get_string('updated', 'core', 'grade item; new grade ' . $score), 2);
     // }
 
 
     // // If the action is specified as "edit" then we show the edit form.
     // if ($action == "edit") {
-    //     // Create some data for our form and set it to the form.
-    //     $data = new stdClass();
-    //     // get task from db table
-    //     $data = $DB->get_record_sql('SELECT * from {crucible_task_results} WHERE '
-    //             . 'taskid = ' . $actionitem . ' AND '
-    //             . 'attemptid = ' . $a . ' AND '
-    //             . $DB->sql_compare_text('vmname') . ' = '
-    //             . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
+    // Create some data for our form and set it to the form.
+    // $data = new stdClass();
+    // get task from db table
+    // $data = $DB->get_record_sql('SELECT * from {crucible_task_results} WHERE '
+    // . 'taskid = ' . $actionitem . ' AND '
+    // . 'attemptid = ' . $a . ' AND '
+    // . $DB->sql_compare_text('vmname') . ' = '
+    // . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
 
-    //     if (!$data) { // In case there isn't any data in your chosen table.
-    //         print_error("this should not happen");
-    //     }
+    // if (!$data) { // In case there isn't any data in your chosen table.
+    // print_error("this should not happen");
+    // }
 
-    //     $mform->set_data($data);
-    //     // Header for the page.
+    // $mform->set_data($data);
+    // Header for the page.
 
-    //     echo $renderer->heading('Edit Task Grade', 3);
+    // echo $renderer->heading('Edit Task Grade', 3);
 
-    //     // Output page and form.
-    //     $mform->display();
+    // Output page and form.
+    // $mform->display();
     // }
 
     // echo "<br>Instructor view: displaying all gradable tasks";
@@ -212,29 +211,27 @@ if ($isinstructor) {
 
     // $details = array();
     // foreach ($tasks as $task) {
-    //     $task_results = array();
-    //     $results = $DB->get_records('crucible_task_results', array("attemptid" => $a, "taskid" => $task->id), "timemodified ASC");
-    //     foreach ($results as $result) {
-    //         $newtask = clone $task;
-    //         $newtask->vmname = $result->vmname;
-    //         $newtask->score = $result->score;
-    //         $newtask->result = $result->status;
-    //         if (isset($result->comment)) {
-    //             $newtask->comment = $result->comment;
-    //         }
-    //         if ($newtask->vmname === 'SUMMARY') {
-    //             array_unshift($task_results, $newtask);
-    //         } else {
-    //             $task_results[] = $newtask;
-    //         }
-	// }
-    //     $details = array_merge($details, $task_results);
+    // $task_results = array();
+    // $results = $DB->get_records('crucible_task_results', array("attemptid" => $a, "taskid" => $task->id), "timemodified ASC");
+    // foreach ($results as $result) {
+    // $newtask = clone $task;
+    // $newtask->vmname = $result->vmname;
+    // $newtask->score = $result->score;
+    // $newtask->result = $result->status;
+    // if (isset($result->comment)) {
+    // $newtask->comment = $result->comment;
+    // }
+    // if ($newtask->vmname === 'SUMMARY') {
+    // array_unshift($task_results, $newtask);
+    // } else {
+    // $task_results[] = $newtask;
+    // }
+    // }
+    // $details = array_merge($details, $task_results);
     // }
 
     // $renderer->display_results_detail($a, $details);
-
 } else {
-
     if ($showgrade) {
         $renderer->display_grade($crucible);
         $renderer->display_scenario_score($scenario);
@@ -246,7 +243,7 @@ if ($isinstructor) {
     }
 }
 
-$returnurl = new moodle_url ( '/mod/crucible/view.php', ['id' => $cm->id]);
+$returnurl = new moodle_url('/mod/crucible/view.php', ['id' => $cm->id]);
 $renderer->display_return_form($returnurl, $id);
 
 

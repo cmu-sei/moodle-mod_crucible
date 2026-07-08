@@ -128,7 +128,11 @@ function get_eventtemplate($client, $id) {
 
     if ($client->info['http_code'] !== 200) {
         debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
-        throw new \moodle_exception('', '', '', null,
+        throw new \moodle_exception(
+            '',
+            '',
+            '',
+            null,
             $client->info['http_code'] . " for $url " . $client->response['www-authenticate']
         );
     }
@@ -178,7 +182,6 @@ function filter_tasks($tasks, $visible = 0, $gradable = 0) {
     }
     $filtered = [];
     foreach ($tasks as $task) {
-
         $rec = $DB->get_record_sql('SELECT * from {crucible_tasks} WHERE '
                 . $DB->sql_compare_text('dispatchtaskid') . ' = '
                 . $DB->sql_compare_text(':dispatchtaskid'), ['dispatchtaskid' => $task->id]);
@@ -190,7 +193,7 @@ function filter_tasks($tasks, $visible = 0, $gradable = 0) {
             continue;
         }
 
-        if ($visible === (int)$rec->visible ) {
+        if ($visible === (int)$rec->visible) {
             $task->points = $rec->points;
             $filtered[] = $task;
         }
@@ -255,7 +258,8 @@ function get_eventtemplates($client) {
 function start_event($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in start_event', DEBUG_DEVELOPER);;
+        debugging('error with client in start_event', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
@@ -265,7 +269,7 @@ function start_event($client, $id) {
 
     $response = $client->post($url);
     if (!$response) {
-        debugging('no response received by start_event response code ' , $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        debugging('no response received by start_event response code ', $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         return;
     }
     // echo "response:<br><pre>$response</pre>";
@@ -298,7 +302,8 @@ function start_event($client, $id) {
 function stop_event($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in stop_event', DEBUG_DEVELOPER);;
+        debugging('error with client in stop_event', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
@@ -386,12 +391,14 @@ function extend_event($client, $data) {
 function get_event($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in get_event', DEBUG_DEVELOPER);;
+        debugging('error with client in get_event', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
     if ($id == null) {
-        debugging('error with id in get_event', DEBUG_DEVELOPER);;
+        debugging('error with id in get_event', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
@@ -430,12 +437,14 @@ function get_event($client, $id) {
 function get_scenariotemplatetasks($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in get_scenariotemplatetasks', DEBUG_DEVELOPER);;
+        debugging('error with client in get_scenariotemplatetasks', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
     if ($id == null) {
-        debugging('error with id in get_scenariotemplatetasks', DEBUG_DEVELOPER);;
+        debugging('error with id in get_scenariotemplatetasks', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
@@ -473,12 +482,14 @@ function get_scenariotemplatetasks($client, $id) {
 function get_scenario($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in get_scenario', DEBUG_DEVELOPER);;
+        debugging('error with client in get_scenario', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
     if ($id == null) {
-        debugging('error with id in get_scenario', DEBUG_DEVELOPER);;
+        debugging('error with id in get_scenario', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
@@ -516,12 +527,14 @@ function get_scenario($client, $id) {
 function get_scenariotasks($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in get_scenariotasks', DEBUG_DEVELOPER);;
+        debugging('error with client in get_scenariotasks', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
     if ($id == null) {
-        debugging('error with id in get_scenariotasks', DEBUG_DEVELOPER);;
+        debugging('error with id in get_scenariotasks', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
@@ -559,12 +572,14 @@ function get_scenariotasks($client, $id) {
 function get_task($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in get_tasks', DEBUG_DEVELOPER);;
+        debugging('error with client in get_tasks', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
     if ($id == null) {
-        debugging('error with id in get_tasks', DEBUG_DEVELOPER);;
+        debugging('error with id in get_tasks', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
@@ -602,12 +617,14 @@ function get_task($client, $id) {
 function get_taskresults($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in get_taskresults', DEBUG_DEVELOPER);;
+        debugging('error with client in get_taskresults', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
     if ($id == null) {
-        debugging('error with client in get_taskresults', DEBUG_DEVELOPER);;
+        debugging('error with client in get_taskresults', DEBUG_DEVELOPER);
+        ;
         return;
     }
 
@@ -686,8 +703,10 @@ function get_active_events($history) {
     $activeevents = [];
 
     foreach ($history as $odx) {
-        if (($odx['status'] == "Active") || ($odx['status'] == "Creating") ||
-            ($odx['status'] == "Planning") ||($odx['status'] == "Applying") || ($odx['status'] == "Ending")) {
+        if (
+            ($odx['status'] == "Active") || ($odx['status'] == "Creating") ||
+            ($odx['status'] == "Planning") || ($odx['status'] == "Applying") || ($odx['status'] == "Ending")
+        ) {
             array_push($activeevents, (object)$odx);
         }
     }
@@ -916,7 +935,6 @@ function getall_course_attempts($course) {
     }
 
     return $attempts;
-
 }
 
 /**
@@ -938,7 +956,6 @@ function getall_crucible_attempts($course) {
     }
 
     return $attempts;
-
 }
 
 /**
@@ -996,8 +1013,8 @@ function ensure_added_to_event_attempts($events) {
                 $attemptuser->attemptid = $attempt->id;
                 $attemptuser->userid = $USER->id;
 
-		$DB->insert_record('crucible_attempt_users', $attemptuser);
-		debugging("added " . $USER->username . " to attempt " . $attempt->id . " for event " . $attempt->eventid, DEBUG_DEVELOPER);
+                $DB->insert_record('crucible_attempt_users', $attemptuser);
+                debugging("added " . $USER->username . " to attempt " . $attempt->id . " for event " . $attempt->eventid, DEBUG_DEVELOPER);
             }
         }
     }
@@ -1043,7 +1060,6 @@ function crucible_validate_eventtemplate($eventtemplateid) {
         // Other errors - log but don't block
         debugging('Unexpected response validating template: HTTP ' . $client->info['http_code'], DEBUG_DEVELOPER);
         return false;
-
     } catch (Exception $e) {
         debugging('Exception validating event template: ' . $e->getMessage(), DEBUG_DEVELOPER);
         return false; // Assume exists to avoid blocking restore

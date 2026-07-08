@@ -61,7 +61,7 @@ $strintro        = get_string('moduleintro');
 $strlastmodified = get_string('lastmodified');
 
 $PAGE->set_url('/mod/crucible/index.php', ['id' => $course->id]);
-$PAGE->set_title($course->shortname.': '.$strcrucibles);
+$PAGE->set_title($course->shortname . ': ' . $strcrucibles);
 $PAGE->set_heading($course->fullname);
 $PAGE->navbar->add($strcrucibles);
 echo $OUTPUT->header();
@@ -79,7 +79,7 @@ $table = new html_table();
 $table->attributes['class'] = 'generaltable mod_index';
 
 if ($usesections) {
-    $strsectionname = get_string('sectionname', 'format_'.$course->format);
+    $strsectionname = get_string('sectionname', 'format_' . $course->format);
     $table->head  = [$strsectionname, $strname, $strintro];
     $table->align = ['center', 'left', 'left'];
 } else {
@@ -103,7 +103,7 @@ foreach ($crucibles as $crucible) {
             $currentsection = $crucible->section;
         }
     } else {
-        $printsection = '<span class="smallinfo">'.userdate($crucible->timemodified)."</span>";
+        $printsection = '<span class="smallinfo">' . userdate($crucible->timemodified) . "</span>";
     }
 
     $extra = empty($cm->extra) ? '' : $cm->extra;
@@ -116,11 +116,10 @@ foreach ($crucibles as $crucible) {
     $class = $crucible->visible ? '' : 'class="dimmed"'; // Hidden modules are dimmed.
     $table->data[] = [
         $printsection,
-        "<a $class $extra href=\"view.php?id=$cm->id\">".$icon.format_string($crucible->name)."</a>",
+        "<a $class $extra href=\"view.php?id=$cm->id\">" . $icon . format_string($crucible->name) . "</a>",
         format_module_intro('conole', $crucible, $cm->id)];
 }
 
 echo html_writer::table($table);
 
 echo $OUTPUT->footer();
-

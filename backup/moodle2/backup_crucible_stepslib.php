@@ -42,7 +42,6 @@ DM20-0196
   * Define the complete crucible structure for backup, with file and id annotations
   */
 class backup_crucible_activity_structure_step extends backup_activity_structure_step {
-
     /**
      * Defines the structure of the crucible activity for backup.
      *
@@ -67,6 +66,5 @@ class backup_crucible_activity_structure_step extends backup_activity_structure_
 
         // Return the root element (crucible), wrapped into standard activity structure.
         return $this->prepare_activity_structure($crucible);
-
     }
 }
