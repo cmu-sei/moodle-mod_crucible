@@ -43,6 +43,8 @@ define('AJAX_SCRIPT', true);
 require_once(__DIR__ . '/../../config.php');
 require_once("$CFG->dirroot/mod/crucible/locallib.php");
 
+global $DB;
+
 require_login();
 require_sesskey();
 
@@ -71,12 +73,33 @@ if (!$event) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error with get_event";
 } else {
+    $attempt = $DB->get_record('crucible_attempts', ['eventid' => $id], 'crucibleid', IGNORE_MULTIPLE);
+    if (!$attempt) {
+        header('HTTP/1.1 500 Error');
+        $response['message'] = "Could not find Moodle activity for event.";
+        $response['id'] = $id;
+        echo json_encode($response);
+        exit;
+    }
+
+    $crucible = $DB->get_record('crucible', ['id' => $attempt->crucibleid], '*', MUST_EXIST);
+    $extendinterval = (int) $crucible->extendinterval;
+    $maxextendinterval = crucible_get_max_extend_interval();
+    if ($extendinterval < 1 || $extendinterval > $maxextendinterval) {
+        header('HTTP/1.1 500 Error');
+        $response['message'] = "Invalid activity extend interval.";
+        $response['id'] = $id;
+        echo json_encode($response);
+        exit;
+    }
+
     $data = $event;
     $response['oldtime'] = $event->expirationDate;
     $timestamp = new DateTime($event->expirationDate);
-    $timestamp->add(new DateInterval('PT1H'));
+    $timestamp->add(new DateInterval('PT' . $extendinterval . 'M'));
     $posttime = $timestamp->format('Y-m-d\TH:i:s.u\Z');
     $response['posttime'] = $posttime;
+    $response['extendinterval'] = $extendinterval;
     $data->expirationDate = $posttime;
     $result = extend_event($client, $data);
     if (!$result) {
