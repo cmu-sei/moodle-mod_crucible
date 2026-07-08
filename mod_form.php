@@ -182,6 +182,13 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'crucible'));
         $mform->addHelpButton('extendevent', 'extendeventsetting', 'crucible');
 
+        $maxextendinterval = crucible_get_max_extend_interval();
+        $mform->addElement('text', 'extendinterval', get_string('extendinterval', 'crucible'));
+        $mform->setType('extendinterval', PARAM_INT);
+        $mform->setDefault('extendinterval', $maxextendinterval);
+        $mform->addHelpButton('extendinterval', 'extendinterval', 'crucible');
+        $mform->hideIf('extendinterval', 'extendevent', 'notchecked');
+
         $this->standard_coursemodule_elements();
 
         $this->add_action_buttons();
@@ -217,6 +224,20 @@ class mod_crucible_mod_form extends moodleform_mod {
                 }
             }
         }
+
+        $extendinterval = $data['extendinterval'] ?? null;
+        if (!empty($data['extendevent']) && ($extendinterval === null || $extendinterval === '')) {
+            $errors['extendinterval'] = get_string('required');
+        } else if ($extendinterval !== null && $extendinterval !== '') {
+            $maxextendinterval = crucible_get_max_extend_interval();
+            if ((int) $extendinterval < 1) {
+                $errors['extendinterval'] = get_string('extendintervalpositive', 'crucible');
+            } else if ((int) $extendinterval > $maxextendinterval) {
+                $errors['extendinterval'] = get_string('extendintervalmax', 'crucible', $maxextendinterval);
+            }
+        }
+
+        return $errors;
     }
 
     /**

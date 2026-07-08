@@ -42,6 +42,22 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 
+define('CRUCIBLE_DEFAULT_EXTEND_INTERVAL', 60);
+
+/**
+ * Returns the configured site maximum for event extension intervals.
+ *
+ * @return int Maximum event extension interval in minutes.
+ */
+function crucible_get_max_extend_interval() {
+    $max = (int) get_config('crucible', 'maxextendinterval');
+    if ($max <= 0) {
+        return CRUCIBLE_DEFAULT_EXTEND_INTERVAL;
+    }
+
+    return $max;
+}
+
 
 /**
  * Initializes and returns an OAuth2 client authenticated as the system user.
