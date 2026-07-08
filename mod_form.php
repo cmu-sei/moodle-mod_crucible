@@ -81,8 +81,8 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
         // Pull list from alloy.
-        $systemauth = setup();
-        $this->eventtemplates = get_eventtemplates($systemauth);
+        $userauth = setup();
+        $this->eventtemplates = get_eventtemplates($userauth);
         $labnames = [];
         $labs = [];
         foreach ($this->eventtemplates as $eventtemplate) {
