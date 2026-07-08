@@ -63,6 +63,15 @@ if ($ADMIN->fulltree) {
         $options
     ));
 
+    $settings->add(new admin_setting_configtext(
+        'crucible/maxextendinterval',
+        get_string('maxextendinterval', 'crucible'),
+        get_string('configmaxextendinterval', 'crucible'),
+        60,
+        PARAM_INT,
+        10
+    ));
+
     $options = [];
     $issuers = core\oauth2\api::get_all_issuers();
     foreach ($issuers as $issuer) {
