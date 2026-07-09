@@ -140,6 +140,12 @@ if ($attempt == true) {
     }
 }
 
+if (!$attempt && empty($object->event) && !empty($object->events)) {
+    $activeevents = array_values((array)$object->events);
+    $object->event = end($activeevents);
+    debugging("using active Alloy event without open Moodle attempt: " . $object->event->id, DEBUG_DEVELOPER);
+}
+
 // TODO send instructor to a different page.
 
 // Handle start/stop form action.
@@ -148,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
     if ($attempt) { // && (!$object->event !== null)
         // TODO this should also check that we dont have an attempt.
-        if ($object->event && $object->isended()) {
+        if ($object->event && $object->is_ended()) {
             debugging('closing attempt - not active', DEBUG_DEVELOPER);
             $grader = new \mod_crucible\utils\grade($object);
             $grader->process_attempt($object->openattempt);
