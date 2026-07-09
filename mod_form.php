@@ -274,8 +274,10 @@ class mod_crucible_mod_form extends moodleform_mod {
         $index = array_search($data->eventtemplateid, array_column($this->eventtemplates, 'id'), true);
         $data->name = $this->eventtemplates[$index]->name;
         $rawdescription = $this->eventtemplates[$index]->description;
-        $data->intro = strip_tags($rawdescription); // Removes all HTML tags.
-        $data->introformat = FORMAT_PLAIN;
+        if (empty(trim(strip_tags($data->intro ?? ''))) && empty(trim(strip_tags($this->current->intro ?? '')))) {
+            $data->intro = strip_tags($rawdescription); // Removes all HTML tags.
+            $data->introformat = FORMAT_PLAIN;
+        }
 
         if (!isset($data->showcontentlicense)) {
             $data->showcontentlicense = 0; // Checkbox unchecked, set to 0.
