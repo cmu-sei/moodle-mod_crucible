@@ -333,9 +333,11 @@ function get_eventtemplates($client) {
  *
  * @param object $client The authenticated OAuth2 client.
  * @param string $id The ID of the event template to start.
+ * @param string|null $userid Optional Alloy user GUID to own the event.
+ * @param string|null $username Optional display name for the event owner.
  * @return mixed|null The new event ID on success, null on failure.
  */
-function start_event($client, $id) {
+function start_event($client, $id, $userid = null, $username = null) {
 
     if ($client == null) {
         debugging('error with client in start_event', DEBUG_DEVELOPER);
@@ -345,6 +347,16 @@ function start_event($client, $id) {
 
     // Web request.
     $url = get_config('crucible', 'alloyapiurl') . "/eventtemplates/" . $id . "/events";
+    $params = [];
+    if (!empty($userid)) {
+        $params['userId'] = $userid;
+    }
+    if (!empty($username)) {
+        $params['username'] = $username;
+    }
+    if (!empty($params)) {
+        $url .= '?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+    }
     // echo "POST $url<br>";
 
     $response = $client->post($url);

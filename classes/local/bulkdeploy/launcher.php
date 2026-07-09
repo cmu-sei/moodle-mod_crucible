@@ -60,9 +60,12 @@ class launcher {
             return;
         }
 
-        // Launch event.
+        $userdisplayname = \fullname($user) ?: $user->username;
+
+        // Launch the event as the target student. Alloy will make this user
+        // the event owner and provision the Player/Steamfitter memberships.
         try {
-            $eventid = start_event($auth, $crucible->eventtemplateid);
+            $eventid = start_event($auth, $crucible->eventtemplateid, $useralloyguid, $userdisplayname);
             if (!$eventid) {
                 $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to start event (no eventid returned)', '');
                 return;
@@ -116,17 +119,8 @@ class launcher {
                 }
 
                 if ($isReady) {
-                    // Event is ready, enlist the target user, then create the
-                    // Moodle attempt that lets the student enter the lab.
-                    $userdisplayname = \fullname($user) ?: $user->username;
-                    if (!enlist_user_in_event_as_admin($auth, $eventid, $useralloyguid, $userdisplayname)) {
-                        $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to enlist user in active event');
-                        stop_event($auth, $eventid);
-                        return;
-                    }
-
-                    debugging("User {$user->username} enlisted in event $eventid", DEBUG_DEVELOPER);
-
+                    // Event is ready; create the Moodle attempt that lets the
+                    // student enter their Alloy-owned lab.
                     $this->repo->set_user_status($rowid, user_status::READY);
                     $this->create_attempt_for_user($user->id, $crucible, $event);
                     return;
