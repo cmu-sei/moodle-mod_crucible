@@ -271,8 +271,8 @@ $grader = new \mod_crucible\utils\grade($object);
 $gradepass = $grader->get_grade_item_passing_grade();
 debugging("grade pass is $gradepass", DEBUG_DEVELOPER);
 
-// Show grade only if a passing grade is set.
-if ((int)$gradepass > 0) {
+// Show grade when grading is enabled for the activity.
+if ((int)$object->crucible->grade > 0) {
     $showgrade = true;
 } else {
     $showgrade = false;
@@ -309,6 +309,9 @@ if ($object->event) {
     // No matter what, start our session timer.
     $PAGE->requires->js_call_amd('mod_crucible/clock', 'init', ['endtime' => $endtime, 'id' => $object->event->id]);
 }
+if (!$object->event && $showgrade) {
+    $renderer->display_grade($crucible);
+}
 echo html_writer::end_div();
 echo html_writer::end_div();
 
@@ -335,10 +338,6 @@ if ($object->openattempt && $object->openattempt->userid == $USER->id && ($allow
 echo html_writer::start_div('crucible-activity-section crucible-activity-section--actions');
 echo html_writer::tag('div', 'Lab Actions', ['class' => 'crucible-activity-section__header']);
 echo html_writer::start_div('crucible-activity-section__body');
-
-if (!$object->event && $showgrade) {
-    $renderer->display_grade($crucible);
-}
 
 // TODO if user is in two attempts, ask which attempt they want to be in, and redirect them to a url with that attempt
 $bulkdeployurl = $isinstructor ? new moodle_url('/mod/crucible/manage_deployments.php', ['id' => $cm->id]) : null;

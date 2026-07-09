@@ -35,9 +35,9 @@ DM20-0196
             }
 }}
 
-<div class="crucible-notification-style crucible-notification-box">
-    <caption>
-        {{# str }} overallgrade, mod_crucible {{/ str }}
-    </caption>
-    {{grade}} / {{maxgrade}}
+<div class="crucible-detail-list crucible-grade-list mt-3">
+    <div class="crucible-detail-item border rounded bg-light">
+        <span class="crucible-detail-label">{{# str }} overallgrade, mod_crucible {{/ str }}</span>
+        <span class="crucible-detail-value">{{grade}} / {{maxgrade}}</span>
+    </div>
 </div>

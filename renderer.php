@@ -98,7 +98,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $isinstructor = false, $bulkdeployurl = null, $extend = false) {
         $data = new stdClass();
         $data->url = $url;
-        $data->eventtemplate = $eventtemplate;
+        $data->eventtemplateid = $eventtemplate;
         $data->fullscreen = get_string('fullscreen', 'mod_crucible');
         $data->isinstructor = $isinstructor;
         $data->bulkdeployurl = $bulkdeployurl ? $bulkdeployurl->out(false) : null;
