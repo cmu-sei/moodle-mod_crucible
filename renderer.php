@@ -92,15 +92,19 @@ class mod_crucible_renderer extends plugin_renderer_base {
      * @param string $code Optional access code.
      * @param bool $isinstructor Whether the current user can manage the activity.
      * @param moodle_url|null $bulkdeployurl URL for the manage deployments page.
+     * @param bool $extend Whether the current user can extend the active event.
      */
     public function display_form($url, $eventtemplate, $id = 0, $selectedattempt = 0, $attempts = [], $code = '',
-        $isinstructor = false, $bulkdeployurl = null) {
+        $isinstructor = false, $bulkdeployurl = null, $extend = false) {
         $data = new stdClass();
         $data->url = $url;
         $data->eventtemplate = $eventtemplate;
         $data->fullscreen = get_string('fullscreen', 'mod_crucible');
         $data->isinstructor = $isinstructor;
         $data->bulkdeployurl = $bulkdeployurl ? $bulkdeployurl->out(false) : null;
+        if ($extend) {
+            $data->extend = get_string('extendevent', 'mod_crucible');
+        }
 
         $data->code = $code;
         $data->selectedattempt = $selectedattempt;

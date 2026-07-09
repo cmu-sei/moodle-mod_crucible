@@ -88,9 +88,14 @@ $pageurl = null;
 $pagevars = [];
 $object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
 $enlisted = null;
+$allowstudentinvites = !isset($crucible->allowstudentinvites) || !empty($crucible->allowstudentinvites);
 
 // Enlist if code in url.
 if (!empty($code)) {
+    if (!$allowstudentinvites && !$isinstructor) {
+        throw new moodle_exception('studentinvitesdisabled', 'crucible');
+    }
+
     // the alloy api should enlist the user in the running event and return the event object
     $enlisted = $object->enlist($code);
 
@@ -283,13 +288,35 @@ if (!empty($crucible->showcontentlicense)) {
     $license_info = license_manager::get_license_by_shortname($license_id);
 }
 
+$extend = false;
+if ($object->event && $object->systemauth && !empty($crucible->extendevent)) {
+    $extend = true;
+}
+
+echo html_writer::start_div('crucible-activity-section crucible-activity-section--details');
+echo html_writer::tag('div', 'Lab Details', ['class' => 'crucible-activity-section__header']);
+echo html_writer::start_div('crucible-activity-section__body');
 $renderer->display_detail($crucible, $object->eventtemplate->durationHours, $license_info);
+if ($object->event) {
+    // TODO add mod setting to pick format.
+    if ($crucible->clock == 1) {
+        $renderer->display_clock($starttime, $endtime);
+        $PAGE->requires->js_call_amd('mod_crucible/clock', 'countdown', ['endtime' => $endtime]);
+    } else if ($crucible->clock == 2) {
+        $renderer->display_clock($starttime, $endtime);
+        $PAGE->requires->js_call_amd('mod_crucible/clock', 'countup', ['starttime' => $starttime]);
+    }
+    // No matter what, start our session timer.
+    $PAGE->requires->js_call_amd('mod_crucible/clock', 'init', ['endtime' => $endtime, 'id' => $object->event->id]);
+}
+echo html_writer::end_div();
+echo html_writer::end_div();
 
 $formattempts = $object->get_all_attempts_for_form();
 $sharecode = '';
 
 // if primary user, display the sharecode
-if ($object->openattempt && $object->openattempt->userid == $USER->id) {
+if ($object->openattempt && $object->openattempt->userid == $USER->id && ($allowstudentinvites || $isinstructor)) {
     if (is_object($object->event) && $object->event->shareCode == null) {
         $eventwithsharecode = $object->generate_sharecode();
         if ($eventwithsharecode) {
@@ -305,40 +332,35 @@ if ($object->openattempt && $object->openattempt->userid == $USER->id) {
     }
 }
 
-if ($object->event) {
-    $extend = false;
-    if ($object->systemauth && !empty($crucible->extendevent)) {
-        $extend = true;
-    }
+echo html_writer::start_div('crucible-activity-section crucible-activity-section--actions');
+echo html_writer::tag('div', 'Lab Actions', ['class' => 'crucible-activity-section__header']);
+echo html_writer::start_div('crucible-activity-section__body');
 
-    // TODO add mod setting to pick format.
-    if ($crucible->clock == 1) {
-        $renderer->display_clock($starttime, $endtime, $extend);
-        $PAGE->requires->js_call_amd('mod_crucible/clock', 'countdown', ['endtime' => $endtime]);
-    } else if ($crucible->clock == 2) {
-        $renderer->display_clock($starttime, $endtime, $extend);
-        $PAGE->requires->js_call_amd('mod_crucible/clock', 'countup', ['starttime' => $starttime]);
-    }
-    // No matter what, start our session timer.
-    $PAGE->requires->js_call_amd('mod_crucible/clock', 'init', ['endtime' => $endtime, 'id' => $object->event->id]);
-} else if ($showgrade) {
+if (!$object->event && $showgrade) {
     $renderer->display_grade($crucible);
 }
 
 // TODO if user is in two attempts, ask which attempt they want to be in, and redirect them to a url with that attempt
 $bulkdeployurl = $isinstructor ? new moodle_url('/mod/crucible/manage_deployments.php', ['id' => $cm->id]) : null;
 $renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode,
-    $isinstructor, $bulkdeployurl);
+    $isinstructor, $bulkdeployurl, $extend);
+echo html_writer::end_div();
+echo html_writer::end_div();
 
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 
 // TODO have a completely different view page for active labs.
 if ($object->event && $object->event->status === 'Active') {
+    echo html_writer::start_div('crucible-activity-section crucible-activity-section--workspace');
+    echo html_writer::tag('div', 'Lab Workspace', ['class' => 'crucible-activity-section__header']);
+    echo html_writer::start_div('crucible-activity-section__body');
     if ($vmapp == 1) {
         $renderer->display_embed_page($crucible);
     } else {
         $renderer->display_link_page($playerappurl, $viewid);
     }
+    echo html_writer::end_div();
+    echo html_writer::end_div();
 
     if ($scenarioid) {
         $tasks = get_scenariotasks($object->userauth, $scenarioid);

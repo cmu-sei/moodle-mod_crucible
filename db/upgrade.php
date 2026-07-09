@@ -620,5 +620,16 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026070801, 'crucible');
     }
 
+    if ($oldversion < 2026070805) {
+        $table = new xmldb_table('crucible');
+        $field = new xmldb_field('allowstudentinvites', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'extendevent');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026070805, 'crucible');
+    }
+
     return true;
 }

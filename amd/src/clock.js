@@ -44,7 +44,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                     var timer = document.getElementById('timer');
                     if (timer) {
                         timer.innerHTML = "Your time has expired";
-                        timer.className = "alert alert-danger";
+                        timer.className = "alert alert-danger d-inline-block mb-0";
                     }
                 }
             }, 1000);
@@ -67,11 +67,11 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 var timer = document.getElementById('timer');
                 if (timer) {
                     if (remaining < 300) {
-                        timer.className = "alert alert-danger";
+                        timer.className = "alert alert-danger d-inline-block mb-0";
                     } else if (remaining < 1800) {
-                        timer.className = "alert alert-warning";
+                        timer.className = "alert alert-warning d-inline-block mb-0";
                     } else {
-                        timer.className = "alert alert-success";
+                        timer.className = "alert alert-success d-inline-block mb-0";
                     }
 
                     timer.innerHTML = "Timer: " + days + "d " +
@@ -95,7 +95,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
                 var timer = document.getElementById('timer');
                 if (timer) {
-                    timer.className = "alert alert-success";
+                    timer.className = "alert alert-success d-inline-block mb-0";
                     timer.innerHTML = "Timer: " + days + "d " +
                         hours.toString().padStart(2, '0') + "h:" +
                         minutes.toString().padStart(2, '0') + "m:" +

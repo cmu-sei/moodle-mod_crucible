@@ -54,7 +54,7 @@ class backup_crucible_activity_structure_step extends backup_activity_structure_
         // Define each element separated.
         $crucible = new backup_nested_element('crucible', ['id'], [
             'name', 'intro', 'introformat', 'eventtemplateid', 'vmapp',
-            'clock', 'extendevent', 'extendinterval', 'timeopen', 'timeclose', 'grade',
+            'clock', 'extendevent', 'allowstudentinvites', 'extendinterval', 'timeopen', 'timeclose', 'grade',
             'grademethod', 'timecreated', 'timemodified', 'contentlicense',
             'showcontentlicense']);
 

@@ -125,6 +125,10 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->addElement('checkbox', 'showcontentlicense', get_string('showcontentlicense', 'crucible'));
         $mform->addHelpButton('showcontentlicense', 'showcontentlicense', 'crucible');
 
+        $mform->addElement('checkbox', 'allowstudentinvites', get_string('allowstudentinvites', 'crucible'));
+        $mform->setDefault('allowstudentinvites', 1);
+        $mform->addHelpButton('allowstudentinvites', 'allowstudentinvites', 'crucible');
+
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
         $options = ['Display Link to Player', 'Embed VM App'];

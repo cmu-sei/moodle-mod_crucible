@@ -133,6 +133,7 @@ function crucible_add_instance($crucible, $mform) {
     $crucible->created = time();
     $crucible->grade = 100; // Default.
     $crucible->extendevent = empty($crucible->extendevent) ? 0 : 1;
+    $crucible->allowstudentinvites = empty($crucible->allowstudentinvites) ? 0 : 1;
     $crucible->id = $DB->insert_record('crucible', $crucible);
 
     // Do the processing required after an add or an update.
@@ -166,6 +167,7 @@ function crucible_update_instance(stdClass $crucible, $mform) {
     // Update the database.
     $crucible->id = $crucible->instance;
     $crucible->extendevent = empty($crucible->extendevent) ? 0 : 1;
+    $crucible->allowstudentinvites = empty($crucible->allowstudentinvites) ? 0 : 1;
     $DB->update_record('crucible', $crucible);
 
     // Do the processing required after an add or an update.

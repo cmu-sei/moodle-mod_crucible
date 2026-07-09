@@ -15,6 +15,7 @@
         <FIELD NAME="vmapp" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="clock" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="extendevent" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="allowstudentinvites" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Whether students can invite others to their lab"/>
         <FIELD NAME="extendinterval" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="60" SEQUENCE="false" COMMENT="Event extension interval in minutes"/>
         <FIELD NAME="timeopen" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz opens. (0 = no restriction.)"/>
         <FIELD NAME="timeclose" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz closes. (0 = no restriction.)"/>

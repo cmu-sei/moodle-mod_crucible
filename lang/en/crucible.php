@@ -83,9 +83,11 @@ $string['eventtemplate_help'] = 'This is the Event Template GUID in Alloy.';
 $string['eventtemplate'] = 'Alloy Event Template';
 $string['pluginadministration'] = 'Crucible administration';
 $string['playerlinktext'] = 'Open Player in New Tab';
-$string['clock'] = 'Clock';
-$string['configclock'] = 'Style for clock.';
-$string['clock_help'] = 'Display no clock, a countup timer, or a countdown timer.';
+$string['allowstudentinvites'] = 'Allow students to invite others';
+$string['allowstudentinvites_help'] = 'When enabled, students can copy an invitation link for their active lab. Instructors can still invite users when this is disabled.';
+$string['clock'] = 'Timer';
+$string['configclock'] = 'Style for timer.';
+$string['clock_help'] = 'Display no timer, a countup timer, or a countdown timer.';
 $string['firstattempt'] = 'First attempt';
 $string['lastattempt'] = 'Last completed attempt';
 $string['highestattempt'] = 'Highest attempt';
@@ -170,6 +172,7 @@ $string['multiple_help'] = 'If checked, this task can be executed on multiple vi
 $string['points'] = 'Points';
 $string['points_help'] = 'Set the number of points this task is worth if gradable is enabled.';
 $string['enlisterror'] = 'There was an error enlisting the user in the active event.';
+$string['studentinvitesdisabled'] = 'Students cannot join this lab using an invitation link.';
 
 // Roles
 $string['crucible:manage'] = 'Manage Crucible activities';
