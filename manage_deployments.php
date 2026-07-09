@@ -248,10 +248,13 @@ echo html_writer::end_div();
 
 echo html_writer::start_div('', ['id' => 'schedule-modal-content', 'style' => 'display:none;']);
 echo html_writer::tag('label', get_string('scheduledfor', 'crucible') . ':', ['for' => 'scheduledfor-input', 'class' => 'd-block mb-2']);
+$defaultschedule = (new DateTimeImmutable('@' . (time() + HOURSECS)))
+    ->setTimezone(core_date::get_user_timezone_object())
+    ->format('Y-m-d\TH:i');
 echo html_writer::empty_tag('input', [
     'type' => 'datetime-local',
     'id' => 'scheduledfor-input',
-    'value' => userdate(time() + HOURSECS, '%Y-%m-%dT%H:%M'),
+    'value' => $defaultschedule,
     'class' => 'form-control',
     'style' => 'width: 220px;',
     'required' => 'required'
