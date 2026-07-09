@@ -150,6 +150,7 @@ define(['jquery'], function($) {
         editStyle('end_button', 'display', 'none');
         editStyle('wait', 'display', 'block');
         editStyle('vm_or_link', 'display', 'none');
+        editStyle('crucible-workspace-section', 'display', 'none');
         editStyle('failed', 'display', 'none');
         editStyle('crucible-container', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
@@ -168,6 +169,7 @@ define(['jquery'], function($) {
         editStyle('end_button', 'display', 'none');
         editStyle('wait', 'display', 'none');
         editStyle('vm_or_link', 'display', 'none');
+        editStyle('crucible-workspace-section', 'display', 'none');
         editStyle('failed', 'display', 'none');
         editStyle('timerdiv', 'display', 'none');
         editStyle('crucible-container', 'display', 'none');
@@ -186,6 +188,7 @@ define(['jquery'], function($) {
         editStyle('end_button', 'display', 'none');
         editStyle('wait', 'display', 'none');
         editStyle('vm_or_link', 'display', 'none');
+        editStyle('crucible-workspace-section', 'display', 'none');
         editStyle('failed', 'display', 'block');
         editStyle('crucible-container', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
@@ -205,6 +208,7 @@ define(['jquery'], function($) {
         editStyle('event', 'value', event_id);
         editStyle('wait', 'display', 'none');
         editStyle('failed', 'display', 'none');
+        editStyle('crucible-workspace-section', 'display', 'block');
         editStyle('crucible-container', 'display', 'block');
         editStyle('enable-fullscreen', 'display', 'inline');
         editStyle('extend-event', 'display', 'inline-block');

@@ -346,7 +346,8 @@ $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]])
 
 // TODO have a completely different view page for active labs.
 if ($object->event && $object->event->status === 'Active') {
-    echo html_writer::start_div('crucible-activity-section crucible-activity-section--workspace');
+    echo html_writer::start_div('crucible-activity-section crucible-activity-section--workspace',
+        ['id' => 'crucible-workspace-section']);
     echo html_writer::tag('div', 'Lab Workspace', ['class' => 'crucible-activity-section__header']);
     echo html_writer::start_div('crucible-activity-section__body');
     if ($vmapp == 1) {
