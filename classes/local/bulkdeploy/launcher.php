@@ -52,7 +52,15 @@ class launcher {
             return;
         }
 
-        // Launch event
+        // Get user's Alloy GUID before launching so we do not create an event
+        // that cannot be assigned to the target student.
+        $useralloyguid = get_user_alloy_guid($user->id);
+        if (!$useralloyguid) {
+            $this->repo->set_user_status($rowid, user_status::FAILED, 'User does not have Alloy GUID (not OAuth2 user)', '');
+            return;
+        }
+
+        // Launch event.
         try {
             $eventid = start_event($auth, $crucible->eventtemplateid);
             if (!$eventid) {
@@ -62,29 +70,13 @@ class launcher {
 
             debugging("Event $eventid created for user {$user->username}", DEBUG_DEVELOPER);
 
-            // Get user's Alloy GUID
-            $useralloyguid = get_user_alloy_guid($user->id);
-            if (!$useralloyguid) {
-                $this->repo->set_user_status($rowid, user_status::FAILED, 'User does not have Alloy GUID (not OAuth2 user)', '');
-                stop_event($auth, $eventid);
-                return;
-            }
-
-            // Add user to event via EventMembership
-            if (!add_user_to_event($auth, $eventid, $useralloyguid)) {
-                $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to add user to event membership', '');
-                stop_event($auth, $eventid);
-                return;
-            }
-
-            debugging("User {$user->username} added to event $eventid via EventMembership", DEBUG_DEVELOPER);
-
         } catch (\Exception $e) {
             $this->repo->set_user_status($rowid, user_status::FAILED, 'Exception starting event: ' . $e->getMessage(), '');
             return;
         }
 
-        // Mark as launched
+        // Mark as launched while Alloy applies the event. Admin enlistment must
+        // wait until Alloy reports the event as active.
         $this->repo->set_user_status($rowid, user_status::LAUNCHED, '', $eventid);
 
         // Wait phase: poll until event is ready
@@ -124,7 +116,17 @@ class launcher {
                 }
 
                 if ($isReady) {
-                    // Event is ready, mark as ready and create attempt
+                    // Event is ready, enlist the target user, then create the
+                    // Moodle attempt that lets the student enter the lab.
+                    $userdisplayname = \fullname($user) ?: $user->username;
+                    if (!enlist_user_in_event_as_admin($auth, $eventid, $useralloyguid, $userdisplayname)) {
+                        $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to enlist user in active event');
+                        stop_event($auth, $eventid);
+                        return;
+                    }
+
+                    debugging("User {$user->username} enlisted in event $eventid", DEBUG_DEVELOPER);
+
                     $this->repo->set_user_status($rowid, user_status::READY);
                     $this->create_attempt_for_user($user->id, $crucible, $event);
                     return;

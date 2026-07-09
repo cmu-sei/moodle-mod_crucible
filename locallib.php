@@ -118,52 +118,40 @@ function get_user_alloy_guid($userid) {
 }
 
 /**
- * Add a user to an event via EventMembership in Alloy API.
- * This grants the user access to an event they didn't create.
+ * Enlist a user in an Alloy event as an administrator.
  *
- * @param \core\oauth2\client $client System OAuth2 client
- * @param string $eventid Event GUID
- * @param string $useralloyguid User's Alloy GUID
- * @return bool True if membership created successfully, false otherwise
+ * @param \core\oauth2\client $client System OAuth2 client with ManageEvents.
+ * @param string $eventid Event GUID.
+ * @param string $useralloyguid User's Alloy GUID.
+ * @param string $userdisplayname User display name to use in Alloy memberships.
+ * @return bool True if enlistment succeeded, false otherwise.
  */
-function add_user_to_event($client, $eventid, $useralloyguid) {
-    $eventmemberroleid = 'f870d8ee-7332-4f7f-8ee0-63bd07cfd7e4';
+function enlist_user_in_event_as_admin($client, $eventid, $useralloyguid, $userdisplayname) {
+    if ($client == null) {
+        debugging('error with client in enlist_user_in_event_as_admin', DEBUG_DEVELOPER);
+        return false;
+    }
 
-    $payload = [
-        'eventId' => $eventid,
-        'userId' => $useralloyguid,
-        'roleId' => $eventmemberroleid
-    ];
-
-    $url = get_config('crucible', 'alloyapiurl') . '/events/' . $eventid . '/memberships';
+    $url = get_config('crucible', 'alloyapiurl') . '/events/' . $eventid . '/enlist/' . $useralloyguid;
+    $payload = json_encode(['userName' => $userdisplayname]);
 
     try {
-        $token = get_token($client);
-        $headers = [
-            'Authorization: Bearer ' . $token,
-            'Content-Type: application/json'
-        ];
+        $client->setHeader([
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($payload),
+        ]);
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $response = $client->post($url, $payload);
+        $httpcode = $client->info['http_code'] ?? 0;
 
-        $response = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        // 201 Created is success.
-        if ($httpcode === 201) {
+        if (in_array($httpcode, [200, 201, 204], true)) {
             return true;
         }
 
-        debugging("Failed to add user to event. HTTP $httpcode: $response", DEBUG_DEVELOPER);
+        debugging("Failed to enlist user in event. HTTP $httpcode for $url: $response", DEBUG_DEVELOPER);
         return false;
-
     } catch (\Exception $e) {
-        debugging("Exception adding user to event: " . $e->getMessage(), DEBUG_DEVELOPER);
+        debugging("Exception enlisting user in event: " . $e->getMessage(), DEBUG_DEVELOPER);
         return false;
     }
 }
@@ -389,14 +377,14 @@ function start_event($client, $id) {
  *
  * @param object $client The authenticated HTTP client used to perform the request.
  * @param string $id The ID of the event to stop.
- * @return void
+ * @return bool True when the event end request succeeds.
  */
 function stop_event($client, $id) {
 
     if ($client == null) {
         debugging('error with client in stop_event', DEBUG_DEVELOPER);
         ;
-        return;
+        return false;
     }
 
     // Web request.
@@ -407,6 +395,7 @@ function stop_event($client, $id) {
 
     if ($client->info['http_code'] !== 204) {
         debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        return false;
     }
 
     // if (!$response) {
@@ -414,7 +403,7 @@ function stop_event($client, $id) {
     // return;
     // }
     // echo "response:<br><pre>$response</pre>";
-    return;
+    return true;
 }
 
 /**

@@ -178,12 +178,16 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
                 throw new moodle_exception(null, '', '', null, 'no attempt to close');
             }
 
+            $stopauth = $object->systemauth ?: $object->userauth;
+            if (!stop_event($stopauth, $object->event->id)) {
+                throw new moodle_exception(null, '', '', null, 'stop_event failed');
+            }
+
             $grader = new \mod_crucible\utils\grade($object);
             $grader->process_attempt($object->openattempt);
             $object->openattempt->close_attempt();
 
-            stop_event($object->userauth, $object->event->id);
-            $object->event = get_event($object->userauth, $object->event->id);
+            $object->event = get_event($stopauth, $object->event->id);
             // Why call this again? just to check that it is ending.
             debugging("stop_attempt called, get_event returned " . $object->event->status, DEBUG_DEVELOPER);
             crucible_end($cm, $context, $crucible);
@@ -286,8 +290,13 @@ $sharecode = '';
 
 // if primary user, display the sharecode
 if ($object->openattempt && $object->openattempt->userid == $USER->id) {
-    if ($object->event->shareCode == null) {
-        $object->event = $object->generate_sharecode();
+    if (is_object($object->event) && $object->event->shareCode == null) {
+        $eventwithsharecode = $object->generate_sharecode();
+        if ($eventwithsharecode) {
+            $object->event = $eventwithsharecode;
+        } else {
+            debugging('Sharecode generation failed; preserving current event', DEBUG_DEVELOPER);
+        }
     }
     if (is_object($object->event) && isset($object->event->shareCode)) {
         $sharecode = $object->event->shareCode;

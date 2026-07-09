@@ -163,7 +163,7 @@ define(['jquery'], function($) {
      *
      */
     function show_ended() {
-        editStyle('launch_button', 'display', 'block');
+        editStyle('launch_button', 'display', 'inline-block');
         editStyle('end_button', 'display', 'none');
         editStyle('wait', 'display', 'none');
         editStyle('vm_or_link', 'display', 'none');
