@@ -267,10 +267,6 @@ $playerappurl = get_config('crucible', 'playerappurl');
 $steamfitterapiurl = get_config('crucible', 'steamfitterapiurl');
 $vmapp = $crucible->vmapp;
 
-$grader = new \mod_crucible\utils\grade($object);
-$gradepass = $grader->get_grade_item_passing_grade();
-debugging("grade pass is $gradepass", DEBUG_DEVELOPER);
-
 // Show grade when grading is enabled for the activity.
 if ((int)$object->crucible->grade > 0) {
     $showgrade = true;

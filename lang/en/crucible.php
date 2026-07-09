@@ -149,6 +149,8 @@ $string['reviewtext'] = 'Review Activity Attempts';
 $string['managetext'] = 'Review Course Attempts';
 $string['durationtext'] = 'Scheduled Duration';
 $string['attemptscore'] = 'Attempt Grade: ';
+$string['grade'] = 'Grade';
+$string['grade_help'] = 'This setting specifies the maximum score for the lab. Set it to 0 to hide grade display for this activity. Grade to pass only sets the passing threshold and does not control grade visibility.';
 
 // Review
 $string['returntext'] = 'Return to Lab';

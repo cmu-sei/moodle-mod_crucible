@@ -150,9 +150,9 @@ class mod_crucible_mod_form extends moodleform_mod {
             $currentgrade = $this->current->grade;
         }
 
-        $mform->addElement('text', 'grade', $currentgrade);
+        $mform->addElement('text', 'grade', get_string('grade', 'crucible'), $currentgrade);
         $mform->setType('grade', PARAM_FLOAT);
-        // $mform->addHelpButton('grade', 'grade', 'crucible');
+        $mform->addHelpButton('grade', 'grade', 'crucible');
 
         $mform->addElement(
             'select',

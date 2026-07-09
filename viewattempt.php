@@ -110,12 +110,8 @@ $scenarioid = null;
 $startime = null;
 $endtime = null;
 
-$grader = new \mod_crucible\utils\grade($object);
-$gradepass = $grader->get_grade_item_passing_grade();
-debugging("grade pass is $gradepass", DEBUG_DEVELOPER);
-
-// Show grade only if a passing grade is set.
-if ((int)$gradepass > 0) {
+// Show grade when grading is enabled for the activity.
+if ((int)$object->crucible->grade > 0) {
     $showgrade = true;
 } else {
     $showgrade = false;
