@@ -93,7 +93,44 @@ $string['grademethod_help'] = 'The grading method defines how the grade for a si
 $string['grademethoddesc'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
 $string['extendeventsetting'] = 'Extend Event';
 $string['extendeventsetting_help'] = 'Setting this allows instructors to extend the active event duration from the activity view page.';
-$string['extendduration'] = 'Hours';
+$string['extendduration'] = 'Duration';
+$string['extendhours'] = 'Hours';
+$string['extendminutes'] = 'Minutes';
+$string['managelabs'] = 'Manage Labs';
+$string['managelab'] = 'Manage Lab';
+$string['viewlab'] = 'View Lab';
+$string['backtomanagelabs'] = 'Back to Manage Labs';
+$string['rolefilter'] = 'Role Filter';
+$string['rolefilterall'] = 'All roles';
+$string['selectall'] = 'Select All';
+$string['deselectall'] = 'Deselect All';
+$string['extendselected'] = 'Extend Selected';
+$string['scheduleselected'] = 'Schedule Selected';
+$string['endselected'] = 'End Selected';
+$string['currentorlastlab'] = 'Current or Last Event';
+$string['scheduledfor'] = 'Scheduled For';
+$string['labendtime'] = 'End Time';
+$string['labstatusnone'] = 'None';
+$string['labstatusnotstarted'] = 'Not Started';
+$string['labstatusactive'] = 'Active';
+$string['labstatusabandoned'] = 'Abandoned';
+$string['labstatusfinished'] = 'Finished';
+$string['labstatusscheduled'] = 'Scheduled';
+$string['labstatusready'] = 'Ready';
+$string['labstatusfailed'] = 'Failed';
+$string['labstatusstarted'] = 'started {$a}';
+$string['labstatusends'] = 'ends {$a}';
+$string['labstatusscheduledfor'] = 'scheduled for {$a}';
+$string['nousersselected'] = 'No users selected.';
+$string['systemauthfailed'] = 'Could not initialize an Alloy API client.';
+$string['labsended'] = 'Ended {$a} selected labs.';
+$string['labsextended'] = 'Extended {$a} selected labs.';
+$string['labsscheduled'] = 'Scheduled {$a} selected labs.';
+$string['schedulepast'] = 'Schedule time must be in the future.';
+$string['scheduledlaunchpending'] = 'This lab is scheduled for {$a}.';
+$string['activitymanagementrequirescmid'] = 'Open Manage Labs from a specific Crucible activity.';
+$string['invalidaction'] = 'Invalid action.';
+$string['viewattempt'] = 'View Attempt';
 
 // Time options
 $string['timing'] = 'Timing';
@@ -176,6 +213,7 @@ $string['enlisterror'] = 'There was an error enlisting the user in the active ev
 
 // Roles
 $string['crucible:manage'] = 'Manage Crucible activities';
+$string['crucible:managelabs'] = 'Manage running Crucible labs';
 $string['crucible:view'] = 'View Crucible activity information';
 $string['crucible:addinstance'] = 'Add a new Crucible activties';
 

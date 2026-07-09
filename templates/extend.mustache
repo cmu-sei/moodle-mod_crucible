@@ -8,7 +8,9 @@
         "eventid": "abc-123",
         "cmid": 1,
         "extendlabel": "Extend Event",
-        "durationlabel": "Duration (minutes)",
+        "durationlabel": "Duration",
+        "hourslabel": "Hours",
+        "minuteslabel": "Minutes",
         "sesskey": "xyz"
     }
 }}
@@ -17,8 +19,10 @@
     <div class="card-body">
         <h5 class="card-title">{{extendlabel}}{{#activityname}} — {{activityname}}{{/activityname}}</h5>
         <div class="form-inline">
-            <label for="extend-duration-{{eventid}}" class="mr-2">{{durationlabel}}</label>
-            <input type="number" id="extend-duration-{{eventid}}" class="form-control mr-2" value="1" min="0.5" max="168" step="0.5" style="width: 100px;">
+            <label for="extend-hours-{{eventid}}" class="mr-2">{{hourslabel}}</label>
+            <input type="number" id="extend-hours-{{eventid}}" class="form-control mr-2" value="1" min="0" max="168" step="1" style="width: 80px;">
+            <label for="extend-minutes-{{eventid}}" class="mr-2">{{minuteslabel}}</label>
+            <input type="number" id="extend-minutes-{{eventid}}" class="form-control mr-2" value="0" min="0" max="59" step="1" style="width: 80px;">
             <button class="btn btn-primary extend-event-btn" data-eventid="{{eventid}}" data-cmid="{{cmid}}" data-sesskey="{{sesskey}}">{{extendlabel}}</button>
         </div>
     </div>

@@ -57,3 +57,313 @@
 .license-info a:hover {
   text-decoration: underline; /* Underline on hover */
 }
+
+.path-mod-crucible,
+.mod-crucible-manage,
+.crucible-manage-event {
+  font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+.path-mod-crucible .card,
+.crucible-card {
+  margin: 16px auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(2, 6, 23, .06);
+  overflow: hidden;
+}
+
+.path-mod-crucible .card-header,
+.crucible-card__header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #e0f2fe, #f8fafc);
+  border-bottom: 1px solid #dbeafe;
+}
+
+.path-mod-crucible .card-header h5,
+.path-mod-crucible .card-title,
+.crucible-card__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+.crucible-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.crucible-card__icon-img {
+  background: transparent;
+  border-radius: 0;
+  object-fit: contain;
+  padding: 0;
+}
+
+.crucible-card__titlewrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.crucible-card__subtitle {
+  font-size: 13px;
+  color: #475569;
+}
+
+.path-mod-crucible .card-body,
+.crucible-card__body {
+  padding: 14px;
+  background: #f8fafc;
+}
+
+.path-mod-crucible .card-body.p-0 {
+  background: #fff;
+}
+
+.path-mod-crucible .table-responsive,
+.crucible-table-wrap {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  overflow: auto;
+}
+
+.path-mod-crucible table.table,
+.path-mod-crucible table.generaltable,
+.mod-crucible-users-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+}
+
+.path-mod-crucible table.table thead th,
+.path-mod-crucible table.generaltable thead th,
+.mod-crucible-users-table thead th {
+  background: #f1f5f9;
+  color: #334155;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 14px;
+  font-weight: 800;
+}
+
+.path-mod-crucible table.table tbody td,
+.path-mod-crucible table.generaltable tbody td,
+.mod-crucible-users-table tbody td {
+  border-top: 1px solid #f1f5f9;
+  padding: 12px 14px;
+  vertical-align: middle;
+}
+
+.path-mod-crucible table.table tbody tr:hover,
+.path-mod-crucible table.generaltable tbody tr:hover,
+.mod-crucible-users-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.path-mod-crucible .form-control,
+.path-mod-crucible select,
+.path-mod-crucible input[type="number"],
+.path-mod-crucible input[type="text"] {
+  border-color: #cbd5e1;
+  border-radius: 10px;
+}
+
+.path-mod-crucible .form-control:focus,
+.path-mod-crucible select:focus,
+.path-mod-crucible input[type="number"]:focus,
+.path-mod-crucible input[type="text"]:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 .2rem rgba(96, 165, 250, .22);
+}
+
+.path-mod-crucible .btn {
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.path-mod-crucible .btn-primary {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.path-mod-crucible .btn-primary:hover,
+.path-mod-crucible .btn-primary:focus {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.path-mod-crucible .btn-secondary {
+  color: #334155;
+  background: #fff;
+  border-color: #cbd5e1;
+}
+
+.path-mod-crucible .btn-secondary:hover,
+.path-mod-crucible .btn-secondary:focus,
+.path-mod-crucible .btn-outline-secondary:hover,
+.path-mod-crucible .btn-outline-secondary:focus {
+  color: #0f172a;
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.path-mod-crucible .btn-outline-secondary {
+  color: #334155;
+  background: #fff;
+  border-color: #cbd5e1;
+}
+
+.path-mod-crucible .btn-outline-primary {
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+
+.path-mod-crucible .btn-outline-primary:hover,
+.path-mod-crucible .btn-outline-primary:focus {
+  color: #fff;
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.path-mod-crucible .crucible-utility-btn {
+  color: #334155;
+  background: #fff;
+  border-color: #cbd5e1;
+}
+
+.path-mod-crucible .crucible-utility-btn:hover,
+.path-mod-crucible .crucible-utility-btn:focus {
+  color: #0f172a;
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.path-mod-crucible .badge {
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.path-mod-crucible dl.row {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.path-mod-crucible dl.row dt,
+.path-mod-crucible dl.row dd {
+  margin: 0;
+  padding: 10px 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.path-mod-crucible dl.row dt {
+  color: #334155;
+  font-weight: 800;
+}
+
+.path-mod-crucible code {
+  color: #0f172a;
+  background: #f1f5f9;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 2px 5px;
+}
+
+.crucible-filterbar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.crucible-filterbar__field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.crucible-filterbar__label {
+  margin: 0;
+  color: #334155;
+  font-weight: 800;
+}
+
+.crucible-filterbar__select {
+  width: 240px;
+  max-width: 100%;
+}
+
+.crucible-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.crucible-manage-event .card-body > .d-flex {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+}
+
+.crucible-manage-event .card-body > .d-flex + .d-flex {
+  margin-top: 10px;
+}
+
+#timerdiv {
+  margin: 0 0 1rem;
+}
+
+#timer {
+  border-radius: 999px;
+  background: #0f172a;
+  color: #fff;
+  font-weight: 800;
+}
+
+#crucible-container .iframe-container {
+  background: #fff;
+}
+
+@media (max-width: 767.98px) {
+  .crucible-manage-event .card-body > .d-flex {
+    align-items: flex-start !important;
+    flex-direction: column;
+  }
+
+  .crucible-manage-event .card-body > .d-flex .ml-auto {
+    margin-left: 0 !important;
+  }
+
+  .crucible-filterbar__field,
+  .crucible-filterbar__select {
+    width: 100%;
+  }
+}

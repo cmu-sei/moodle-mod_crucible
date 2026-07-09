@@ -59,7 +59,9 @@ if (!confirm_sesskey()) {
 // Only instructors can extend events.
 $cmid = required_param('cmid', PARAM_INT);
 $context = context_module::instance($cmid);
-require_capability('mod/crucible:manage', $context);
+if (!has_any_capability(['mod/crucible:managelabs', 'mod/crucible:manage'], $context)) {
+    require_capability('mod/crucible:manage', $context);
+}
 
 if ($duration < 1) {
     $duration = 60;
@@ -70,7 +72,7 @@ if ($duration > 10080) {
 
 $response = [];
 
-$client = setup();
+$client = setup_management_auth();
 $event = get_event($client, $id);
 if (!$event) {
     header('HTTP/1.1 500 Error');
@@ -90,6 +92,18 @@ if (!$event) {
         $response['event'] = $event;
         $response['data'] = $data;
     } else {
+        $cm = get_coursemodule_from_id('crucible', $cmid, 0, false, MUST_EXIST);
+        $attempts = $DB->get_records_sql(
+            'SELECT * FROM {crucible_attempts}
+              WHERE crucibleid = :crucibleid
+                AND ' . $DB->sql_compare_text('eventid') . ' = ' . $DB->sql_compare_text(':eventid'),
+            ['crucibleid' => $cm->instance, 'eventid' => $id]
+        );
+        foreach ($attempts as $attempt) {
+            $attempt->endtime = strtotime($posttime);
+            $attempt->timemodified = time();
+            $DB->update_record('crucible_attempts', $attempt);
+        }
         header('HTTP/1.1 200 OK');
         $response['message'] = "success";
     }

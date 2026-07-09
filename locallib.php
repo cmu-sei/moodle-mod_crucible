@@ -50,13 +50,16 @@ require_once("$CFG->dirroot/mod/crucible/lib.php");
  * obtain the corresponding OAuth2 issuer, and establish a system-level client.
  * If any step fails, it logs debugging information and returns false.
  *
+ * @param bool $debug Whether to emit debugging messages on failure.
  * @return \core\oauth2\client|false The system OAuth2 client, or false on failure.
  */
-function setup_system() {
+function setup_system($debug = true) {
 
     $issuerid = get_config('crucible', 'issuerid');
     if (!$issuerid) {
-        debugging("crucible does not have issuerid set", DEBUG_DEVELOPER);
+        if ($debug) {
+            debugging("crucible does not have issuerid set", DEBUG_DEVELOPER);
+        }
         return;
     }
     $issuer = \core\oauth2\api::get_issuer($issuerid);
@@ -64,16 +67,38 @@ function setup_system() {
     try {
         $client = \core\oauth2\api::get_system_oauth_client($issuer);
     } catch (Exception $e) {
-        debugging("get_system_oauth_client failed with $e->errorcode", DEBUG_NORMAL);
+        if ($debug) {
+            debugging("get_system_oauth_client failed with $e->errorcode", DEBUG_NORMAL);
+        }
         $client = false;
     }
     if ($client === false) {
-        debugging('Cannot connect as system account', DEBUG_NORMAL);
+        if ($debug) {
+            debugging('Cannot connect as system account', DEBUG_NORMAL);
+        }
         $details = 'Cannot connect as system account';
         // Throw new \Exception($details);
         return false;
     }
     return $client;
+}
+
+/**
+ * Gets an Alloy API client for instructor management actions.
+ *
+ * Prefer the configured system OAuth client, but fall back to the current
+ * instructor's OAuth client for deployments where a system account is not
+ * configured.
+ *
+ * @return \core\oauth2\client|null|false
+ */
+function setup_management_auth() {
+    $client = setup_system(false);
+    if ($client) {
+        return $client;
+    }
+
+    return setup();
 }
 
 /**
@@ -289,6 +314,49 @@ function start_event($client, $id) {
         throw new moodle_exception('unexpectederror', 'error', '', null, $r->detail);
     }
 
+    return;
+}
+
+/**
+ * Starts an Alloy event for a specific Alloy user ID using an admin/system client.
+ *
+ * This mirrors Alloy's legacy createEventFromEventTemplate endpoint:
+ * POST /eventTemplates/{eventTemplateId}/events?userId={guid}&username={name}
+ *
+ * @param object $client The authenticated OAuth2 client.
+ * @param string $id The Alloy event template ID.
+ * @param string $userid The Alloy/OIDC subject GUID that owns the event.
+ * @param string $username Display name for the Alloy event owner.
+ * @return object|null The created event object on success, null on failure.
+ */
+function start_event_for_user($client, $id, $userid, $username) {
+
+    if ($client == null) {
+        debugging('error with client in start_event_for_user', DEBUG_DEVELOPER);
+        return;
+    }
+
+    $url = get_config('crucible', 'alloyapiurl') . "/eventtemplates/" . rawurlencode($id) . "/events"
+        . "?userId=" . rawurlencode($userid)
+        . "&username=" . rawurlencode($username);
+
+    $response = $client->post($url);
+    if (!$response) {
+        debugging('no response received by start_event_for_user', DEBUG_DEVELOPER);
+        return;
+    }
+
+    $r = json_decode($response);
+    if (!$r) {
+        debugging('could not decode start_event_for_user response', DEBUG_DEVELOPER);
+        return;
+    }
+
+    if ($client->info['http_code'] === 201) {
+        return $r;
+    }
+
+    debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
     return;
 }
 

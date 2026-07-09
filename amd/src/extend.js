@@ -13,9 +13,14 @@ define(['jquery', 'core/config'], function($, config) {
                     var eventid = button.getAttribute('data-eventid');
                     var cmid = button.getAttribute('data-cmid');
                     var sesskey = button.getAttribute('data-sesskey');
-                    var durationInput = document.getElementById('extend-duration-' + eventid);
-                    var hours = parseFloat(durationInput.value) || 1;
-                    var duration = Math.round(hours * 60);
+                    var hoursInput = document.getElementById('extend-hours-' + eventid);
+                    var minutesInput = document.getElementById('extend-minutes-' + eventid);
+                    var hours = hoursInput ? parseFloat(hoursInput.value) : 0;
+                    var minutes = minutesInput ? parseFloat(minutesInput.value) : 0;
+                    var duration = Math.round((hours || 0) * 60) + Math.round(minutes || 0);
+                    if (duration < 1) {
+                        duration = 60;
+                    }
 
                     button.disabled = true;
                     button.textContent = 'Extending...';

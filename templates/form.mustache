@@ -50,7 +50,7 @@ DM20-0196
 
       <button id="wait"
             style="display:none; white-space:nowrap;"
-            class="btn btn-primary text-left mr-2 mb-2"
+            class="btn btn-outline-secondary crucible-utility-btn text-left mr-2 mb-2"
             type="button"
             name="wait">
         <span class="spinner-border spinner-border-sm" role="status"></span>
@@ -64,7 +64,7 @@ DM20-0196
           name="failed"
           value="Your operation has failed." />
 
-      <button id="enable-fullscreen" style="display:none;" type="button" class="btn btn-primary mr-2 mb-2">{{fullscreen}}</button>
+      <button id="enable-fullscreen" style="display:none;" type="button" class="btn btn-outline-secondary crucible-utility-btn mr-2 mb-2">{{fullscreen}}</button>
 
       {{#code}}
       <input id="invitationlinkurl"
@@ -73,7 +73,7 @@ DM20-0196
              readonly
              style="position: absolute; left: -9999px;">
 
-      <button id="copy_invite" type="button" class="btn btn-outline-primary mr-2 mb-2" style="display:none;">
+      <button id="copy_invite" type="button" class="btn btn-outline-secondary crucible-utility-btn mr-2 mb-2" style="display:none;">
           <i class="icon fa fa-copy fa-fw" aria-hidden="true"></i>
           Copy Invitation Link
       </button>
@@ -85,7 +85,7 @@ DM20-0196
       <p class="mb-2">Currently viewing attempt owned by: <strong>{{joinedattemptowner}}</strong></p>
       <form action="{{url}}" method="get">
         <input type="hidden" name="id" value="{{id}}" />
-        <input id="return-button" type="submit" style="display:none" class="btn btn-outline-primary btn-sm" value="Return">
+        <input id="return-button" type="submit" style="display:none" class="btn btn-outline-secondary crucible-utility-btn btn-sm" value="Return">
       </form>
     </div>
     {{/joinedattempt}}
@@ -100,7 +100,7 @@ DM20-0196
               <option value="{{id}}">{{username}}</option>
           {{/attempts}}
         </select>
-        <input type="submit" class="btn btn-primary btn-sm" value="Join">
+        <input type="submit" class="btn btn-outline-secondary crucible-utility-btn btn-sm" value="Join">
       </div>
     </form>
     {{/activeattempts}}

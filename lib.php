@@ -502,24 +502,16 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
     );
     $context->add_node($node, $beforekey);
 
-    if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/crucible/manage.php', ['c' => $PAGE->cm->course]);
+    if (has_any_capability(['mod/crucible:managelabs', 'mod/crucible:manage'], $PAGE->cm->context)) {
+        $url = new moodle_url('/mod/crucible/manage.php', ['id' => $PAGE->cm->id]);
         $node = navigation_node::create(
-            get_string('managetext', 'mod_crucible'),
+            get_string('managelabs', 'mod_crucible'),
             new moodle_url($url),
             navigation_node::TYPE_SETTING,
             null,
             'mod_crucible_manage',
-            new pix_icon('i/grades', 'grades')
+            new pix_icon('i/users', '')
         );
-        $context->add_node($node, $beforekey);
-    }
-
-    if (has_capability('mod/crucible:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/crucible/manageevent.php', ['id' => $PAGE->cm->id]);
-        $node = navigation_node::create(get_string('manageevent', 'mod_crucible'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_crucible_manageevent', new pix_icon('i/settings', 'event'));
         $context->add_node($node, $beforekey);
     }
 

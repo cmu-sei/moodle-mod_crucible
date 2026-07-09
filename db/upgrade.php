@@ -545,5 +545,40 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026060200, 'crucible');
     }
 
+    if ($oldversion < 2026070903) {
+        // Define table crucible_scheduled_launches to be created.
+        $table = new xmldb_table('crucible_scheduled_launches');
+
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('crucibleid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('scheduledfor', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('scheduledtimezone', XMLDB_TYPE_CHAR, '64', null, null, null, null);
+        $table->add_field('status', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'scheduled');
+        $table->add_field('attemptid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_index('crucibleid-userid-status', XMLDB_INDEX_NOTUNIQUE, ['crucibleid', 'userid', 'status']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_mod_savepoint(true, 2026070903, 'crucible');
+    }
+
+    if ($oldversion < 2026070904) {
+        $table = new xmldb_table('crucible_scheduled_launches');
+        $field = new xmldb_field('scheduledtimezone', XMLDB_TYPE_CHAR, '64', null, null, null, null, 'scheduledfor');
+
+        if ($dbman->table_exists($table) && !$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026070904, 'crucible');
+    }
+
     return true;
 }

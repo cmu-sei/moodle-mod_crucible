@@ -15,109 +15,90 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Manage Event page for the Crucible activity module.
+ * Manage a single active Crucible event.
  *
  * @package    mod_crucible
  * @copyright  2020 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_crucible\crucible;
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+require_once($CFG->dirroot . '/mod/crucible/lib.php');
+require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
-require_once("$CFG->dirroot/mod/crucible/lib.php");
-require_once("$CFG->dirroot/mod/crucible/locallib.php");
-
-$id = optional_param('id', 0, PARAM_INT);
+$id = required_param('id', PARAM_INT);
+$attemptid = optional_param('attempt', 0, PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
 
-try {
-    $cm = get_coursemodule_from_id('crucible', $id, 0, false, MUST_EXIST);
-    $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
-    $crucible = $DB->get_record('crucible', ['id' => $cm->instance], '*', MUST_EXIST);
-} catch (Exception $e) {
-    throw new moodle_exception('invalidcoursemodule', 'error');
+[$course, $cm] = get_course_and_cm_from_cmid($id, 'crucible');
+require_course_login($course, true, $cm);
+
+$context = context_module::instance($cm->id);
+if (!has_any_capability(['mod/crucible:managelabs', 'mod/crucible:manage'], $context)) {
+    require_capability('mod/crucible:manage', $context);
 }
 
-require_course_login($course, true, $cm);
-$context = context_module::instance($cm->id);
-require_capability('mod/crucible:manage', $context);
+$crucible = $DB->get_record('crucible', ['id' => $cm->instance], '*', MUST_EXIST);
 
-$url = new moodle_url('/mod/crucible/manageevent.php', ['id' => $cm->id]);
+if ($attemptid) {
+    $attempt = $DB->get_record('crucible_attempts', [
+        'id' => $attemptid,
+        'crucibleid' => $crucible->id,
+    ], '*', MUST_EXIST);
+} else {
+    $attempt = $DB->get_record('crucible_attempts', [
+        'crucibleid' => $crucible->id,
+        'state' => \mod_crucible\crucible_attempt::INPROGRESS,
+    ], '*', IGNORE_MULTIPLE);
+}
+
+$urlparams = ['id' => $cm->id];
+if ($attempt) {
+    $urlparams['attempt'] = $attempt->id;
+}
+$url = new moodle_url('/mod/crucible/manageevent.php', $urlparams);
+$returnurl = new moodle_url('/mod/crucible/manage.php', ['id' => $cm->id]);
+
 $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string(get_string('manageevent', 'mod_crucible')));
 $PAGE->set_heading($course->fullname);
 
-$pageurl = $url;
-$pagevars = [];
-$object = new \mod_crucible\crucible($cm, $course, $crucible, $pageurl, $pagevars);
+$auth = setup_management_auth();
+if (!$auth) {
+    throw new moodle_exception('systemauthfailed', 'mod_crucible');
+}
 
-// Find the active event from the attempt record.
-$activeattempts = $DB->get_records('crucible_attempts', [
-    'crucibleid' => $crucible->id,
-    'state' => \mod_crucible\crucible_attempt::INPROGRESS,
-]);
 $event = null;
-foreach ($activeattempts as $att) {
-    if (!empty($att->eventid)) {
-        $event = get_event($object->userauth, $att->eventid);
-        if ($event) {
-            break;
-        }
+if ($attempt && !empty($attempt->eventid)) {
+    try {
+        $event = get_event($auth, $attempt->eventid);
+    } catch (\Exception $e) {
+        debugging("Could not retrieve event {$attempt->eventid}: " . $e->getMessage(), DEBUG_DEVELOPER);
     }
 }
 
-// Handle POST actions.
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
-    if ($action === 'stop' && $event && $event->status === 'Active') {
-        stop_event($object->userauth, $event->id);
-        // Close any open attempts.
-        $activeattempts = $DB->get_records('crucible_attempts', [
-            'crucibleid' => $crucible->id,
-            'state' => \mod_crucible\crucible_attempt::INPROGRESS,
-        ]);
-        foreach ($activeattempts as $att) {
-            $attemptobj = new \mod_crucible\crucible_attempt($att);
-            $grader = new \mod_crucible\utils\grade($object);
-            $grader->process_attempt($attemptobj);
-            $attemptobj->close_attempt();
-        }
-        redirect($url, get_string('eventstopped', 'mod_crucible'), null, \core\output\notification::NOTIFY_SUCCESS);
-    }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_sesskey();
 
-    if ($action === 'restart' && $event) {
-        // Stop current event.
-        if ($event->status === 'Active') {
-            stop_event($object->userauth, $event->id);
-            $activeattempts = $DB->get_records('crucible_attempts', [
-                'crucibleid' => $crucible->id,
-                'state' => \mod_crucible\crucible_attempt::INPROGRESS,
-            ]);
-            foreach ($activeattempts as $att) {
-                $attemptobj = new \mod_crucible\crucible_attempt($att);
-                $grader = new \mod_crucible\utils\grade($object);
-                $grader->process_attempt($attemptobj);
-                $attemptobj->close_attempt();
-            }
+    if ($action === 'stop' && $attempt && !empty($attempt->eventid)) {
+        if ($event && $event->status === 'Active') {
+            stop_event($auth, $attempt->eventid);
         }
-        // Start new event.
-        $eventid = start_event($object->userauth, $crucible->eventtemplateid);
-        if ($eventid) {
-            redirect($url, get_string('eventrestarted', 'mod_crucible'), null, \core\output\notification::NOTIFY_SUCCESS);
-        } else {
-            redirect($url, get_string('eventrestartfailed', 'mod_crucible'), null, \core\output\notification::NOTIFY_ERROR);
-        }
+
+        $attempt->state = \mod_crucible\crucible_attempt::FINISHED;
+        $attempt->timefinish = time();
+        $attempt->timemodified = time();
+        $DB->update_record('crucible_attempts', $attempt);
+
+        redirect($returnurl, get_string('eventstopped', 'mod_crucible'), null, \core\output\notification::NOTIFY_SUCCESS);
     }
 }
 
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 
-$hasactiveevent = ($event && $event->status === 'Active');
-
-if ($hasactiveevent) {
-    // Parse times.
+if ($attempt && $event) {
     if (isset($event->launchDate) && strpos($event->launchDate, "Z") !== false) {
         $starttime = strtotime($event->launchDate);
     } else {
@@ -129,20 +110,30 @@ if ($hasactiveevent) {
         $endtime = strtotime($event->expirationDate . 'Z');
     }
 
-    // Get users in this event's attempts.
-    $userids = array_map(function($a) { return $a->userid; }, $activeattempts);
     $users = [];
-    foreach ($userids as $uid) {
-        $user = $DB->get_record('user', ['id' => $uid]);
+    $owner = $DB->get_record('user', ['id' => $attempt->userid]);
+    if ($owner) {
+        $users[] = fullname($owner);
+    }
+    $attemptusers = $DB->get_records('crucible_attempt_users', ['attemptid' => $attempt->id]);
+    foreach ($attemptusers as $attemptuser) {
+        $user = $DB->get_record('user', ['id' => $attemptuser->userid]);
         if ($user) {
             $users[] = fullname($user);
         }
     }
 
-    $renderer->display_manage_event($event, $starttime, $endtime, $users, $cm->id, $crucible);
+    $viewurl = null;
+    $vmappurl = get_config('crucible', 'vmappurl');
+    if (!empty($vmappurl) && !empty($event->viewId)) {
+        $viewurl = rtrim($vmappurl, '/') . '/views/' . $event->viewId;
+    }
+
+    $renderer->display_manage_event($event, $starttime, $endtime, $users, $cm->id, $crucible, $attempt->id, $viewurl);
     $PAGE->requires->js_call_amd('mod_crucible/extend', 'init');
 } else {
-    echo '<div class="alert alert-info mt-3">' . get_string('noactiveevent', 'mod_crucible') . '</div>';
+    echo html_writer::div(get_string('noactiveevent', 'mod_crucible'), 'alert alert-info mt-3');
+    echo $OUTPUT->single_button($returnurl, get_string('backtomanagelabs', 'mod_crucible'));
 }
 
 echo $renderer->footer();

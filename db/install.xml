@@ -21,7 +21,7 @@
         <FIELD NAME="grademethod" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The grading method for grading.  This applies to grading multiple attempts"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
 	<FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="contentlicense" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="License information for content in TopoMojo"/>
+        <FIELD NAME="contentlicense" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="License information for content in Crucible"/>
         <FIELD NAME="showcontentlicense" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether to show the content license (1 = show, 0 = hide)"/>
       </FIELDS>
       <KEYS>
@@ -106,6 +106,25 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="attemptid-userid" UNIQUE="true" FIELDS="attemptid, userid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="crucible_scheduled_launches" COMMENT="Scheduled Crucible lab launches created by instructors">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="crucibleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="scheduledfor" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="scheduledtimezone" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="scheduled" SEQUENCE="false"/>
+        <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="crucibleid-userid-status" UNIQUE="false" FIELDS="crucibleid, userid, status"/>
       </INDEXES>
     </TABLE>
   </TABLES>

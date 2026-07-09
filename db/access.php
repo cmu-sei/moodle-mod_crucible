@@ -71,4 +71,15 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
+
+    'mod/crucible:managelabs' => [
+        'riskbitmask' => RISK_SPAM,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+        'clonepermissionsfrom' => 'mod/crucible:manage',
+    ],
 ];

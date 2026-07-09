@@ -14,10 +14,16 @@
         "usercount": 2,
         "eventid": "abc-123",
         "cmid": 2,
+        "attemptid": 4,
         "sesskey": "xyz",
         "extendenabled": true,
+        "hasviewurl": true,
+        "viewurl": "https://player.example/view/abc",
         "extendlabel": "Extend Event",
-        "durationlabel": "Hours",
+        "viewlablabel": "View Lab",
+        "durationlabel": "Duration",
+        "hourslabel": "Hours",
+        "minuteslabel": "Minutes",
         "stoplabel": "Stop Event",
         "restartlabel": "Restart Event"
     }
@@ -64,6 +70,18 @@
         </div>
         <div class="card-body">
 
+            {{#hasviewurl}}
+            <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                <div class="mr-3">
+                    <strong>{{viewlablabel}}</strong>
+                    <small class="d-block text-muted">Open the running lab view</small>
+                </div>
+                <div class="ml-auto">
+                    <a class="btn btn-secondary" href="{{viewurl}}" target="_blank" rel="noopener">{{viewlablabel}}</a>
+                </div>
+            </div>
+            {{/hasviewurl}}
+
             {{#extendenabled}}
             {{! Extend Event }}
             <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
@@ -72,9 +90,12 @@
                     <small class="d-block text-muted">Add time to the running event</small>
                 </div>
                 <div class="d-flex align-items-center ml-auto">
-                    <label for="extend-duration-{{eventid}}" class="sr-only">{{durationlabel}}</label>
-                    <input type="number" id="extend-duration-{{eventid}}" class="form-control mr-2" value="1" min="0.5" max="168" step="0.5" style="width: 80px;">
-                    <span class="mr-3 text-muted">{{durationlabel}}</span>
+                    <label for="extend-hours-{{eventid}}" class="sr-only">{{hourslabel}}</label>
+                    <input type="number" id="extend-hours-{{eventid}}" class="form-control mr-2" value="1" min="0" max="168" step="1" style="width: 80px;">
+                    <span class="mr-3 text-muted">{{hourslabel}}</span>
+                    <label for="extend-minutes-{{eventid}}" class="sr-only">{{minuteslabel}}</label>
+                    <input type="number" id="extend-minutes-{{eventid}}" class="form-control mr-2" value="0" min="0" max="59" step="1" style="width: 80px;">
+                    <span class="mr-3 text-muted">{{minuteslabel}}</span>
                     <button class="btn btn-primary extend-event-btn" data-eventid="{{eventid}}" data-cmid="{{cmid}}" data-sesskey="{{sesskey}}">{{extendlabel}}</button>
                 </div>
             </div>
@@ -84,26 +105,12 @@
             <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                 <div class="mr-3">
                     <strong>{{stoplabel}}</strong>
-                    <small class="d-block text-muted">End the event and close all active attempts</small>
+                    <small class="d-block text-muted">End the event and close this attempt</small>
                 </div>
                 <div class="ml-auto">
-                    <form method="post" action="?id={{cmid}}&action=stop" class="d-inline" onsubmit="return confirm('Are you sure you want to stop this event? All active attempts will be closed.');">
+                    <form method="post" action="?id={{cmid}}&attempt={{attemptid}}&action=stop" class="d-inline" onsubmit="return confirm('Are you sure you want to stop this event? This attempt will be closed.');">
                         <input type="hidden" name="sesskey" value="{{sesskey}}">
                         <button type="submit" class="btn btn-danger">{{stoplabel}}</button>
-                    </form>
-                </div>
-            </div>
-
-            {{! Restart Event }}
-            <div class="d-flex align-items-center">
-                <div class="mr-3">
-                    <strong>{{restartlabel}}</strong>
-                    <small class="d-block text-muted">Stop the current event and launch a new one</small>
-                </div>
-                <div class="ml-auto">
-                    <form method="post" action="?id={{cmid}}&action=restart" class="d-inline" onsubmit="return confirm('Are you sure? This will stop the current event, close all attempts, and start a new event.');">
-                        <input type="hidden" name="sesskey" value="{{sesskey}}">
-                        <button type="submit" class="btn btn-warning">{{restartlabel}}</button>
                     </form>
                 </div>
             </div>

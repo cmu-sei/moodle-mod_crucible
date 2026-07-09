@@ -546,6 +546,8 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data->cmid = $cmid;
         $data->extendlabel = get_string('extendevent', 'mod_crucible');
         $data->durationlabel = get_string('extendduration', 'mod_crucible');
+        $data->hourslabel = get_string('extendhours', 'mod_crucible');
+        $data->minuteslabel = get_string('extendminutes', 'mod_crucible');
         $data->sesskey = sesskey();
         if ($activityname) {
             $data->activityname = $activityname;
@@ -564,7 +566,7 @@ class mod_crucible_renderer extends plugin_renderer_base {
      * @param int $cmid The course module ID.
      * @param object $crucible The crucible activity instance.
      */
-    public function display_manage_event($event, $starttime, $endtime, $users, $cmid, $crucible) {
+    public function display_manage_event($event, $starttime, $endtime, $users, $cmid, $crucible, $attemptid = 0, $viewurl = null) {
         $data = new stdClass();
         $data->status = $event->status;
         $data->statusclass = ($event->status === 'Active') ? 'badge-success' : 'badge-secondary';
@@ -582,10 +584,16 @@ class mod_crucible_renderer extends plugin_renderer_base {
         $data->usercount = count($users);
         $data->eventid = $event->id;
         $data->cmid = $cmid;
+        $data->attemptid = $attemptid;
         $data->sesskey = sesskey();
         $data->extendenabled = !empty($crucible->extendevent);
+        $data->hasviewurl = !empty($viewurl);
+        $data->viewurl = $viewurl;
         $data->extendlabel = get_string('extendevent', 'mod_crucible');
+        $data->viewlablabel = get_string('viewlab', 'mod_crucible');
         $data->durationlabel = get_string('extendduration', 'mod_crucible');
+        $data->hourslabel = get_string('extendhours', 'mod_crucible');
+        $data->minuteslabel = get_string('extendminutes', 'mod_crucible');
         $data->stoplabel = get_string('stopevent', 'mod_crucible');
         $data->restartlabel = get_string('restartevent', 'mod_crucible');
 

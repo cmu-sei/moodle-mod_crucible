@@ -134,11 +134,32 @@ if ($attempt == true) {
     }
 }
 
+$scheduledlaunches = $DB->get_records('crucible_scheduled_launches', [
+    'crucibleid' => $crucible->id,
+    'userid' => $USER->id,
+    'status' => 'scheduled',
+], 'id DESC', '*', 0, 1);
+$scheduledlaunch = $scheduledlaunches ? reset($scheduledlaunches) : null;
+$scheduledtimezone = $scheduledlaunch->scheduledtimezone ?? 99;
+
 // TODO send instructor to a different page.
 
 // Handle start/stop form action.
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
     debugging("start request received", DEBUG_DEVELOPER);
+
+    if ($scheduledlaunch && !$attempt && !$object->event && $scheduledlaunch->scheduledfor > time()) {
+        redirect(
+            $url,
+            get_string(
+                'scheduledlaunchpending',
+                'mod_crucible',
+                userdate($scheduledlaunch->scheduledfor, get_string('strftimedatetime', 'langconfig'), $scheduledtimezone)
+            ),
+            null,
+            \core\output\notification::NOTIFY_INFO
+        );
+    }
 
     if ($attempt) { // && (!$object->event !== null)
         // TODO this should also check that we dont have an attempt.
@@ -163,6 +184,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
                 throw new moodle_exception(null, '', '', null, 'init_attempt failed');
             }
             crucible_start($cm, $context, $crucible);
+            if ($scheduledlaunch && $scheduledlaunch->scheduledfor <= time() && !empty($object->openattempt->id)) {
+                $scheduledlaunch->status = 'launched';
+                $scheduledlaunch->attemptid = $object->openattempt->id;
+                $scheduledlaunch->timemodified = time();
+                $DB->update_record('crucible_scheduled_launches', $scheduledlaunch);
+            }
         } else {
             debugging("start_event failed", DEBUG_DEVELOPER);
             throw new moodle_exception(null, '', '', null, 'start_event failed');
@@ -200,6 +227,12 @@ if ($object->event) {
         // print_error('eventwithoutattempt', 'crucible');
         // TODO give user a popup to confirm they are starting an attempt.
         $attempt = $object->init_attempt();
+        if ($scheduledlaunch && $scheduledlaunch->scheduledfor <= time() && !empty($object->openattempt->id)) {
+            $scheduledlaunch->status = 'launched';
+            $scheduledlaunch->attemptid = $object->openattempt->id;
+            $scheduledlaunch->timemodified = time();
+            $DB->update_record('crucible_scheduled_launches', $scheduledlaunch);
+        }
     }
 }
 if ((!$object->event) && ($attempt)) {
@@ -269,6 +302,13 @@ if ((int)$gradepass > 0) {
 }
 
 $renderer = $PAGE->get_renderer('mod_crucible');
+if ($scheduledlaunch && !$attempt && !$object->event && $scheduledlaunch->scheduledfor > time()) {
+    \core\notification::info(get_string(
+        'scheduledlaunchpending',
+        'mod_crucible',
+        userdate($scheduledlaunch->scheduledfor, get_string('strftimedatetime', 'langconfig'), $scheduledtimezone)
+    ));
+}
 echo $renderer->header();
 
 $license_info = null;
