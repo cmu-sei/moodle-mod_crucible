@@ -5,6 +5,17 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 use mod_crucible\local\bulkdeploy\job_repository;
 use mod_crucible\task\bulkdeploy_run;
 
+function mod_crucible_parse_bulkdeploy_schedule(string $value): ?int {
+    $timezone = \core_date::get_user_timezone_object();
+    foreach (['!Y-m-d\TH:i', '!Y-m-d\TH:i:s'] as $format) {
+        $date = \DateTimeImmutable::createFromFormat($format, $value, $timezone);
+        if ($date !== false) {
+            return $date->getTimestamp();
+        }
+    }
+    return null;
+}
+
 $action = required_param('action', PARAM_ALPHANUMEXT);
 $cmid = required_param('id', PARAM_INT);
 require_sesskey();
@@ -51,12 +62,17 @@ switch ($action) {
 
     case 'schedule_selected':
         $userids = required_param('userids', PARAM_TEXT);
-        $scheduledfor = required_param('scheduledfor', PARAM_INT);
+        $scheduledfor = optional_param('scheduledfor', 0, PARAM_INT);
+        $scheduledforlocal = optional_param('scheduledforlocal', '', PARAM_RAW_TRIMMED);
         $userids = array_filter(array_map('intval', explode(',', $userids)));
 
         if (empty($userids)) {
             \core\notification::error(get_string('no_users_selected', 'crucible'));
             redirect($returnurl);
+        }
+
+        if ($scheduledforlocal !== '') {
+            $scheduledfor = mod_crucible_parse_bulkdeploy_schedule($scheduledforlocal) ?? 0;
         }
 
         if ($scheduledfor <= time()) {
@@ -211,8 +227,8 @@ switch ($action) {
             redirect($returnurl);
         }
 
-        $extendinterval = (int) $crucible->extendinterval;
         $maxextendinterval = crucible_get_max_extend_interval();
+        $extendinterval = optional_param('extendinterval', (int) $crucible->extendinterval, PARAM_INT);
         if ($extendinterval < 1 || $extendinterval > $maxextendinterval) {
             \core\notification::error(get_string('extendintervalinvalid', 'crucible'));
             redirect($returnurl);

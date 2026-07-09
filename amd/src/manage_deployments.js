@@ -253,25 +253,14 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                     }).then(function(modal) {
                         modal.setSaveButtonText('Schedule');
 
-                        const oneHourFromNow = new Date();
-                        oneHourFromNow.setHours(oneHourFromNow.getHours() + 1);
-                        const yyyy = oneHourFromNow.getFullYear();
-                        const mm = String(oneHourFromNow.getMonth() + 1).padStart(2, '0');
-                        const dd = String(oneHourFromNow.getDate()).padStart(2, '0');
-                        const hh = String(oneHourFromNow.getHours()).padStart(2, '0');
-                        const min = String(oneHourFromNow.getMinutes()).padStart(2, '0');
-                        const defaultValue = yyyy + '-' + mm + '-' + dd + 'T' + hh + ':' + min;
-                        modal.getRoot().find('#scheduledfor-input').val(defaultValue);
-
-                        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                        modal.getRoot().find('#timezone-display').text('Your timezone: ' + timezone);
+                        const timezone = modal.getRoot().find('#timezone-display').attr('data-moodle-timezone');
+                        modal.getRoot().find('#timezone-display').text('Moodle timezone: ' + timezone);
 
                         modal.getRoot().on(ModalEvents.save, function() {
                             const datetime = modal.getRoot().find('#scheduledfor-input').val();
                             if (datetime) {
-                                const timestamp = Math.floor(new Date(datetime).getTime() / 1000);
                                 $('#schedule-userids').val(selected.join(','));
-                                $('#schedule-timestamp').val(timestamp);
+                                $('#schedule-datetime').val(datetime);
                                 $('#schedule-form').submit();
                             }
                         });
@@ -373,8 +362,24 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                     }).then(function(modal) {
                         modal.setSaveButtonText('Extend');
 
-                        modal.getRoot().on(ModalEvents.save, function() {
+                        const extendIntervalInput = modal.getRoot().find('#extend-interval-input');
+                        extendIntervalInput.on('keydown', function(e) {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        });
+
+                        modal.getRoot().on(ModalEvents.save, function(e) {
+                            const input = extendIntervalInput[0];
+                            if (input && !input.checkValidity()) {
+                                e.preventDefault();
+                                input.reportValidity();
+                                return;
+                            }
+                            const extendInterval = extendIntervalInput.val();
                             $('#extend-userids').val(selected.join(','));
+                            $('#extend-interval').val(extendInterval);
                             $('#extend-form').submit();
                         });
 

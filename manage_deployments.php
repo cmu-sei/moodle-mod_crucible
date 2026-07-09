@@ -113,7 +113,7 @@ echo ' ';
 echo html_writer::tag('button', 'Filter', ['type' => 'submit', 'class' => 'btn btn-secondary']);
 echo html_writer::end_tag('form');
 
-echo html_writer::start_div('bulk-actions mb-3');
+echo html_writer::start_div('bulk-actions d-flex flex-wrap gap-2 mb-3');
 echo html_writer::tag('button', get_string('select_all', 'crucible'), [
     'id' => 'select-all-btn',
     'class' => 'btn btn-sm btn-secondary',
@@ -181,7 +181,7 @@ $sortlink = function($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilt
 $statusheader = $sortlink('attemptstate', get_string('status', 'crucible')) .
     ' ' . $OUTPUT->help_icon('status', 'crucible');
 
-echo html_writer::start_tag('table', ['class' => 'generaltable mod-crucible-users-table']);
+echo html_writer::start_tag('table', ['class' => 'generaltable mod-crucible-users-table mt-3']);
 echo '<thead><tr>';
 echo '<th><input type="checkbox" id="select-all-checkbox"></th>';
 echo '<th>' . $sortlink('firstname', 'User') . '</th>';
@@ -230,12 +230,14 @@ echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'userids', 'id' => 'schedule-userids']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'scheduledfor', 'id' => 'schedule-timestamp']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'scheduledforlocal', 'id' => 'schedule-datetime']);
 echo html_writer::end_tag('form');
 
 echo html_writer::start_tag('form', ['id' => 'extend-form', 'method' => 'post', 'action' => new moodle_url('/mod/crucible/manage_deployments_action.php'), 'style' => 'display:none;']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'extend_selected']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'userids', 'id' => 'extend-userids']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'extendinterval', 'id' => 'extend-interval']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
 echo html_writer::end_tag('form');
 
@@ -249,16 +251,32 @@ echo html_writer::tag('label', get_string('scheduledfor', 'crucible') . ':', ['f
 echo html_writer::empty_tag('input', [
     'type' => 'datetime-local',
     'id' => 'scheduledfor-input',
-    'value' => '',
+    'value' => userdate(time() + HOURSECS, '%Y-%m-%dT%H:%M'),
     'class' => 'form-control',
     'style' => 'width: 220px;',
     'required' => 'required'
 ]);
-echo html_writer::tag('small', '', ['class' => 'form-text text-muted mb-3', 'id' => 'timezone-display']);
+echo html_writer::tag('small', '', [
+    'class' => 'form-text text-muted mb-3',
+    'id' => 'timezone-display',
+    'data-moodle-timezone' => core_date::get_user_timezone(),
+]);
 echo html_writer::end_div();
 
 echo html_writer::start_div('', ['id' => 'extend-modal-content', 'style' => 'display:none;']);
-echo html_writer::tag('p', get_string('extend_confirm_message', 'crucible', (int) $crucible->extendinterval));
+echo html_writer::tag('p', get_string('extend_confirm_message', 'crucible'));
+echo html_writer::tag('label', get_string('extendinterval', 'crucible') . ':', ['for' => 'extend-interval-input', 'class' => 'd-block mb-2']);
+echo html_writer::empty_tag('input', [
+    'type' => 'number',
+    'id' => 'extend-interval-input',
+    'value' => (int) $crucible->extendinterval,
+    'min' => 1,
+    'max' => crucible_get_max_extend_interval(),
+    'class' => 'form-control',
+    'style' => 'width: 100px;',
+    'required' => 'required'
+]);
+echo html_writer::tag('small', get_string('extendintervalmax', 'crucible', crucible_get_max_extend_interval()), ['class' => 'form-text text-muted']);
 echo html_writer::end_div();
 
 echo html_writer::end_div();
