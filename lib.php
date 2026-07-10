@@ -133,6 +133,7 @@ function crucible_add_instance($crucible, $mform) {
     $crucible->created = time();
     $crucible->grade = 100; // Default.
     $crucible->extendevent = empty($crucible->extendevent) ? 0 : 1;
+    $crucible->allowstudentinvites = empty($crucible->allowstudentinvites) ? 0 : 1;
     $crucible->id = $DB->insert_record('crucible', $crucible);
 
     // Do the processing required after an add or an update.
@@ -166,6 +167,7 @@ function crucible_update_instance(stdClass $crucible, $mform) {
     // Update the database.
     $crucible->id = $crucible->instance;
     $crucible->extendevent = empty($crucible->extendevent) ? 0 : 1;
+    $crucible->allowstudentinvites = empty($crucible->allowstudentinvites) ? 0 : 1;
     $DB->update_record('crucible', $crucible);
 
     // Do the processing required after an add or an update.
@@ -512,6 +514,13 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
             'mod_crucible_manage',
             new pix_icon('i/grades', 'grades')
         );
+        $context->add_node($node, $beforekey);
+
+        // Add Manage Deployments link
+        $url = new moodle_url('/mod/crucible/manage_deployments.php', ['id' => $PAGE->cm->id]);
+        $node = navigation_node::create(get_string('manage_deployments_pageheading', 'mod_crucible'),
+                new moodle_url($url),
+                navigation_node::TYPE_SETTING, null, 'mod_crucible_manage_deployments', new pix_icon('i/scheduled', 'deployments'));
         $context->add_node($node, $beforekey);
     }
 

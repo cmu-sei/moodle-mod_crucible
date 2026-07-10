@@ -150,10 +150,12 @@ define(['jquery'], function($) {
         editStyle('end_button', 'display', 'none');
         editStyle('wait', 'display', 'block');
         editStyle('vm_or_link', 'display', 'none');
+        editStyle('crucible-workspace-section', 'display', 'none');
         editStyle('failed', 'display', 'none');
         editStyle('crucible-container', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
+        editStyle('extend-event', 'display', 'none');
         editStyle('invite_button', 'display', 'none');
         editStyle('return-button', 'display', 'block');
         editStyle('join-form', 'display', 'block');
@@ -163,14 +165,16 @@ define(['jquery'], function($) {
      *
      */
     function show_ended() {
-        editStyle('launch_button', 'display', 'block');
+        editStyle('launch_button', 'display', 'inline-block');
         editStyle('end_button', 'display', 'none');
         editStyle('wait', 'display', 'none');
         editStyle('vm_or_link', 'display', 'none');
+        editStyle('crucible-workspace-section', 'display', 'none');
         editStyle('failed', 'display', 'none');
         editStyle('timerdiv', 'display', 'none');
         editStyle('crucible-container', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
+        editStyle('extend-event', 'display', 'none');
         editStyle('invite_button', 'display', 'none');
         editStyle('return-button', 'display', 'block');
         editStyle('join-form', 'display', 'block');
@@ -184,9 +188,11 @@ define(['jquery'], function($) {
         editStyle('end_button', 'display', 'none');
         editStyle('wait', 'display', 'none');
         editStyle('vm_or_link', 'display', 'none');
+        editStyle('crucible-workspace-section', 'display', 'none');
         editStyle('failed', 'display', 'block');
         editStyle('crucible-container', 'display', 'none');
         editStyle('enable-fullscreen', 'display', 'none');
+        editStyle('extend-event', 'display', 'none');
         editStyle('copy_invite', 'display', 'none');
         editStyle('return-button', 'display', 'none');
         editStyle('join-form', 'display', 'none');
@@ -197,19 +203,22 @@ define(['jquery'], function($) {
      */
     function show_active() {
         editStyle('launch_button', 'display', 'none');
-        editStyle('timerdiv', 'display', 'block');
+        editStyle('timerdiv', 'display', 'inline-flex');
         editStyle('end_button', 'display', 'inline');
         editStyle('event', 'value', event_id);
         editStyle('wait', 'display', 'none');
         editStyle('failed', 'display', 'none');
+        editStyle('crucible-workspace-section', 'display', 'block');
         editStyle('crucible-container', 'display', 'block');
         editStyle('enable-fullscreen', 'display', 'inline');
+        editStyle('extend-event', 'display', 'inline-block');
         editStyle('copy_invite', 'display', 'inline');
         editStyle('return-button', 'display', 'block');
         editStyle('join-form', 'display', 'block');
 
         var x = document.getElementById('vm_or_link');
         if (x) {
+            var display = 'block';
             if (x.getAttribute('src') !== null) {
                 x.setAttribute('src', vm_app_url + '/views/' + view_id);
             }
@@ -217,8 +226,9 @@ define(['jquery'], function($) {
                 x.setAttribute('href', player_app_url + '/view/' + view_id);
                 // Hide fullscreen button in link mode (not embed mode).
                 editStyle('enable-fullscreen', 'display', 'none');
+                display = 'inline-block';
             }
-            x.style.display = 'block';
+            x.style.display = display;
         }
    }
 

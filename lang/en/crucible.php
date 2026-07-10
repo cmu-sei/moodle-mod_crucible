@@ -83,9 +83,11 @@ $string['eventtemplate_help'] = 'This is the Event Template GUID in Alloy.';
 $string['eventtemplate'] = 'Alloy Event Template';
 $string['pluginadministration'] = 'Crucible administration';
 $string['playerlinktext'] = 'Open Player in New Tab';
-$string['clock'] = 'Clock';
-$string['configclock'] = 'Style for clock.';
-$string['clock_help'] = 'Display no clock, a countup timer, or a countdown timer.';
+$string['allowstudentinvites'] = 'Allow students to invite others';
+$string['allowstudentinvites_help'] = 'When enabled, students can copy an invitation link for their active lab. Instructors can still invite users when this is disabled.';
+$string['clock'] = 'Timer';
+$string['configclock'] = 'Style for timer.';
+$string['clock_help'] = 'Display no timer, a countup timer, or a countdown timer.';
 $string['firstattempt'] = 'First attempt';
 $string['lastattempt'] = 'Last completed attempt';
 $string['highestattempt'] = 'Highest attempt';
@@ -140,13 +142,15 @@ $string['tasknoexecute'] = 'Not Executable';
 $string['eventwithoutattempt'] = 'Event exists but attempt does not exist in moodle db.';
 $string['courseorinstanceid'] = 'Either a course id or an instance must be given.';
 $string['attemptalreadyexists'] = 'An open attempt already exists for this event';
-$string['overallgrade'] = 'Overall Grade: ';
+$string['overallgrade'] = 'Overall Grade';
 $string['fullscreen'] = 'Fullscreen VM App';
 $string['extendevent'] = 'Extend Event';
 $string['reviewtext'] = 'Review Activity Attempts';
 $string['managetext'] = 'Review Course Attempts';
 $string['durationtext'] = 'Scheduled Duration';
 $string['attemptscore'] = 'Attempt Grade: ';
+$string['grade'] = 'Grade';
+$string['grade_help'] = 'This setting specifies the maximum score for the lab. Set it to 0 to hide grade display for this activity. Grade to pass only sets the passing threshold and does not control grade visibility.';
 
 // Review
 $string['returntext'] = 'Return to Lab';
@@ -170,6 +174,7 @@ $string['multiple_help'] = 'If checked, this task can be executed on multiple vi
 $string['points'] = 'Points';
 $string['points_help'] = 'Set the number of points this task is worth if gradable is enabled.';
 $string['enlisterror'] = 'There was an error enlisting the user in the active event.';
+$string['studentinvitesdisabled'] = 'Students cannot join this lab using an invitation link.';
 
 // Roles
 $string['crucible:manage'] = 'Manage Crucible activities';
@@ -189,3 +194,67 @@ $string['filtertasks'] = 'Filter Tasks';
 $string['showall'] = 'Show All';
 $string['userexecutableonly'] = 'User Executable Only';
 $string['nonexecutableonly'] = 'Non-Executable Only';
+
+// Manage Deployments page
+$string['manage_deployments_pageheading'] = 'Manage Deployments';
+$string['rolefilter_all'] = 'All Roles';
+$string['select_all'] = 'Select All';
+$string['deselect_all'] = 'Deselect All';
+$string['select_all_help'] = 'Select all users in the table';
+$string['deselect_all_help'] = 'Clear all selections';
+$string['deploy_selected_now'] = 'Deploy Selected Now';
+$string['deploy_selected_help'] = 'Immediately deploy events for selected users';
+$string['schedule_selected'] = 'Schedule Selected...';
+$string['schedule_selected_help'] = 'Schedule event deployment for selected users at a future time';
+$string['cancel_selected'] = 'Cancel Selected';
+$string['cancel_selected_help'] = 'Cancel pending/queued deployments for selected users';
+$string['end_selected'] = 'End Selected';
+$string['end_selected_help'] = 'End active attempts for selected users';
+$string['extend_selected'] = 'Extend Selected';
+$string['extend_selected_help'] = 'Extend active labs for selected users';
+$string['no_users_selected'] = 'No users selected';
+$string['deployment_queued'] = 'Deployment queued for {$a} user(s)';
+$string['deployment_scheduled'] = 'Deployment scheduled for {$a} user(s)';
+$string['deployments_cancelled'] = 'Cancelled {$a} deployment(s)';
+$string['attempts_ended'] = 'Ended {$a} attempt(s)';
+$string['attempts_extended'] = 'Extended {$a->count} active attempt(s) by {$a->minutes} minute(s)';
+$string['attempts_extend_failed'] = 'Failed to extend {$a} selected active attempt(s)';
+$string['viewattempt'] = 'View Attempt';
+$string['deploy_confirm_message'] = 'Deploy events for selected users?';
+$string['extend_confirm_message'] = 'Choose how many minutes to extend selected active labs.';
+$string['end_time'] = 'End Time';
+$string['scheduledfor'] = 'Scheduled time';
+$string['schedule_past_error'] = 'Scheduled time must be in the future';
+$string['extendintervalinvalid'] = 'The activity extend interval is invalid.';
+
+// Status legend - deployment statuses
+$string['status_legend_none'] = 'None: no deployment or attempt for this user.';
+$string['status_legend_scheduled'] = 'Scheduled: deployment is queued for a future time.';
+$string['status_legend_pending'] = 'Pending: deployment is queued and waiting to launch.';
+$string['status_legend_launched'] = 'Launched: deployment has started and the event is being created.';
+$string['status_legend_failed'] = 'Failed: deployment failed (hover for error).';
+$string['status_legend_cancelled'] = 'Cancelled: deployment was cancelled before completing.';
+$string['status_legend_inprogress'] = 'In Progress: the lab is active and running.';
+$string['status_legend_finished'] = 'Finished: user completed the attempt.';
+$string['status_legend_abandoned'] = 'Abandoned: user left the attempt without finishing.';
+$string['status_legend_overdue'] = 'Overdue: attempt is past its expiration time.';
+$string['status_active_at'] = 'Started: {$a}';
+$string['status_ends_at'] = 'Expires: {$a}';
+$string['status_started_at'] = 'Started at: {$a}';
+$string['status_ended_at'] = 'Ended at: {$a}';
+$string['status'] = 'Status';
+$string['status_help'] = 'Status values used in this table:
+
+* **None**: no deployment or attempt for this user.
+* **Scheduled**: deployment is queued for a future time.
+* **Pending**: deployment is queued and waiting to launch.
+* **Launched**: deployment has started and the event is being created.
+* **Ready**: deployment completed, attempt created.
+* **Failed**: deployment failed (click ⓘ for error details).
+* **Cancelled**: deployment was cancelled before completing.
+* **In Progress**: the lab is active and running (click ⓘ for timestamps).
+* **Finished**: user completed the attempt.
+* **Abandoned**: user left the attempt without finishing.
+* **Overdue**: attempt is past its expiration time.';
+$string['manage_deploy_running_summary'] = 'Deployments running ({$a->progress}). {$a->link}';
+$string['manage_deploy_running_link'] = 'View adhoc task details';

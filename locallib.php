@@ -93,6 +93,70 @@ function setup_system() {
 }
 
 /**
+ * Get the Alloy user GUID for a Moodle user.
+ * For OAuth2 users, this is stored in the idnumber field.
+ *
+ * @param int $userid Moodle user ID
+ * @return string|null User's Alloy GUID or null if not found
+ */
+function get_user_alloy_guid($userid) {
+    global $DB;
+
+    $user = $DB->get_record('user', ['id' => $userid], 'id, auth, idnumber');
+
+    if (!$user) {
+        return null;
+    }
+
+    // For OAuth2 users, the Alloy GUID is stored in idnumber.
+    if ($user->auth === 'oauth2' && !empty($user->idnumber)) {
+        return $user->idnumber;
+    }
+
+    // For non-OAuth2 users, we can't determine their Alloy GUID.
+    return null;
+}
+
+/**
+ * Enlist a user in an Alloy event as an administrator.
+ *
+ * @param \core\oauth2\client $client System OAuth2 client with ManageEvents.
+ * @param string $eventid Event GUID.
+ * @param string $useralloyguid User's Alloy GUID.
+ * @param string $userdisplayname User display name to use in Alloy memberships.
+ * @return bool True if enlistment succeeded, false otherwise.
+ */
+function enlist_user_in_event_as_admin($client, $eventid, $useralloyguid, $userdisplayname) {
+    if ($client == null) {
+        debugging('error with client in enlist_user_in_event_as_admin', DEBUG_DEVELOPER);
+        return false;
+    }
+
+    $url = get_config('crucible', 'alloyapiurl') . '/events/' . $eventid . '/enlist/' . $useralloyguid;
+    $payload = json_encode(['userName' => $userdisplayname]);
+
+    try {
+        $client->setHeader([
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($payload),
+        ]);
+
+        $response = $client->post($url, $payload);
+        $httpcode = $client->info['http_code'] ?? 0;
+
+        if (in_array($httpcode, [200, 201, 204], true)) {
+            return true;
+        }
+
+        debugging("Failed to enlist user in event. HTTP $httpcode for $url: $response", DEBUG_DEVELOPER);
+        return false;
+    } catch (\Exception $e) {
+        debugging("Exception enlisting user in event: " . $e->getMessage(), DEBUG_DEVELOPER);
+        return false;
+    }
+}
+
+/**
  * Initializes and returns an OAuth2 client authenticated as the current user.
  *
  * Redirects to the OAuth2 login page if the user is not already authenticated.
@@ -269,9 +333,11 @@ function get_eventtemplates($client) {
  *
  * @param object $client The authenticated OAuth2 client.
  * @param string $id The ID of the event template to start.
+ * @param string|null $userid Optional Alloy user GUID to own the event.
+ * @param string|null $username Optional display name for the event owner.
  * @return mixed|null The new event ID on success, null on failure.
  */
-function start_event($client, $id) {
+function start_event($client, $id, $userid = null, $username = null) {
 
     if ($client == null) {
         debugging('error with client in start_event', DEBUG_DEVELOPER);
@@ -281,6 +347,16 @@ function start_event($client, $id) {
 
     // Web request.
     $url = get_config('crucible', 'alloyapiurl') . "/eventtemplates/" . $id . "/events";
+    $params = [];
+    if (!empty($userid)) {
+        $params['userId'] = $userid;
+    }
+    if (!empty($username)) {
+        $params['username'] = $username;
+    }
+    if (!empty($params)) {
+        $url .= '?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+    }
     // echo "POST $url<br>";
 
     $response = $client->post($url);
@@ -313,14 +389,14 @@ function start_event($client, $id) {
  *
  * @param object $client The authenticated HTTP client used to perform the request.
  * @param string $id The ID of the event to stop.
- * @return void
+ * @return bool True when the event end request succeeds.
  */
 function stop_event($client, $id) {
 
     if ($client == null) {
         debugging('error with client in stop_event', DEBUG_DEVELOPER);
         ;
-        return;
+        return false;
     }
 
     // Web request.
@@ -331,6 +407,7 @@ function stop_event($client, $id) {
 
     if ($client->info['http_code'] !== 204) {
         debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        return false;
     }
 
     // if (!$response) {
@@ -338,7 +415,7 @@ function stop_event($client, $id) {
     // return;
     // }
     // echo "response:<br><pre>$response</pre>";
-    return;
+    return true;
 }
 
 /**

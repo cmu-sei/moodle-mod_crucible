@@ -35,20 +35,29 @@ DM20-0196
 		          "url": "url"
             }
 }}
-<span>
-  <form id="lab_form" action="{{url}}" method="post" style="display:inline">
+<div class="crucible-controls d-inline-flex flex-wrap align-items-center gap-2 mb-3">
+  <form id="lab_form" action="{{url}}" method="post" class="m-0 d-inline-block">
       <input id="event" type="hidden" name="event" value="" />
       <input id="eventtemplateid" type="hidden" name="eventtemplateid" value="{{eventtemplateid}}" />
       <input id="start_confirmed" type="hidden" name="start_confirmed" value="" />
       <input id="stop_confirmed" type="hidden" name="stop_confirmed" value="" />
-      <input id="launch_button" style="display:block" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />
+      <input id="launch_button" style="display:inline-block" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />
       <input id="end_button" style="display:none" class="btn btn-danger" type="submit" name="stop" value="End Lab"
           {{#joinedattempt}}disabled="disabled"{{/joinedattempt}} />
   </form>
+  {{#isinstructor}}
+  <a href="{{bulkdeployurl}}" class="btn btn-secondary" role="button">
+      Manage Deployments
+  </a>
+  {{/isinstructor}}
+
+  {{#extend}}
+  <button id="extend-event" style="display:none;" class="btn btn-primary" type="button">{{extend}}</button>
+  {{/extend}}
 
   <button id="wait"
         style="display:none; white-space:nowrap;"
-        class="btn btn-primary text-left"
+        class="btn btn-primary text-start"
         type="button"
         name="wait">
     <span class="spinner-border spinner-border-sm" role="status"></span>
@@ -62,7 +71,7 @@ DM20-0196
         name="failed"
         value="Your operation has failed." />
 
-  <button id="enable-fullscreen" style="display:none; type="button" class="btn btn-primary">{{fullscreen}}</button>
+  <button id="enable-fullscreen" style="display:none;" type="button" class="btn btn-primary">{{fullscreen}}</button>
 
    {{#code}}
     <input id="invitationlinkurl"
@@ -76,31 +85,50 @@ DM20-0196
         Copy Invitation Link
     </button>
   {{/code}}
-</span>
+
+  {{^joinedattempt}}
+    {{#activeattempts}}
+    <form id="join-form" action="" method="get" style="display:none" class="m-0">
+      <div class="input-group d-inline-flex flex-nowrap w-auto">
+        <input type="hidden" name="id" value="{{id}}" />
+        <label for="attempt" class="input-group-text text-nowrap">Join Existing Lab</label>
+        <select name="attempt" id="attempt" class="form-select w-auto">
+          {{#attempts}}
+              <option value="{{id}}">{{username}}</option>
+          {{/attempts}}
+        </select>
+        <input type="submit" class="btn btn-primary" value="Join">
+      </div>
+    </form>
+    {{/activeattempts}}
+  {{/joinedattempt}}
+</div>
 
 {{#joinedattempt}}
-<p>Currently viewing attempt owned by: {{joinedattemptowner}}</p>
-
-<form action="{{url}}" method="get">
-  <input type="hidden" name="id" value="{{id}}" />
-  <input id="return-button" type="submit" style="display:none" class="btn btn-primary" value="Return">
-</form>
-{{/joinedattempt}}
-
-{{#activeattempts}}
-<form id="join-form" action="" method="get" style="display:none">
-  <span>
+<p class="crucible-attempt-owner w-100 mb-2 text-muted">
+  Viewing attempt owned by: <span class="fw-semibold text-body">{{joinedattemptowner}}</span>
+</p>
+<div class="crucible-attempt-switcher d-flex flex-wrap align-items-center gap-2 w-100 mb-3">
+  <form action="{{url}}" method="get" class="m-0">
     <input type="hidden" name="id" value="{{id}}" />
-    <label for="attempts">Join Existing Lab:</label>
-    <select name="attempt" id="attempt">
-      {{#attempts}}
-          <option value="{{id}}">{{username}}</option>
-      {{/attempts}}
-    </select>
-    <input type="submit" class="btn btn-primary" value="Join">
-  </span>
-</form>
-{{/activeattempts}}
+    <input id="return-button" type="submit" style="display:none" class="btn btn-primary" value="Return">
+  </form>
+  {{#activeattempts}}
+  <form id="join-form" action="" method="get" style="display:none" class="m-0 d-inline-block">
+    <div class="input-group d-inline-flex flex-nowrap w-auto">
+      <input type="hidden" name="id" value="{{id}}" />
+      <label for="attempt" class="input-group-text text-nowrap">Join Existing Lab</label>
+      <select name="attempt" id="attempt" class="form-select w-auto">
+        {{#attempts}}
+            <option value="{{id}}">{{username}}</option>
+        {{/attempts}}
+      </select>
+      <input type="submit" class="btn btn-primary" value="Join">
+    </div>
+  </form>
+  {{/activeattempts}}
+</div>
+{{/joinedattempt}}
 
 {{#js}}
 require(['mod_crucible/formconfirm'], function(FormConfirm) {

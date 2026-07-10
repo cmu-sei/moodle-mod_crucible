@@ -247,17 +247,36 @@ class crucible {
         $this->openattempt = reset($attempts);
 
         if (isset($this->events) && !isset($this->event)) {
-            $event = array_filter(
+            $events = array_filter(
                 $this->events,
                 function ($event) {
                     return $event->id == $this->openattempt->eventid;
                 }
             );
 
-            $this->event = reset($event);
+            $event = reset($events);
+            if ($event) {
+                $this->event = $event;
+            }
         }
 
-        if (isset($this->event)) {
+        if (!isset($this->event) && !empty($this->openattempt->eventid)) {
+            try {
+                $this->event = get_event($this->userauth, $this->openattempt->eventid);
+            } catch (\Exception $e) {
+                debugging("could not retrieve open attempt event with user auth: " . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
+
+        if (!isset($this->event) && !empty($this->openattempt->eventid) && $this->systemauth) {
+            try {
+                $this->event = get_event($this->systemauth, $this->openattempt->eventid);
+            } catch (\Exception $e) {
+                debugging("could not retrieve open attempt event with system auth: " . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
+
+        if (is_object($this->event)) {
             // Update values if null in attempt but exist in event.
             if ((!$this->openattempt->eventid) && ($this->event->id)) {
                 $this->openattempt->eventid = $this->event->id;
