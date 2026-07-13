@@ -631,5 +631,135 @@ function xmldb_crucible_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026070805, 'crucible');
     }
 
+    if ($oldversion < 2026070905) {
+        upgrade_mod_savepoint(true, 2026070905, 'crucible');
+    }
+
+    if ($oldversion < 2026070906) {
+        $table = new xmldb_table('crucible');
+
+        $field = new xmldb_field('extendinterval', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '60', 'extendevent');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('allowstudentinvites', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'extendevent');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('crucible_bulkdeploy_job');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('crucibleid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('initiatorid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('batchsize', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '1');
+            $table->add_field('rolefilter', XMLDB_TYPE_TEXT, null, null, null, null, null);
+            $table->add_field('totalusers', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('status', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'queued');
+            $table->add_field('errormessage', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+            $table->add_field('cancelledby', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('timestarted', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('timecompleted', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('timecancelled', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('scheduledfor', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+            $table->add_index('crucibleid', XMLDB_INDEX_NOTUNIQUE, ['crucibleid']);
+            $table->add_index('status', XMLDB_INDEX_NOTUNIQUE, ['status']);
+
+            $dbman->create_table($table);
+        }
+
+        $table = new xmldb_table('crucible_bulkdeploy_user');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('jobid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('eventid', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+            $table->add_field('status', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'pending');
+            $table->add_field('errormessage', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+            $table->add_field('timestarted', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('timecompleted', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+            $table->add_index('jobid', XMLDB_INDEX_NOTUNIQUE, ['jobid']);
+            $table->add_index('jobid-status', XMLDB_INDEX_NOTUNIQUE, ['jobid', 'status']);
+
+            $dbman->create_table($table);
+        }
+
+        upgrade_mod_savepoint(true, 2026070906, 'crucible');
+    }
+
+    if ($oldversion < 2026070907) {
+        $table = new xmldb_table('crucible_bulkdeploy_job');
+        if ($dbman->table_exists($table)) {
+            $field = new xmldb_field('totalusers', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'rolefilter');
+            $dbman->change_field_default($table, $field);
+
+            $index = new xmldb_index('status', XMLDB_INDEX_NOTUNIQUE, ['status']);
+            if ($dbman->index_exists($table, $index)) {
+                $dbman->drop_index($table, $index);
+            }
+
+            $field = new xmldb_field('status', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'queued', 'totalusers');
+            $dbman->change_field_precision($table, $field);
+
+            $field = new xmldb_field('errormessage', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'status');
+            $dbman->change_field_type($table, $field);
+
+            $key = new xmldb_key('initiatorid', XMLDB_KEY_FOREIGN, ['initiatorid'], 'user', ['id']);
+            if ($dbman->find_key_name($table, $key)) {
+                $dbman->drop_key($table, $key);
+            }
+
+            $index = new xmldb_index('initiatorid', XMLDB_INDEX_NOTUNIQUE, ['initiatorid']);
+            if ($dbman->index_exists($table, $index)) {
+                $dbman->drop_index($table, $index);
+            }
+
+            $index = new xmldb_index('status', XMLDB_INDEX_NOTUNIQUE, ['status']);
+            if (!$dbman->index_exists($table, $index)) {
+                $dbman->add_index($table, $index);
+            }
+        }
+
+        $table = new xmldb_table('crucible_bulkdeploy_user');
+        if ($dbman->table_exists($table)) {
+            $index = new xmldb_index('jobid-status', XMLDB_INDEX_NOTUNIQUE, ['jobid', 'status']);
+            if ($dbman->index_exists($table, $index)) {
+                $dbman->drop_index($table, $index);
+            }
+
+            $field = new xmldb_field('status', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'pending', 'eventid');
+            $dbman->change_field_precision($table, $field);
+
+            $field = new xmldb_field('errormessage', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'status');
+            $dbman->change_field_type($table, $field);
+
+            $key = new xmldb_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+            if ($dbman->find_key_name($table, $key)) {
+                $dbman->drop_key($table, $key);
+            }
+
+            $index = new xmldb_index('userid', XMLDB_INDEX_NOTUNIQUE, ['userid']);
+            if ($dbman->index_exists($table, $index)) {
+                $dbman->drop_index($table, $index);
+            }
+
+            $index = new xmldb_index('jobid-status', XMLDB_INDEX_NOTUNIQUE, ['jobid', 'status']);
+            if (!$dbman->index_exists($table, $index)) {
+                $dbman->add_index($table, $index);
+            }
+        }
+
+        upgrade_mod_savepoint(true, 2026070907, 'crucible');
+    }
+
     return true;
 }
