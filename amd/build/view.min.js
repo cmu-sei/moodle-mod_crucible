@@ -148,6 +148,7 @@ define(['jquery'], function($) {
     function show_wait() {
         editStyle('launch_button', 'display', 'none');
         editStyle('end_button', 'display', 'none');
+        editStyle('timerdiv', 'display', 'none');
         editStyle('wait', 'display', 'block');
         editStyle('vm_or_link', 'display', 'none');
         editStyle('crucible-workspace-section', 'display', 'none');
