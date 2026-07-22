@@ -57,6 +57,9 @@ if (!$DB->record_exists_sql($sql, $params)) {
     require_capability('mod/crucible:manage', $context);
 }
 
+// Do not hold the Moodle session lock while waiting for Alloy.
+\core\session\manager::write_close();
+
 try {
     $client = setup();
     if (!$client) {
