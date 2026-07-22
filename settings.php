@@ -95,15 +95,6 @@ if ($ADMIN->fulltree) {
     ));
 
     $settings->add(new admin_setting_configtext(
-        'crucible/alloyapiclienturl',
-        get_string('alloyapiclienturl', 'crucible'),
-        get_string('configalloyapiclienturl', 'crucible'),
-        "",
-        PARAM_URL,
-        60
-    ));
-
-    $settings->add(new admin_setting_configtext(
         'crucible/playerappurl',
         get_string('playerappurl', 'crucible'),
         get_string('configplayerappurl', 'crucible'),

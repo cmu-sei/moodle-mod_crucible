@@ -387,27 +387,17 @@ if ($object->event && $object->event->status === 'Active') {
     }
 }
 
-$PAGE->requires->js_call_amd('mod_crucible/view', 'init');
-
-$alloyapiclienturl = get_config('crucible', 'alloyapiclienturl');
-if (empty($alloyapiclienturl)) {
-    $alloyapiclienturl = $alloyapiurl;
-}
-
-$accesstoken = get_token($object->userauth);
 $configdata = [
-    'token' => $accesstoken,
     'state' => $status,
     'event' => $eventid,
     'view' => $viewid,
-    'alloy_api_url' => $alloyapiclienturl,
+    'status_url' => (new moodle_url('/mod/crucible/event_status.php'))->out(false),
+    'cmid' => $cm->id,
+    'sesskey' => sesskey(),
     'vm_app_url' => $vmappurl,
     'player_app_url' => $playerappurl,
 ];
-
-$PAGE->requires->js_init_code("
-    window.CrucibleConfig = " . json_encode($configdata) . ";
-");
+$PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$configdata]);
 
 $jsoptions = ['keepaliveinterval' => 1];
 $PAGE->requires->js_call_amd('mod_crucible/keepalive', 'init', [$jsoptions]);
