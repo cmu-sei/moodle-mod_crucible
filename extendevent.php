@@ -73,7 +73,11 @@ if (!$event) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error with get_event";
 } else {
-    $attempt = $DB->get_record('crucible_attempts', ['eventid' => $id], 'crucibleid', IGNORE_MULTIPLE);
+    $attempt = $DB->get_record_sql(
+        'SELECT crucibleid FROM {crucible_attempts} WHERE ' . $DB->sql_compare_text('eventid') . ' = ' . $DB->sql_compare_text('?'),
+        [$id],
+        IGNORE_MULTIPLE
+    );
     if (!$attempt) {
         header('HTTP/1.1 500 Error');
         $response['message'] = "Could not find Moodle activity for event.";
@@ -83,11 +87,14 @@ if (!$event) {
     }
 
     $crucible = $DB->get_record('crucible', ['id' => $attempt->crucibleid], '*', MUST_EXIST);
-    $extendinterval = (int) $crucible->extendinterval;
+    [, $cm] = get_course_and_cm_from_instance($crucible->id, 'crucible');
+    require_capability('mod/crucible:manage', context_module::instance($cm->id));
+
     $maxextendinterval = crucible_get_max_extend_interval();
+    $extendinterval = optional_param('extendinterval', (int) $crucible->extendinterval, PARAM_INT);
     if ($extendinterval < 1 || $extendinterval > $maxextendinterval) {
         header('HTTP/1.1 500 Error');
-        $response['message'] = "Invalid activity extend interval.";
+        $response['message'] = get_string('extendintervalinvalid', 'crucible');
         $response['id'] = $id;
         echo json_encode($response);
         exit;
@@ -108,7 +115,11 @@ if (!$event) {
         $response['event'] = $event;
         $response['data'] = $data;
     } else {
-        $attemptrecord = $DB->get_record('crucible_attempts', ['eventid' => $id], '*', IGNORE_MULTIPLE);
+        $attemptrecord = $DB->get_record_sql(
+            'SELECT * FROM {crucible_attempts} WHERE ' . $DB->sql_compare_text('eventid') . ' = ' . $DB->sql_compare_text('?'),
+            [$id],
+            IGNORE_MULTIPLE
+        );
         if ($attemptrecord) {
             $attemptrecord->endtime = $timestamp->getTimestamp();
             $attemptrecord->timemodified = time();

@@ -18,7 +18,8 @@ subject to its own license:
 DM20-0196
  */
 
-define(['jquery', 'core/config', 'core/log'], function($, config, log) {
+define(['jquery', 'core/config', 'core/log', 'core/modal_save_cancel', 'core/modal_events'],
+    function($, config, log, ModalSaveCancel, ModalEvents) {
 
     var eventid;
 
@@ -32,7 +33,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             if (button) {
                 button.setAttribute('data-original-text', button.innerHTML);
                 button.onclick = function() {
-                    extend_event();
+                    open_extend_modal();
                 };
                 console.log('set event for extend-event button');
             }
@@ -105,20 +106,62 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         },
     };
 
-    function extend_event() {
+    function open_extend_modal() {
+        var modalContent = document.getElementById('extend-modal-content');
+        if (!modalContent) {
+            // No modal available (e.g. student view); fall back to legacy behavior.
+            extend_event(null);
+            return;
+        }
+
+        ModalSaveCancel.create({
+            title: 'Extend Event',
+            body: $('#extend-modal-content').html()
+        }).then(function(modal) {
+            modal.setSaveButtonText('Extend');
+
+            var intervalInput = modal.getRoot().find('#extend-interval-input');
+            intervalInput.on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+
+            modal.getRoot().on(ModalEvents.save, function(e) {
+                var input = intervalInput[0];
+                if (input && !input.checkValidity()) {
+                    e.preventDefault();
+                    input.reportValidity();
+                    return;
+                }
+                extend_event(parseInt(intervalInput.val(), 10));
+            });
+
+            modal.show();
+            return modal;
+        });
+    }
+
+    function extend_event(minutes) {
         var button = document.getElementById('extend-event');
         if (button) {
             button.disabled = true;
             button.innerHTML = 'Extending...';
         }
 
+        var payload = {
+            'sesskey': config.sesskey,
+            'id': eventid
+        };
+        if (minutes) {
+            payload.extendinterval = minutes;
+        }
+
         $.ajax({
             url: config.wwwroot + '/mod/crucible/extendevent.php',
             type: 'POST',
-            data: {
-                'sesskey': config.sesskey,
-                'id': eventid
-            },
+            data: payload,
             headers: {
                 'Cache-Control': 'no-cache',
                 'Expires': '-1'

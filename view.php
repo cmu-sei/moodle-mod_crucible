@@ -291,7 +291,7 @@ if (!empty($crucible->showcontentlicense)) {
 }
 
 $extend = false;
-if ($object->event && $object->systemauth && !empty($crucible->extendevent)) {
+if ($isinstructor && $object->event && $object->systemauth && !empty($crucible->extendevent)) {
     $extend = true;
 }
 
@@ -348,6 +348,26 @@ $renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attempti
 echo html_writer::end_div();
 echo html_writer::end_div();
 
+if ($extend) {
+    echo html_writer::start_div('', ['id' => 'extend-modal-content', 'style' => 'display:none;']);
+    echo html_writer::tag('p', get_string('extend_single_confirm_message', 'crucible'));
+    echo html_writer::tag('label', get_string('extendinterval', 'crucible') . ':',
+        ['for' => 'extend-interval-input', 'class' => 'd-block mb-2']);
+    echo html_writer::empty_tag('input', [
+        'type' => 'number',
+        'id' => 'extend-interval-input',
+        'value' => (int) $crucible->extendinterval,
+        'min' => 1,
+        'max' => crucible_get_max_extend_interval(),
+        'class' => 'form-control',
+        'style' => 'width: 100px;',
+        'required' => 'required',
+    ]);
+    echo html_writer::tag('small', get_string('extendintervalmax', 'crucible', crucible_get_max_extend_interval()),
+        ['class' => 'form-text text-muted']);
+    echo html_writer::end_div();
+}
+
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 
 // TODO have a completely different view page for active labs.
@@ -387,27 +407,17 @@ if ($object->event && $object->event->status === 'Active') {
     }
 }
 
-$PAGE->requires->js_call_amd('mod_crucible/view', 'init');
-
-$alloyapiclienturl = get_config('crucible', 'alloyapiclienturl');
-if (empty($alloyapiclienturl)) {
-    $alloyapiclienturl = $alloyapiurl;
-}
-
-$accesstoken = get_token($object->userauth);
 $configdata = [
-    'token' => $accesstoken,
     'state' => $status,
     'event' => $eventid,
     'view' => $viewid,
-    'alloy_api_url' => $alloyapiclienturl,
+    'status_url' => (new moodle_url('/mod/crucible/event_status.php'))->out(false),
+    'cmid' => $cm->id,
+    'sesskey' => sesskey(),
     'vm_app_url' => $vmappurl,
     'player_app_url' => $playerappurl,
 ];
-
-$PAGE->requires->js_init_code("
-    window.CrucibleConfig = " . json_encode($configdata) . ";
-");
+$PAGE->requires->js_call_amd('mod_crucible/view', 'init', [$configdata]);
 
 $jsoptions = ['keepaliveinterval' => 1];
 $PAGE->requires->js_call_amd('mod_crucible/keepalive', 'init', [$jsoptions]);

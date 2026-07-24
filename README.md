@@ -56,7 +56,6 @@ Access configurable settings in Moodle by navigating to **Site Administration**,
 | **Event Template Selection Method** | Controls how instructors search for and select Event Templates when creating the activity.                   |
 | **OAUTH2 Issuer**                   | Selects the identity provider Moodle uses to authenticate users into Crucible.                               |
 | **Alloy API Base URL (Server)**     | API endpoint Moodle server uses to create and manage environments (include `/api`, no trailing `/`). For Docker deployments, use internal hostname like `host.docker.internal:4402`.                 |
-| **Alloy API Base URL (Browser)**    | API endpoint browser JavaScript uses to communicate with Alloy (include `/api`, no trailing `/`). For Docker deployments, use `localhost:4402`. If empty, falls back to Server URL.                 |
 | **Player Base URL**                 | Base URL students open when launching the event in Player (no trailing `/`).                                 |
 | **VM App Base URL**                 | Base URL Moodle loads when embedding the VM app in the activity page (no trailing `/`).                      |
 | **Steamfitter API URL**             | API endpoint that records lab events and scoring data (no trailing `/`).                                     |

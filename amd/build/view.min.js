@@ -21,27 +21,28 @@ DM20-0196
 
 define(['jquery'], function($) {
     var timeout;
-    var access_token;
     var lab_status;
     var event_id;
     var view_id;
-    var alloy_api_url;
+    var status_url;
+    var cmid;
+    var sesskey;
     var vm_app_url;
     var player_app_url;
     var waitDots = 0;
     var currentWaitStatus = null;
     var defaultWaitText = 'Please wait, system processing…';
+    var reloading = false;
 
 
     return {
-        init: function() {
-            const config = window.CrucibleConfig || {};
-
-            access_token = config.token;
+        init: function(config) {
             lab_status = config.state;
             event_id = config.event;
             view_id = config.view;
-            alloy_api_url = config.alloy_api_url;
+            status_url = config.status_url;
+            cmid = config.cmid;
+            sesskey = config.sesskey;
             vm_app_url = config.vm_app_url;
             player_app_url = config.player_app_url;
 
@@ -79,67 +80,59 @@ define(['jquery'], function($) {
         if (event_id) {
             console.log('event id ' + event_id);
             $.ajax({
-                url: alloy_api_url + '/events/' + event_id,
+                url: status_url,
                 type: 'GET',
-                contentType: 'application/json',
                 dataType: 'json',
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
+                data: {
+                    cmid: cmid,
+                    eventid: event_id,
+                    sesskey: sesskey
                 },
                 success: function(response) {
-                    $.each(response, function(index, value) {
-                        if (index == 'viewId') {
-                            if (value) {
-                                view_id = value;
-                                console.log('view_id ' + view_id);
-                             }
-                        }
-                        if (index == 'status') {
-                            console.log('status ' + lab_status);
-                            if (value == 'Active') {
-
-                                if ((lab_status != 'Active') && (value == 'Active')) {
-                                    clear_wait_label();
-                                    console.log("reloading");
-                                    window.location.replace(window.location.href);
-                                }
-                            }
-                            if ((value == 'Creating') || (value == 'Planning') || (value == 'Applying') || (value == 'Ending')) {
-                                show_wait();
-                                update_wait_label(value);
-                            }
-                            if (value == 'Ended') {
-                                show_ended();
-                                clear_wait_label();
-                                // ClearTimeout(timeout);
-                                window.location.replace(window.location.href);
-                            }
-                            if (value == 'Failed') {
-                                clear_wait_label();
-                                show_failed();
-                                // ClearTimeout(timeout);
-                            }
-                            lab_status = value;
-
-                        }
-                        // TODO move this into a script that checks task
-                        // results and handles clicking on execution button
-                        if (index == 'scenarioid') {
-                            console.log('scenario id ' + value);
-                        }
-                    });
+                    handle_status(response);
                 },
-                error: function(response) {
-                    if (response.status == '401') {
-                        console.log('permission error, check token');
-                        clearTimeout(timeout);
-                        window.location.replace(window.location.href);
-                    }
+                error: function(response, textStatus, errorThrown) {
+                    console.error('event status request failed', response.status, textStatus, errorThrown);
                 }
             });
         } else {
             show_ended();
         }
+    }
+
+    function handle_status(response) {
+        var nextStatus = response.status;
+        var nextViewId = response.viewId;
+        var viewChanged = nextViewId && nextViewId !== view_id;
+
+        if (nextViewId) {
+            view_id = nextViewId;
+            console.log('view_id ' + view_id);
+        }
+
+        console.log('status ' + nextStatus);
+        if (nextStatus == 'Active' && (lab_status != 'Active' || viewChanged)) {
+            clear_wait_label();
+            console.log('reloading');
+            reload_page();
+            return;
+        }
+
+        if ((nextStatus == 'Creating') || (nextStatus == 'Planning') ||
+                (nextStatus == 'Applying') || (nextStatus == 'Ending')) {
+            show_wait();
+            update_wait_label(nextStatus);
+        } else if (nextStatus == 'Ended') {
+            show_ended();
+            clear_wait_label();
+            reload_page();
+            return;
+        } else if (nextStatus == 'Failed') {
+            clear_wait_label();
+            show_failed();
+        }
+
+        lab_status = nextStatus;
     }
 
     /**
@@ -252,6 +245,16 @@ define(['jquery'], function($) {
             check_status();
             run_loop();
         }, 5000);
+    }
+
+    function reload_page() {
+        if (reloading) {
+            return;
+        }
+
+        reloading = true;
+        clearTimeout(timeout);
+        window.location.replace(window.location.href);
     }
 
     function update_wait_label(status) {

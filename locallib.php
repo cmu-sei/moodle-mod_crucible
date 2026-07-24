@@ -496,7 +496,7 @@ function get_event($client, $id) {
     }
 
     // Web request.
-    $url = get_config('crucible', 'alloyapiurl') . "/events/" . $id;
+    $url = rtrim(get_config('crucible', 'alloyapiurl'), '/') . "/events/" . $id;
     // echo "GET $url<br>";
 
     $response = $client->get($url);
