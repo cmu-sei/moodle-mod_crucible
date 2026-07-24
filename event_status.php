@@ -61,21 +61,33 @@ if (!$DB->record_exists_sql($sql, $params)) {
 \core\session\manager::write_close();
 
 try {
-    $client = setup();
+    // Use the system OAuth client for read-only status polling. The user has
+    // already been authorised at the Moodle layer above (capability check +
+    // attempt/membership SQL), so this does not widen exposure. Using the
+    // user client here would call setup() -> redirect() if the user's OAuth
+    // session lapsed, which throws 'redirecterrordetected' inside an
+    // AJAX_SCRIPT and turns every subsequent poll into a 502.
+    $client = setup_system();
     if (!$client) {
-        throw new RuntimeException('Unable to authenticate with Alloy');
+        throw new RuntimeException('System OAuth account not configured');
     }
 
     $event = get_event($client, $eventid);
     if (!$event) {
-        throw new RuntimeException('Unable to retrieve Alloy event');
+        $httpcode = $client->info['http_code'] ?? 'unknown';
+        $wwwauth = $client->response['www-authenticate'] ?? '';
+        throw new RuntimeException("Unable to retrieve Alloy event (http $httpcode) $wwwauth");
     }
 
     header('Content-Type: application/json');
     header('Cache-Control: no-store');
     echo json_encode($event);
 } catch (\Throwable $e) {
-    debugging('Could not retrieve Alloy event status: ' . $e->getMessage(), DEBUG_DEVELOPER);
+    debugging(
+        'Could not retrieve Alloy event status for eventid=' . $eventid . ' user=' . $USER->id
+            . ': ' . $e->getMessage(),
+        DEBUG_DEVELOPER
+    );
     http_response_code(502);
     header('Content-Type: application/json');
     echo json_encode(['error' => 'Unable to retrieve Alloy event status']);
