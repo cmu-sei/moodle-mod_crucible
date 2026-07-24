@@ -90,11 +90,11 @@ if (!$event) {
     [, $cm] = get_course_and_cm_from_instance($crucible->id, 'crucible');
     require_capability('mod/crucible:manage', context_module::instance($cm->id));
 
-    $extendinterval = (int) $crucible->extendinterval;
     $maxextendinterval = crucible_get_max_extend_interval();
+    $extendinterval = optional_param('extendinterval', (int) $crucible->extendinterval, PARAM_INT);
     if ($extendinterval < 1 || $extendinterval > $maxextendinterval) {
         header('HTTP/1.1 500 Error');
-        $response['message'] = "Invalid activity extend interval.";
+        $response['message'] = get_string('extendintervalinvalid', 'crucible');
         $response['id'] = $id;
         echo json_encode($response);
         exit;

@@ -220,6 +220,7 @@ $string['attempts_extend_failed'] = 'Failed to extend {$a} selected active attem
 $string['viewattempt'] = 'View Attempt';
 $string['deploy_confirm_message'] = 'Deploy events for selected users?';
 $string['extend_confirm_message'] = 'Choose how many minutes to extend selected active labs.';
+$string['extend_single_confirm_message'] = 'Enter how many minutes to extend this lab.';
 $string['end_time'] = 'End Time';
 $string['scheduledfor'] = 'Scheduled time';
 $string['schedule_past_error'] = 'Scheduled time must be in the future';

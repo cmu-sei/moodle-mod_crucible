@@ -348,6 +348,26 @@ $renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attempti
 echo html_writer::end_div();
 echo html_writer::end_div();
 
+if ($extend) {
+    echo html_writer::start_div('', ['id' => 'extend-modal-content', 'style' => 'display:none;']);
+    echo html_writer::tag('p', get_string('extend_single_confirm_message', 'crucible'));
+    echo html_writer::tag('label', get_string('extendinterval', 'crucible') . ':',
+        ['for' => 'extend-interval-input', 'class' => 'd-block mb-2']);
+    echo html_writer::empty_tag('input', [
+        'type' => 'number',
+        'id' => 'extend-interval-input',
+        'value' => (int) $crucible->extendinterval,
+        'min' => 1,
+        'max' => crucible_get_max_extend_interval(),
+        'class' => 'form-control',
+        'style' => 'width: 100px;',
+        'required' => 'required',
+    ]);
+    echo html_writer::tag('small', get_string('extendintervalmax', 'crucible', crucible_get_max_extend_interval()),
+        ['class' => 'form-text text-muted']);
+    echo html_writer::end_div();
+}
+
 $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]]);
 
 // TODO have a completely different view page for active labs.
