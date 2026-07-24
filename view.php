@@ -291,7 +291,7 @@ if (!empty($crucible->showcontentlicense)) {
 }
 
 $extend = false;
-if ($object->event && $object->systemauth && !empty($crucible->extendevent)) {
+if ($isinstructor && $object->event && $object->systemauth && !empty($crucible->extendevent)) {
     $extend = true;
 }
 
