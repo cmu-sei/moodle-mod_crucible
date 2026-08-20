@@ -118,6 +118,87 @@ function get_user_alloy_guid($userid) {
 }
 
 /**
+ * Ensures that a Moodle OAuth2 user has a corresponding Alloy user record.
+ *
+ * @param \core\oauth2\client $client System OAuth2 client with ViewUsers and ManageUsers.
+ * @param string $useralloyguid Keycloak subject used as the Alloy user ID.
+ * @param string $userdisplayname User display name to store in Alloy.
+ * @return string|null Error message on failure, or null when the user exists.
+ */
+function ensure_alloy_user($client, $useralloyguid, $userdisplayname) {
+    if ($client == null) {
+        return 'Could not initialize Alloy API client';
+    }
+
+    if (!is_string($useralloyguid) || trim($useralloyguid) === '') {
+        return 'Moodle OAuth2 identity does not contain an Alloy user ID';
+    }
+
+    $alloyapiurl = rtrim((string)get_config('crucible', 'alloyapiurl'), '/');
+    if (empty($alloyapiurl)) {
+        return 'Alloy API URL is not configured';
+    }
+
+    $userurl = $alloyapiurl . '/users/' . rawurlencode($useralloyguid);
+
+    try {
+        $client->get($userurl);
+        $lookupcode = (int)($client->info['http_code'] ?? 0);
+
+        if ($lookupcode === 200) {
+            return null;
+        }
+
+        if ($lookupcode === 400) {
+            return 'Moodle OAuth2 identity does not contain a valid Alloy user GUID';
+        }
+
+        if ($lookupcode !== 404) {
+            return "Could not look up Alloy user (HTTP $lookupcode)";
+        }
+
+        $name = trim((string)$userdisplayname);
+        if ($name === '') {
+            $name = $useralloyguid;
+        }
+
+        $payload = json_encode([
+            'id' => $useralloyguid,
+            'name' => $name,
+        ]);
+        if ($payload === false) {
+            return 'Could not encode Alloy user record';
+        }
+
+        $client->setHeader([
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($payload),
+        ]);
+        $client->post($alloyapiurl . '/users', $payload);
+        $createcode = (int)($client->info['http_code'] ?? 0);
+
+        if ($createcode === 201) {
+            return null;
+        }
+
+        if ($createcode === 400) {
+            return 'Moodle OAuth2 identity does not contain a valid Alloy user GUID';
+        }
+
+        // Another deployment may have provisioned the same user between lookup and create.
+        $client->get($userurl);
+        if ((int)($client->info['http_code'] ?? 0) === 200) {
+            return null;
+        }
+
+        return "Could not create Alloy user (HTTP $createcode)";
+    } catch (\Exception $e) {
+        debugging('Exception provisioning Alloy user: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        return 'Could not provision Alloy user';
+    }
+}
+
+/**
  * Enlist a user in an Alloy event as an administrator.
  *
  * @param \core\oauth2\client $client System OAuth2 client with ManageEvents.

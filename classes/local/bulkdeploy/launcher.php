@@ -61,9 +61,13 @@ class launcher {
         }
 
         $userdisplayname = \fullname($user) ?: $user->username;
+        $provisionerror = ensure_alloy_user($auth, $useralloyguid, $userdisplayname);
+        if ($provisionerror !== null) {
+            $this->repo->set_user_status($rowid, user_status::FAILED, $provisionerror, '');
+            return;
+        }
 
-        // Launch the event as the target student. Alloy will make this user
-        // the event owner and provision the Player/Steamfitter memberships.
+        // Launch the event as the target student after provisioning its Alloy user record.
         try {
             $eventid = start_event($auth, $crucible->eventtemplateid, $useralloyguid, $userdisplayname);
             if (!$eventid) {
@@ -78,8 +82,7 @@ class launcher {
             return;
         }
 
-        // Mark as launched while Alloy applies the event. Admin enlistment must
-        // wait until Alloy reports the event as active.
+        // Mark as launched while Alloy applies the event.
         $this->repo->set_user_status($rowid, user_status::LAUNCHED, '', $eventid);
 
         // Wait phase: poll until event is ready

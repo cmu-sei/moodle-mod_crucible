@@ -61,16 +61,16 @@ Access configurable settings in Moodle by navigating to **Site Administration**,
 | **VM App Base URL**                 | Base URL Moodle loads when embedding the VM app in the activity page (no trailing `/`).                      |
 | **Steamfitter API URL**             | API endpoint that records lab events and scoring data (no trailing `/`).                                     |
 
-### System OAuth Account (Required for Extend Feature)
+### System OAuth Account (Required for Extend and Bulk Deploy Features)
 
-To enable the **Extend Lab** feature, configure a system OAuth account with privileged access:
+To enable the **Extend Lab** and **Manage Deployments** features, configure a system OAuth account with privileged access:
 
-1. In Keycloak, create a service account client for Moodle with the required Crucible scopes.
+1. In Keycloak, create a service account client for Moodle with the required Crucible scopes and Alloy permissions, including `ViewUsers` and `ManageUsers`.
 2. In Moodle, navigate to **Site administration**, **Server**, **OAuth 2 services**.
 3. Create a new OAuth2 issuer using the service account credentials.
 4. Configure the plugin to use this issuer for system operations.
 
-Without a system OAuth account, the extend button will not appear even if enabled in activity settings.
+Without a system OAuth account, the extend button will not appear and bulk deployments cannot provision target Alloy users.
 
 ## Usage
 
