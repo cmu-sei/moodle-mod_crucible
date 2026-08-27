@@ -308,11 +308,12 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                         const timezone = modal.getRoot().find('#timezone-display').attr('data-moodle-timezone');
                         modal.getRoot().find('#timezone-display').text('Moodle timezone: ' + timezone);
 
-                        modal.getRoot().on(ModalEvents.save, function() {
+                        modal.getRoot().on(ModalEvents.save, function(event) {
                             const datetime = modal.getRoot().find('#scheduledfor-input').val();
                             const minSchedule = minimumScheduleDateTime(templateDatetime);
                             datetimeInput.attr('min', minSchedule);
                             if (!datetime || datetime < minSchedule) {
+                                event.preventDefault();
                                 pastError.show();
                                 return;
                             }
