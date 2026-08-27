@@ -20,20 +20,36 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                     + pad(date.getUTCDate()) + 'T' + pad(date.getUTCHours()) + ':'
                     + pad(date.getUTCMinutes());
             };
-            const freshScheduleDateTime = (value) => {
+            const parseScheduleDateTime = (value) => {
                 const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
                 if (!match) {
-                    return value;
+                    return null;
                 }
 
-                const templateTime = Date.UTC(
+                return Date.UTC(
                     Number(match[1]),
                     Number(match[2]) - 1,
                     Number(match[3]),
                     Number(match[4]),
                     Number(match[5])
                 );
+            };
+            const freshScheduleDateTime = (value) => {
+                const templateTime = parseScheduleDateTime(value);
+                if (templateTime === null) {
+                    return value;
+                }
                 return formatScheduleDateTime(templateTime + (Date.now() - scheduleTemplateLoadedAt));
+            };
+            const minimumScheduleDateTime = (value) => {
+                const templateTime = parseScheduleDateTime(value);
+                if (templateTime === null) {
+                    return value;
+                }
+
+                const currentTime = templateTime - (60 * 60 * 1000)
+                    + (Date.now() - scheduleTemplateLoadedAt);
+                return formatScheduleDateTime(Math.ceil(currentTime / 60000) * 60000);
             };
 
             // Initialize Bootstrap popovers for help icons
@@ -281,18 +297,25 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                         modal.setSaveButtonText('Schedule');
 
                         const datetimeInput = modal.getRoot().find('#scheduledfor-input');
-                        datetimeInput.val(freshScheduleDateTime(datetimeInput.val()));
+                        const templateDatetime = datetimeInput.val();
+                        datetimeInput.attr('min', minimumScheduleDateTime(templateDatetime));
+                        datetimeInput.val(freshScheduleDateTime(templateDatetime));
 
                         const timezone = modal.getRoot().find('#timezone-display').attr('data-moodle-timezone');
                         modal.getRoot().find('#timezone-display').text('Moodle timezone: ' + timezone);
 
                         modal.getRoot().on(ModalEvents.save, function() {
                             const datetime = modal.getRoot().find('#scheduledfor-input').val();
-                            if (datetime) {
-                                $('#schedule-userids').val(selected.join(','));
-                                $('#schedule-datetime').val(datetime);
-                                $('#schedule-form').submit();
+                            const minSchedule = minimumScheduleDateTime(templateDatetime);
+                            datetimeInput.attr('min', minSchedule);
+                            const inputElement = datetimeInput.get(0);
+                            if (!datetime || (inputElement && !inputElement.reportValidity())) {
+                                return;
                             }
+
+                            $('#schedule-userids').val(selected.join(','));
+                            $('#schedule-datetime').val(datetime);
+                            $('#schedule-form').submit();
                         });
 
                         modal.show();
