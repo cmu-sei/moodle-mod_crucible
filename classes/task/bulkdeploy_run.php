@@ -47,8 +47,8 @@ class bulkdeploy_run extends \core\task\adhoc_task {
             $crucible = $DB->get_record('crucible', ['id' => $job->crucibleid], '*', MUST_EXIST);
 
             // Build launcher with configurable timeouts
-            $pollintervalsec = 10; // Poll every 10 seconds
-            $waitceilingsec = 600; // 10 minute timeout per user
+            $pollintervalsec = 10; // Poll every 10 seconds.
+            $waitceilingsec = crucible_get_bulkdeploy_wait_timeout() * MINSECS;
             $launcher = new launcher($repo, $pollintervalsec, $waitceilingsec);
 
             $rows = $repo->get_active_user_rows($jobid);
@@ -63,7 +63,12 @@ class bulkdeploy_run extends \core\task\adhoc_task {
                     $repo->set_user_status($row->id, user_status::SKIPPED, 'user not found');
                     continue;
                 }
-                $batch[] = ['rowid' => (int) $row->id, 'user' => $user];
+                $batch[] = [
+                    'rowid' => (int)$row->id,
+                    'user' => $user,
+                    'eventid' => (string)($row->eventid ?? ''),
+                    'timestarted' => (int)($row->timestarted ?? 0),
+                ];
 
                 // Process batch when it reaches batchsize (always 1 for Crucible)
                 if (count($batch) >= (int) $job->batchsize) {
@@ -90,8 +95,15 @@ class bulkdeploy_run extends \core\task\adhoc_task {
                 $repo->set_job_status($jobid, job_status::CANCELLED);
                 mtrace("bulkdeploy_run: job $jobid cancelled");
             } else if ($current->status === job_status::RUNNING) {
-                $repo->set_job_status($jobid, job_status::COMPLETED);
-                mtrace("bulkdeploy_run: job $jobid completed");
+                $active = $repo->get_active_user_rows($jobid);
+                if ($active) {
+                    $this->queue_reconciliation($jobid);
+                    mtrace("bulkdeploy_run: job $jobid has " . count($active)
+                        . " active rows; queued reconciliation instead of completing");
+                } else {
+                    $repo->set_job_status($jobid, job_status::COMPLETED);
+                    mtrace("bulkdeploy_run: job $jobid completed");
+                }
             }
         } catch (\Throwable $e) {
             $msg = $e->getMessage();
@@ -124,5 +136,16 @@ class bulkdeploy_run extends \core\task\adhoc_task {
         mtrace("bulkdeploy_run: job $jobid batch $batchno end");
 
         return true;
+    }
+
+    /**
+     * Schedule a fresh task to reconcile rows that remain active unexpectedly.
+     */
+    private function queue_reconciliation(int $jobid): void {
+        $task = new self();
+        $task->set_custom_data((object)['jobid' => $jobid]);
+        $task->set_component('mod_crucible');
+        $task->set_next_run_time(time() + 10);
+        \core\task\manager::queue_adhoc_task($task);
     }
 }

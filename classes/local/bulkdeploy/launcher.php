@@ -13,7 +13,6 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
  * due to Terraform provisioning complexity.
  */
 class launcher {
-
     public function __construct(
         private job_repository $repo,
         private int $pollintervalsec = 10,   // sleep between poll cycles (default 10s)
@@ -33,57 +32,93 @@ class launcher {
     }
 
     /**
-     * Process a single user: launch event, wait for ready, create attempt.
+     * Process a single user: launch an event if needed, then wait for ready.
      */
     private function process_user(array $entry, \stdClass $crucible): void {
         $rowid = $entry['rowid'];
         $user = $entry['user'];
 
-        // Check if externally cancelled before starting
+        // Always use the current status: a resumed task must reconcile launched
+        // rows rather than silently skipping them.
         $statuses = $this->repo->get_user_statuses([$rowid]);
-        if (($statuses[$rowid] ?? null) !== user_status::PENDING) {
-            return; // Externally mutated, skip
+        $status = $statuses[$rowid] ?? null;
+        if ($status !== user_status::PENDING && $status !== user_status::LAUNCHED) {
+            return; // Externally cancelled or already terminal.
         }
 
-        // Get system auth client
         $auth = setup_system();
         if (!$auth) {
             $this->repo->set_user_status($rowid, user_status::FAILED, 'Could not initialize API client');
             return;
         }
 
-        // Get user's Alloy GUID before launching so we do not create an event
-        // that cannot be assigned to the target student.
-        $useralloyguid = get_user_alloy_guid($user->id);
-        if (!$useralloyguid) {
-            $this->repo->set_user_status($rowid, user_status::FAILED, 'User does not have Alloy GUID (not OAuth2 user)', '');
-            return;
-        }
-
-        $userdisplayname = \fullname($user) ?: $user->username;
-
-        // Launch the event as the target student. Alloy will make this user
-        // the event owner and provision the Player/Steamfitter memberships.
-        try {
-            $eventid = start_event($auth, $crucible->eventtemplateid, $useralloyguid, $userdisplayname);
-            if (!$eventid) {
-                $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to start event (no eventid returned)', '');
+        $waitforready = $status === user_status::PENDING;
+        if ($waitforready) {
+            // Get the user's Alloy GUID before launching so we do not create an event
+            // that cannot be assigned to the target student.
+            $useralloyguid = get_user_alloy_guid($user->id);
+            if (!$useralloyguid) {
+                $this->repo->set_user_status(
+                    $rowid,
+                    user_status::FAILED,
+                    'User does not have Alloy GUID (not OAuth2 user)',
+                    ''
+                );
                 return;
             }
 
-            debugging("Event $eventid created for user {$user->username}", DEBUG_DEVELOPER);
+            $userdisplayname = \fullname($user) ?: $user->username;
+            try {
+                $eventid = start_event($auth, $crucible->eventtemplateid, $useralloyguid, $userdisplayname);
+                if (!$eventid) {
+                    $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to start event (no eventid returned)', '');
+                    return;
+                }
 
-        } catch (\Exception $e) {
-            $this->repo->set_user_status($rowid, user_status::FAILED, 'Exception starting event: ' . $e->getMessage(), '');
-            return;
+                debugging("Event $eventid created for user {$user->username}", DEBUG_DEVELOPER);
+            } catch (\Throwable $e) {
+                $this->repo->set_user_status(
+                    $rowid,
+                    user_status::FAILED,
+                    'Exception starting event: ' . $e->getMessage(),
+                    ''
+                );
+                return;
+            }
+
+            // Persist the event ID before polling so a later task execution can
+            // resume this row without starting a duplicate Alloy event.
+            $this->repo->set_user_status($rowid, user_status::LAUNCHED, '', $eventid);
+            $timestarted = time();
+        } else {
+            $eventid = trim((string)($entry['eventid'] ?? ''));
+            if ($eventid === '') {
+                $this->repo->set_user_status(
+                    $rowid,
+                    user_status::FAILED,
+                    'Launched deployment is missing its Alloy event ID'
+                );
+                return;
+            }
+            $timestarted = (int)($entry['timestarted'] ?? 0);
         }
 
-        // Mark as launched while Alloy applies the event. Admin enlistment must
-        // wait until Alloy reports the event as active.
-        $this->repo->set_user_status($rowid, user_status::LAUNCHED, '', $eventid);
+        $this->wait_for_event($rowid, $user, $crucible, $auth, $eventid, $timestarted, $waitforready);
+    }
 
-        // Wait phase: poll until event is ready
-        $start = time();
+    /**
+     * Polls a launched Alloy event until it becomes active or reaches a terminal state.
+     */
+    private function wait_for_event(
+        int $rowid,
+        \stdClass $user,
+        \stdClass $crucible,
+        \core\oauth2\client $auth,
+        string $eventid,
+        int $timestarted,
+        bool $waitforready
+    ): void {
+        $start = $timestarted > 0 ? $timestarted : time();
         while (true) {
             // Check if externally cancelled during wait
             $statuses = $this->repo->get_user_statuses([$rowid]);
@@ -92,55 +127,72 @@ class launcher {
             }
 
             // Poll event status
+            $event = null;
             try {
                 $event = get_event($auth, $eventid);
                 if (!$event) {
-                    // Event not found or error
-                    $this->sleep_seconds($this->pollintervalsec);
-                    if ((time() - $start) >= $this->waitceilingsec) {
-                        $this->repo->set_user_status($rowid, user_status::FAILED, 'Timeout waiting for event (event not found)');
+                    debugging("No event response received for $eventid", DEBUG_DEVELOPER);
+                } else {
+                    // Check if event failed/ended
+                    $status = strtolower($event->status ?? '');
+                    if ($status === 'ended' || $status === 'failed' || $status === 'error') {
+                        $errmsg = $event->errorMessage ?? 'Event ended without becoming active';
+                        $this->repo->set_user_status($rowid, user_status::FAILED, "Event deployment failed: $errmsg");
                         return;
                     }
-                    continue;
-                }
 
-                // Check if event failed/ended
-                $status = strtolower($event->status ?? '');
-                if ($status === 'ended' || $status === 'failed' || $status === 'error') {
-                    $errmsg = $event->errorMessage ?? 'Event ended without becoming active';
-                    $this->repo->set_user_status($rowid, user_status::FAILED, "Event deployment failed: $errmsg");
-                    return;
-                }
+                    // Check if event is ready (has status or isActive flag)
+                    $isready = $status === 'active';
+                    if (!$isready && isset($event->isActive)) {
+                        $isready = (bool)$event->isActive;
+                    }
 
-                // Check if event is ready (has status or isActive flag)
-                $isReady = $status === 'active';
-                if (!$isReady && isset($event->isActive)) {
-                    $isReady = (bool) $event->isActive;
+                    if ($isready) {
+                        // Create the attempt before marking the row ready so a
+                        // task interruption can be retried without losing it.
+                        $this->create_attempt_for_user($user->id, $crucible, $event);
+                        $this->repo->set_user_status($rowid, user_status::READY);
+                        return;
+                    }
                 }
-
-                if ($isReady) {
-                    // Event is ready; create the Moodle attempt that lets the
-                    // student enter their Alloy-owned lab.
-                    $this->repo->set_user_status($rowid, user_status::READY);
-                    $this->create_attempt_for_user($user->id, $crucible, $event);
-                    return;
-                }
-
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 // Continue polling on transient errors
                 debugging("Error polling event $eventid: " . $e->getMessage(), DEBUG_DEVELOPER);
             }
 
-            // Check timeout
+            // A reconciliation task only checks the current event state once, so
+            // an earlier wait ceiling never prevents a later successful event
+            // from creating its Moodle attempt.
+            if (!$waitforready) {
+                return;
+            }
+
+            // The initial task stops blocking after the configured limit, but
+            // deliberately leaves the row launched for a reconciliation task.
+            // Alloy terminal states above remain the only failure condition.
             if ((time() - $start) >= $this->waitceilingsec) {
-                $laststatus = isset($event) ? ($event->status ?? 'unknown') : 'no-response';
-                $this->repo->set_user_status($rowid, user_status::FAILED, "Timeout waiting for event (last status: $laststatus)");
+                debugging(
+                    "Bulk deployment wait timeout reached for event $eventid; leaving it launched for reconciliation",
+                    DEBUG_DEVELOPER
+                );
                 return;
             }
 
             // Sleep before next poll
             $this->sleep_seconds($this->pollintervalsec);
         }
+    }
+
+    /**
+     * Returns an Alloy API client with a bounded connection and request duration.
+     */
+    private function get_api_client(): \core\oauth2\client|false {
+        $auth = setup_system();
+        if (!$auth) {
+            return false;
+        }
+
+        return $auth;
     }
 
     protected function sleep_seconds(int $seconds): void {
