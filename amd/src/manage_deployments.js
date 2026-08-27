@@ -41,17 +41,6 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                 }
                 return formatScheduleDateTime(templateTime + (Date.now() - scheduleTemplateLoadedAt));
             };
-            const minimumScheduleDateTime = (value) => {
-                const templateTime = parseScheduleDateTime(value);
-                if (templateTime === null) {
-                    return value;
-                }
-
-                const currentTime = templateTime - (60 * 60 * 1000)
-                    + (Date.now() - scheduleTemplateLoadedAt);
-                return formatScheduleDateTime(Math.ceil(currentTime / 60000) * 60000);
-            };
-
             // Initialize Bootstrap popovers for help icons
             const initPopovers = () => {
                 document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
@@ -298,7 +287,8 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
 
                         const datetimeInput = modal.getRoot().find('#scheduledfor-input');
                         const templateDatetime = datetimeInput.val();
-                        datetimeInput.attr('min', minimumScheduleDateTime(templateDatetime));
+                        const templateMinimum = datetimeInput.attr('data-schedule-minimum') || templateDatetime;
+                        datetimeInput.attr('min', freshScheduleDateTime(templateMinimum));
                         datetimeInput.val(freshScheduleDateTime(templateDatetime));
                         const pastError = modal.getRoot().find('#schedule-past-error');
                         datetimeInput.on('input change', function() {
@@ -310,7 +300,7 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
 
                         modal.getRoot().on(ModalEvents.save, function(event) {
                             const datetime = modal.getRoot().find('#scheduledfor-input').val();
-                            const minSchedule = minimumScheduleDateTime(templateDatetime);
+                            const minSchedule = freshScheduleDateTime(templateMinimum);
                             datetimeInput.attr('min', minSchedule);
                             if (!datetime || datetime < minSchedule) {
                                 event.preventDefault();

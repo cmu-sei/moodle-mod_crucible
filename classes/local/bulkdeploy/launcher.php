@@ -16,7 +16,7 @@ class launcher {
     public function __construct(
         private job_repository $repo,
         private int $pollintervalsec = 10,   // sleep between poll cycles (default 10s)
-        private int $waitceilingsec = 600    // max wait time per user (default 600s = 10min)
+        private int $waitceilingsec = 600    // max wait time per user, including reconciliation (default 10min)
     ) {}
 
     /**
@@ -160,39 +160,29 @@ class launcher {
                 debugging("Error polling event $eventid: " . $e->getMessage(), DEBUG_DEVELOPER);
             }
 
-            // A reconciliation task only checks the current event state once, so
-            // an earlier wait ceiling never prevents a later successful event
-            // from creating its Moodle attempt.
-            if (!$waitforready) {
+            // The same deadline applies to the initial wait and all later
+            // reconciliation tasks. Without a terminal timeout, a launched
+            // event that Alloy never resolves would queue work indefinitely.
+            if ((time() - $start) >= $this->waitceilingsec) {
+                $minutes = (int)ceil($this->waitceilingsec / MINSECS);
+                $this->repo->set_user_status(
+                    $rowid,
+                    user_status::FAILED,
+                    "Timed out waiting {$minutes} minute(s) for Alloy event to become active"
+                );
                 return;
             }
 
-            // The initial task stops blocking after the configured limit, but
-            // deliberately leaves the row launched for a reconciliation task.
-            // Alloy terminal states above remain the only failure condition.
-            if ((time() - $start) >= $this->waitceilingsec) {
-                debugging(
-                    "Bulk deployment wait timeout reached for event $eventid; leaving it launched for reconciliation",
-                    DEBUG_DEVELOPER
-                );
+            // A reconciliation task only checks the current event state once.
+            // It will be queued again only while the row remains within its
+            // per-user deadline above.
+            if (!$waitforready) {
                 return;
             }
 
             // Sleep before next poll
             $this->sleep_seconds($this->pollintervalsec);
         }
-    }
-
-    /**
-     * Returns an Alloy API client with a bounded connection and request duration.
-     */
-    private function get_api_client(): \core\oauth2\client|false {
-        $auth = setup_system();
-        if (!$auth) {
-            return false;
-        }
-
-        return $auth;
     }
 
     protected function sleep_seconds(int $seconds): void {
