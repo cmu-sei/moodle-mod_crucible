@@ -300,6 +300,10 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                         const templateDatetime = datetimeInput.val();
                         datetimeInput.attr('min', minimumScheduleDateTime(templateDatetime));
                         datetimeInput.val(freshScheduleDateTime(templateDatetime));
+                        const pastError = modal.getRoot().find('#schedule-past-error');
+                        datetimeInput.on('input change', function() {
+                            pastError.hide();
+                        });
 
                         const timezone = modal.getRoot().find('#timezone-display').attr('data-moodle-timezone');
                         modal.getRoot().find('#timezone-display').text('Moodle timezone: ' + timezone);
@@ -308,11 +312,12 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                             const datetime = modal.getRoot().find('#scheduledfor-input').val();
                             const minSchedule = minimumScheduleDateTime(templateDatetime);
                             datetimeInput.attr('min', minSchedule);
-                            const inputElement = datetimeInput.get(0);
-                            if (!datetime || (inputElement && !inputElement.reportValidity())) {
+                            if (!datetime || datetime < minSchedule) {
+                                pastError.show();
                                 return;
                             }
 
+                            pastError.hide();
                             $('#schedule-userids').val(selected.join(','));
                             $('#schedule-datetime').val(datetime);
                             $('#schedule-form').submit();

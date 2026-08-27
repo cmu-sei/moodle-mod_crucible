@@ -259,6 +259,12 @@ echo html_writer::empty_tag('input', [
     'style' => 'width: 220px;',
     'required' => 'required'
 ]);
+echo html_writer::tag('div', get_string('schedule_past_error', 'crucible'), [
+    'id' => 'schedule-past-error',
+    'class' => 'alert alert-danger mt-2 mb-0',
+    'role' => 'alert',
+    'style' => 'display:none;'
+]);
 echo html_writer::tag('small', '', [
     'class' => 'form-text text-muted mb-3',
     'id' => 'timezone-display',
