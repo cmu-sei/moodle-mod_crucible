@@ -9,6 +9,33 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                 return;
             }
 
+            // The schedule template is rendered by PHP when this page loads. Keep
+            // its wall-clock value in the Moodle user timezone, but advance it by
+            // the elapsed time when the modal opens so it remains one hour ahead.
+            const scheduleTemplateLoadedAt = Date.now();
+            const formatScheduleDateTime = (timestamp) => {
+                const date = new Date(timestamp);
+                const pad = (value) => String(value).padStart(2, '0');
+                return date.getUTCFullYear() + '-' + pad(date.getUTCMonth() + 1) + '-'
+                    + pad(date.getUTCDate()) + 'T' + pad(date.getUTCHours()) + ':'
+                    + pad(date.getUTCMinutes());
+            };
+            const freshScheduleDateTime = (value) => {
+                const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+                if (!match) {
+                    return value;
+                }
+
+                const templateTime = Date.UTC(
+                    Number(match[1]),
+                    Number(match[2]) - 1,
+                    Number(match[3]),
+                    Number(match[4]),
+                    Number(match[5])
+                );
+                return formatScheduleDateTime(templateTime + (Date.now() - scheduleTemplateLoadedAt));
+            };
+
             // Initialize Bootstrap popovers for help icons
             const initPopovers = () => {
                 document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
@@ -252,6 +279,9 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                         body: $('#schedule-modal-content').html()
                     }).then(function(modal) {
                         modal.setSaveButtonText('Schedule');
+
+                        const datetimeInput = modal.getRoot().find('#scheduledfor-input');
+                        datetimeInput.val(freshScheduleDateTime(datetimeInput.val()));
 
                         const timezone = modal.getRoot().find('#timezone-display').attr('data-moodle-timezone');
                         modal.getRoot().find('#timezone-display').text('Moodle timezone: ' + timezone);
