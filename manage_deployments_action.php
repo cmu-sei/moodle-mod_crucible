@@ -4,6 +4,7 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 
 use mod_crucible\local\bulkdeploy\job_repository;
 use mod_crucible\task\bulkdeploy_run;
+use mod_crucible\local\bulkdeploy\user_status;
 
 function mod_crucible_parse_bulkdeploy_schedule(string $value): ?int {
     $timezone = \core_date::get_user_timezone_object();
@@ -112,6 +113,7 @@ switch ($action) {
 
         $auth = setup_system();
         $cancelled = 0;
+        $cancelfailed = 0;
         $jobsToCancel = [];
         $jobsToRefresh = [];
         $repo = new job_repository();
@@ -130,16 +132,29 @@ switch ($action) {
             );
 
             if ($deployrow) {
-                // If event was launched, stop it
-                if (!empty($deployrow->eventid) && $auth) {
+                // If event was launched, stop it before changing the row state.
+                // Do not clear the event ID: it is essential for auditability and
+                // for recovering if Alloy rejects the end request.
+                if (!empty($deployrow->eventid)) {
+                    $stopped = false;
                     try {
-                        stop_event($auth, $deployrow->eventid);
-                    } catch (Exception $e) {
+                        $stopped = $auth && stop_event($auth, $deployrow->eventid);
+                    } catch (\Throwable $e) {
                         debugging("Failed to stop event {$deployrow->eventid}: " . $e->getMessage(), DEBUG_DEVELOPER);
+                    }
+
+                    if (!$stopped) {
+                        $repo->set_user_status(
+                            $deployrow->id,
+                            user_status::LAUNCHED,
+                            'Could not end the Alloy event; cancellation was not completed'
+                        );
+                        $cancelfailed++;
+                        continue;
                     }
                 }
 
-                $repo->set_user_status($deployrow->id, 'cancelled', 'Manually cancelled', '');
+                $repo->set_user_status($deployrow->id, user_status::CANCELLED, 'Manually cancelled');
                 $cancelled++;
                 $jobsToRefresh[$deployrow->jobid] = true;
 
@@ -173,6 +188,9 @@ switch ($action) {
         }
 
         \core\notification::success(get_string('deployments_cancelled', 'crucible', $cancelled));
+        if ($cancelfailed > 0) {
+            \core\notification::warning(get_string('deployments_cancel_failed', 'crucible', $cancelfailed));
+        }
         redirect($returnurl);
         break;
 

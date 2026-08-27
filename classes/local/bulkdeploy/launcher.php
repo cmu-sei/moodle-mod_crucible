@@ -86,6 +86,38 @@ class launcher {
                 return;
             }
 
+            // A teacher can cancel while Alloy is creating the event. Check the
+            // row again before recording it as launched so that cancellation
+            // cannot lose the newly returned Alloy event ID.
+            $currentstatuses = $this->repo->get_user_statuses([$rowid]);
+            if (($currentstatuses[$rowid] ?? null) === user_status::CANCELLED) {
+                try {
+                    if (stop_event($auth, $eventid)) {
+                        $this->repo->set_user_status(
+                            $rowid,
+                            user_status::CANCELLED,
+                            'Manually cancelled',
+                            $eventid
+                        );
+                    } else {
+                        $this->repo->set_user_status(
+                            $rowid,
+                            user_status::FAILED,
+                            'Cancellation raced event creation and Alloy could not end the event',
+                            $eventid
+                        );
+                    }
+                } catch (\Throwable $e) {
+                    $this->repo->set_user_status(
+                        $rowid,
+                        user_status::FAILED,
+                        'Cancellation raced event creation and Alloy could not end the event: ' . $e->getMessage(),
+                        $eventid
+                    );
+                }
+                return;
+            }
+
             // Persist the event ID before polling so a later task execution can
             // resume this row without starting a duplicate Alloy event.
             $this->repo->set_user_status($rowid, user_status::LAUNCHED, '', $eventid);

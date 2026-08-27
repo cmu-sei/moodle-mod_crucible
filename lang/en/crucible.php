@@ -218,6 +218,7 @@ $string['no_users_selected'] = 'No users selected';
 $string['deployment_queued'] = 'Deployment queued for {$a} user(s)';
 $string['deployment_scheduled'] = 'Deployment scheduled for {$a} user(s)';
 $string['deployments_cancelled'] = 'Cancelled {$a} deployment(s)';
+$string['deployments_cancel_failed'] = 'Could not cancel {$a} deployment(s); the Alloy event is still active.';
 $string['attempts_ended'] = 'Ended {$a} attempt(s)';
 $string['attempts_extended'] = 'Extended {$a->count} active attempt(s) by {$a->minutes} minute(s)';
 $string['attempts_extend_failed'] = 'Failed to extend {$a} selected active attempt(s)';
