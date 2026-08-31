@@ -5,6 +5,30 @@
   overflow: auto;
 }
 
+[data-bs-theme="dark"] .crucible-activity-section,
+[data-bs-theme="dark"] .crucible-detail-list,
+[data-bs-theme="dark"] .crucible-notification-box,
+[data-bs-theme="dark"] #crucible-container,
+[data-bs-theme="dark"] .mod-crucible-manage-deployments {
+  --bs-body-bg: var(--bs-gray-1000, #1e1e25);
+  --bs-body-color: var(--bs-text-color, #cbd0d4);
+  --bs-emphasis-color: var(--bs-gray-200, #e9ecef);
+  --bs-secondary-color: var(--bs-gray-400, #ced4da);
+  --bs-secondary-bg: var(--bs-gray-900, #2e3134);
+  --bs-tertiary-bg: var(--bs-gray-800, #393e4f);
+  --bs-border-color: var(--bs-gray-700, #495057);
+  --bs-info-text-emphasis: #9ec5fe;
+  --bs-info-bg-subtle: #031633;
+  --bs-info-border-subtle: #084298;
+  --bs-success-text-emphasis: #8abf84;
+  --bs-success-bg-subtle: #0b180a;
+  --bs-success-border-subtle: #20491e;
+}
+
+[data-bs-theme="dark"] .crucible-detail-item.bg-light {
+  background-color: var(--bs-secondary-bg) !important;
+}
+
 /* new below here */
 .iframe-container {
   overflow: hidden;
@@ -19,7 +43,7 @@
   position: absolute;
   top: 0;
   width: 100%;
-  background-color: white;
+  background-color: var(--bs-body-bg, #fff);
   display: none;
 }
 
@@ -45,9 +69,9 @@
 }
 
 .crucible-notification-style {
-  color: #00434e;
-  background-color: #cce6ea;
-  border-color: #b8dce2;
+  color: var(--bs-info-text-emphasis, #00434e);
+  background-color: var(--bs-info-bg-subtle, #cce6ea);
+  border-color: var(--bs-info-border-subtle, #b8dce2);
 }
 
 .license-info {
@@ -57,29 +81,34 @@
 }
 
 .license-info a {
-  color: #0073e6;           /* Link color */
+  color: var(--bs-link-color, #0073e6);
   text-decoration: none;    /* Remove underline */
 }
 
 .license-info a:hover {
+  color: var(--bs-link-hover-color, #005bb5);
   text-decoration: underline; /* Underline on hover */
 }
 
 .crucible-activity-section {
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--bs-border-color, #cbd5e1);
   border-radius: .75rem;
-  background: #fff;
+  background: var(--bs-body-bg, #fff);
   margin-bottom: 1rem;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+  box-shadow: var(--bs-box-shadow-sm, 0 1px 2px rgba(15, 23, 42, .04));
 }
 
 .crucible-activity-section__header {
   padding: .6rem .85rem;
-  border-bottom: 1px solid #dbeafe;
-  background-color: #e0f2fe;
-  background-image: linear-gradient(135deg, #e0f2fe, #f8fafc);
-  color: #1e3a8a;
+  border-bottom: 1px solid var(--bs-border-color, #dbeafe);
+  background-color: var(--bs-tertiary-bg, #e0f2fe);
+  background-image: linear-gradient(
+    135deg,
+    var(--bs-tertiary-bg, #e0f2fe),
+    var(--bs-secondary-bg, #f8fafc)
+  );
+  color: var(--bs-emphasis-color, var(--bs-body-color, #1e3a8a));
   font-size: .875rem;
   font-weight: 700;
 }
@@ -132,18 +161,18 @@
   align-items: baseline;
   min-height: 2.5rem;
   padding: .5rem .75rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--bs-border-color, #cbd5e1);
   border-radius: .5rem;
-  background: #f8fafc;
+  background: var(--bs-secondary-bg, #f8fafc);
 }
 
 .crucible-detail-label {
-  color: #475569;
+  color: var(--bs-secondary-color, #475569);
   font-weight: 700;
 }
 
 .crucible-detail-value {
-  color: #0f172a;
+  color: var(--bs-body-color, #0f172a);
 }
 
 /* Manage Deployments page */
@@ -157,7 +186,7 @@
 
 .mod-crucible-users-table th {
     font-weight: bold;
-    background-color: #f5f5f5;
+    background-color: var(--bs-tertiary-bg, #f5f5f5);
 }
 
 .mod-crucible-status-tooltip {
