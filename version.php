@@ -58,4 +58,4 @@ $plugin->dependencies = [];
 $plugin->maturity = MATURITY_BETA;
 
 // This is the named version.
-$plugin->release = '0.1.9';
+$plugin->release = '0.1.11';
