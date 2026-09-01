@@ -82,8 +82,6 @@ $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($crucible->name));
 $PAGE->set_heading($course->fullname);
-$PAGE->requires->css('/mod/crucible/styles.css');
-
 // New crucible class.
 $pageurl = null;
 $pagevars = [];

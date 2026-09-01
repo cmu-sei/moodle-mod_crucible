@@ -78,6 +78,7 @@ function crucible_supports($feature) {
     }
 }
 
+
 /**
  * Returns all other caps used in module
  * @return array
