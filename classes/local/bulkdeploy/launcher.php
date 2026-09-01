@@ -42,13 +42,20 @@ class launcher {
         // rows rather than silently skipping them.
         $statuses = $this->repo->get_user_statuses([$rowid]);
         $status = $statuses[$rowid] ?? null;
-        if ($status !== user_status::PENDING && $status !== user_status::LAUNCHED) {
+        if ($status !== user_status::PENDING
+            && $status !== user_status::LAUNCHED
+            && $status !== user_status::CANCELLING) {
             return; // Externally cancelled or already terminal.
         }
 
         $auth = setup_system();
         if (!$auth) {
             $this->repo->set_user_status($rowid, user_status::FAILED, 'Could not initialize API client');
+            return;
+        }
+
+        if ($status === user_status::CANCELLING) {
+            $this->retry_cancellation($rowid, $entry, $auth);
             return;
         }
 
@@ -86,11 +93,10 @@ class launcher {
                 return;
             }
 
-            // A teacher can cancel while Alloy is creating the event. Check the
-            // row again before recording it as launched so that cancellation
-            // cannot lose the newly returned Alloy event ID.
-            $currentstatuses = $this->repo->get_user_statuses([$rowid]);
-            if (($currentstatuses[$rowid] ?? null) === user_status::CANCELLED) {
+            // A teacher can cancel while Alloy is creating the event. The
+            // conditional write preserves that cancellation instead of
+            // overwriting it with a launched row.
+            if (!$this->repo->mark_launched_if_pending($rowid, $eventid)) {
                 try {
                     if (stop_event($auth, $eventid)) {
                         $this->repo->set_user_status(
@@ -118,9 +124,6 @@ class launcher {
                 return;
             }
 
-            // Persist the event ID before polling so a later task execution can
-            // resume this row without starting a duplicate Alloy event.
-            $this->repo->set_user_status($rowid, user_status::LAUNCHED, '', $eventid);
             $timestarted = time();
         } else {
             $eventid = trim((string)($entry['eventid'] ?? ''));
@@ -136,6 +139,47 @@ class launcher {
         }
 
         $this->wait_for_event($rowid, $user, $crucible, $auth, $eventid, $timestarted, $waitforready);
+    }
+
+    /**
+     * Retries a cancellation that could not be completed by the teacher action.
+     */
+    private function retry_cancellation(int $rowid, array $entry, \core\oauth2\client $auth): void {
+        $eventid = trim((string)($entry['eventid'] ?? ''));
+        if ($eventid === '') {
+            $this->repo->set_user_status(
+                $rowid,
+                user_status::FAILED,
+                'Cancellation could not be retried because the Alloy event ID is missing'
+            );
+            return;
+        }
+
+        $timestarted = (int)($entry['timestarted'] ?? 0);
+        $start = $timestarted > 0 ? $timestarted : time();
+        if ((time() - $start) >= $this->waitceilingsec) {
+            $this->repo->set_user_status(
+                $rowid,
+                user_status::FAILED,
+                'Timed out retrying cancellation; end the Alloy event manually'
+            );
+            return;
+        }
+
+        try {
+            if (stop_event($auth, $eventid)) {
+                $this->repo->set_user_status($rowid, user_status::CANCELLED, 'Manually cancelled');
+                return;
+            }
+        } catch (\Throwable $e) {
+            debugging("Error retrying cancellation for event $eventid: " . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+
+        $this->repo->set_user_status(
+            $rowid,
+            user_status::CANCELLING,
+            'Cancellation requested; Moodle will retry ending the Alloy event'
+        );
     }
 
     /**

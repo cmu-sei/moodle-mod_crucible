@@ -9,6 +9,7 @@ defined('MOODLE_INTERNAL') || die();
 class user_status {
     const PENDING = 'pending';
     const LAUNCHED = 'launched';
+    const CANCELLING = 'cancelling';
     const READY = 'ready';
     const SKIPPED = 'skipped';
     const FAILED = 'failed';

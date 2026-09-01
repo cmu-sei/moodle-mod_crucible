@@ -148,6 +148,50 @@ class job_repository {
         $DB->update_record('crucible_bulkdeploy_user', $update);
     }
 
+    /**
+     * Records a newly-created Alloy event only while the row is still pending.
+     *
+     * This prevents a concurrent cancellation from being overwritten after
+     * start_event() returns an event ID.
+     *
+     * @param int $rowid Bulk deployment user-row ID.
+     * @param string $eventid Newly-created Alloy event ID.
+     * @return bool Whether the row is still launched with this event ID.
+     */
+    public function mark_launched_if_pending(int $rowid, string $eventid): bool {
+        global $DB;
+
+        $now = time();
+        $DB->execute(
+            "UPDATE {crucible_bulkdeploy_user}
+                SET status = :launched,
+                    eventid = :eventid,
+                    timestarted = CASE
+                        WHEN timestarted IS NULL OR timestarted = 0 THEN :timestarted
+                        ELSE timestarted
+                    END
+              WHERE id = :rowid AND status = :pending",
+            [
+                'launched' => user_status::LAUNCHED,
+                'eventid' => $eventid,
+                'timestarted' => $now,
+                'rowid' => $rowid,
+                'pending' => user_status::PENDING,
+            ]
+        );
+
+        $row = $DB->get_record(
+            'crucible_bulkdeploy_user',
+            ['id' => $rowid],
+            'status, eventid',
+            IGNORE_MISSING
+        );
+
+        return $row
+            && $row->status === user_status::LAUNCHED
+            && $row->eventid === $eventid;
+    }
+
     public function mark_pending_cancelled(int $jobid): void {
         global $DB;
         $DB->execute(

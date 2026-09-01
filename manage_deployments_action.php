@@ -114,7 +114,6 @@ switch ($action) {
         $auth = setup_system();
         $cancelled = 0;
         $cancelfailed = 0;
-        $jobsToCancel = [];
         $jobsToRefresh = [];
         $repo = new job_repository();
 
@@ -125,7 +124,7 @@ switch ($action) {
                  INNER JOIN {crucible_bulkdeploy_job} bdj ON bdj.id = bdu.jobid
                  WHERE bdu.userid = :userid
                  AND bdj.crucibleid = :crucibleid
-                 AND bdu.status IN ('pending', 'launched')
+                 AND bdu.status IN ('pending', 'launched', 'cancelling')
                  ORDER BY bdu.id DESC
                  LIMIT 1",
                 ['userid' => $uid, 'crucibleid' => $crucible->id]
@@ -146,10 +145,11 @@ switch ($action) {
                     if (!$stopped) {
                         $repo->set_user_status(
                             $deployrow->id,
-                            user_status::LAUNCHED,
-                            'Could not end the Alloy event; cancellation was not completed'
+                            user_status::CANCELLING,
+                            'Cancellation requested; Moodle will retry ending the Alloy event'
                         );
                         $cancelfailed++;
+                        $jobsToRefresh[$deployrow->jobid] = true;
                         continue;
                     }
                 }
@@ -158,25 +158,6 @@ switch ($action) {
                 $cancelled++;
                 $jobsToRefresh[$deployrow->jobid] = true;
 
-                // Track jobs that need adhoc task cancellation
-                if (!empty($deployrow->scheduledfor)) {
-                    $jobsToCancel[$deployrow->jobid] = true;
-                }
-            }
-        }
-
-        // Cancel adhoc tasks for scheduled jobs
-        foreach (array_keys($jobsToCancel) as $jobid) {
-            // Find matching tasks
-            $tasks = $DB->get_records('task_adhoc', [
-                'component' => 'mod_crucible',
-                'classname' => '\\mod_crucible\\task\\bulkdeploy_run'
-            ]);
-            foreach ($tasks as $task) {
-                $data = json_decode($task->customdata);
-                if (!empty($data->jobid) && $data->jobid == $jobid) {
-                    $DB->delete_records('task_adhoc', ['id' => $task->id]);
-                }
             }
         }
 

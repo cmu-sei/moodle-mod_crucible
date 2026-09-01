@@ -61,7 +61,7 @@ echo $OUTPUT->heading(get_string('manage_deployments_pageheading', 'crucible'));
 // Check for active deployments and compute progress summary
 $has_active_deploys = false;
 foreach ($users as $u) {
-    if (in_array($u->deploystatus, ['pending', 'launched'])) {
+    if (in_array($u->deploystatus, ['pending', 'launched', 'cancelling'])) {
         $has_active_deploys = true;
         break;
     }

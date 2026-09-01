@@ -69,7 +69,7 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                 const rows = table.querySelectorAll('tr');
                 for (const row of rows) {
                     const status = rowStatus(row);
-                    if (status === 'pending' || status === 'launched'
+                    if (status === 'pending' || status === 'launched' || status === 'cancelling'
                         || status === 'in progress' || status === 'scheduled') {
                         return true;
                     }
@@ -165,7 +165,8 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                             canDeploy++;
                         }
                         // Can cancel: Pending, Launched, Scheduled
-                        if (status === 'pending' || status === 'launched' || status === 'scheduled') {
+                        if (status === 'pending' || status === 'launched' || status === 'cancelling'
+                            || status === 'scheduled') {
                             canCancel++;
                         }
                         // Can end: In Progress

@@ -210,7 +210,7 @@ class management_repository {
         if (!empty($scheduledfor) && $scheduledfor > $now && $deploystatus === 'pending') {
             $statuslabel = 'Scheduled';
             $scheduledtext = userdate($scheduledfor, get_string('strftimedatetime', 'langconfig'));
-        } else if (!empty($deploystatus) && in_array($deploystatus, ['pending', 'launched'], true)) {
+        } else if (!empty($deploystatus) && in_array($deploystatus, ['pending', 'launched', 'cancelling'], true)) {
             $statuslabel = ucfirst($deploystatus);
         } else if (!empty($attemptid)) {
             $statemap = [
@@ -224,7 +224,7 @@ class management_repository {
             $statuslabel = ucfirst($deploystatus);
         }
 
-        if ($statuslabel === 'Failed' && !empty($row->deployerror)) {
+        if (in_array($statuslabel, ['Failed', 'Cancelling'], true) && !empty($row->deployerror)) {
             $content = s($row->deployerror);
             $tooltiphtml = s($statuslabel) . ' '
                 . '<a class="btn btn-link p-0 mod-crucible-status-help" role="button" data-bs-container="body" '
