@@ -9,6 +9,38 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                 return;
             }
 
+            // The schedule template is rendered by PHP when this page loads. Keep
+            // its wall-clock value in the Moodle user timezone, but advance it by
+            // the elapsed time when the modal opens so it remains one hour ahead.
+            const scheduleTemplateLoadedAt = Date.now();
+            const formatScheduleDateTime = (timestamp) => {
+                const date = new Date(timestamp);
+                const pad = (value) => String(value).padStart(2, '0');
+                return date.getUTCFullYear() + '-' + pad(date.getUTCMonth() + 1) + '-'
+                    + pad(date.getUTCDate()) + 'T' + pad(date.getUTCHours()) + ':'
+                    + pad(date.getUTCMinutes());
+            };
+            const parseScheduleDateTime = (value) => {
+                const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+                if (!match) {
+                    return null;
+                }
+
+                return Date.UTC(
+                    Number(match[1]),
+                    Number(match[2]) - 1,
+                    Number(match[3]),
+                    Number(match[4]),
+                    Number(match[5])
+                );
+            };
+            const freshScheduleDateTime = (value) => {
+                const templateTime = parseScheduleDateTime(value);
+                if (templateTime === null) {
+                    return value;
+                }
+                return formatScheduleDateTime(templateTime + (Date.now() - scheduleTemplateLoadedAt));
+            };
             // Initialize Bootstrap popovers for help icons
             const initPopovers = () => {
                 document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
@@ -37,7 +69,7 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                 const rows = table.querySelectorAll('tr');
                 for (const row of rows) {
                     const status = rowStatus(row);
-                    if (status === 'pending' || status === 'launched'
+                    if (status === 'pending' || status === 'launched' || status === 'cancelling'
                         || status === 'in progress' || status === 'scheduled') {
                         return true;
                     }
@@ -133,7 +165,8 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                             canDeploy++;
                         }
                         // Can cancel: Pending, Launched, Scheduled
-                        if (status === 'pending' || status === 'launched' || status === 'scheduled') {
+                        if (status === 'pending' || status === 'launched' || status === 'cancelling'
+                            || status === 'scheduled') {
                             canCancel++;
                         }
                         // Can end: In Progress
@@ -253,16 +286,33 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'theme_boost/bo
                     }).then(function(modal) {
                         modal.setSaveButtonText('Schedule');
 
+                        const datetimeInput = modal.getRoot().find('#scheduledfor-input');
+                        const templateDatetime = datetimeInput.val();
+                        const templateMinimum = datetimeInput.attr('data-schedule-minimum') || templateDatetime;
+                        datetimeInput.attr('min', freshScheduleDateTime(templateMinimum));
+                        datetimeInput.val(freshScheduleDateTime(templateDatetime));
+                        const pastError = modal.getRoot().find('#schedule-past-error');
+                        datetimeInput.on('input change', function() {
+                            pastError.hide();
+                        });
+
                         const timezone = modal.getRoot().find('#timezone-display').attr('data-moodle-timezone');
                         modal.getRoot().find('#timezone-display').text('Moodle timezone: ' + timezone);
 
-                        modal.getRoot().on(ModalEvents.save, function() {
+                        modal.getRoot().on(ModalEvents.save, function(event) {
                             const datetime = modal.getRoot().find('#scheduledfor-input').val();
-                            if (datetime) {
-                                $('#schedule-userids').val(selected.join(','));
-                                $('#schedule-datetime').val(datetime);
-                                $('#schedule-form').submit();
+                            const minSchedule = freshScheduleDateTime(templateMinimum);
+                            datetimeInput.attr('min', minSchedule);
+                            if (!datetime || datetime < minSchedule) {
+                                event.preventDefault();
+                                pastError.show();
+                                return;
                             }
+
+                            pastError.hide();
+                            $('#schedule-userids').val(selected.join(','));
+                            $('#schedule-datetime').val(datetime);
+                            $('#schedule-form').submit();
                         });
 
                         modal.show();

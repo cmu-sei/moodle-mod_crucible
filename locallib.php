@@ -43,6 +43,7 @@ defined('MOODLE_INTERNAL') || die;
 require_once("$CFG->dirroot/mod/crucible/lib.php");
 
 define('CRUCIBLE_DEFAULT_EXTEND_INTERVAL', 60);
+define('CRUCIBLE_DEFAULT_BULKDEPLOY_WAIT_TIMEOUT', 10);
 
 /**
  * Returns the configured site maximum for event extension intervals.
@@ -56,6 +57,20 @@ function crucible_get_max_extend_interval() {
     }
 
     return $max;
+}
+
+/**
+ * Returns the configured per-user bulk deployment wait timeout.
+ *
+ * @return int Timeout in minutes, constrained to the supported range.
+ */
+function crucible_get_bulkdeploy_wait_timeout() {
+    $timeout = (int) get_config('crucible', 'bulkdeploywaittimeout');
+    if ($timeout <= 0) {
+        return CRUCIBLE_DEFAULT_BULKDEPLOY_WAIT_TIMEOUT;
+    }
+
+    return min(max($timeout, 1), 60);
 }
 
 
@@ -89,6 +104,28 @@ function setup_system() {
         // Throw new \Exception($details);
         return false;
     }
+    return crucible_configure_api_client_timeouts($client);
+}
+
+/**
+ * Applies bounded request times to a Crucible API client.
+ *
+ * Alloy calls are made during interactive page rendering and in cron. Without
+ * limits, a stalled upstream call can hold a Moodle session lock or its sole
+ * cron worker until nginx or PHP-FPM eventually gives up.
+ *
+ * @param \core\oauth2\client|null $client OAuth2 client to configure.
+ * @return \core\oauth2\client|null The same client.
+ */
+function crucible_configure_api_client_timeouts($client) {
+    if (!$client) {
+        return $client;
+    }
+
+    $client->setopt([
+        'CURLOPT_CONNECTTIMEOUT' => 5,
+        'CURLOPT_TIMEOUT' => 15,
+    ]);
     return $client;
 }
 
@@ -185,7 +222,7 @@ function setup() {
         }
     }
 
-    return $client;
+    return crucible_configure_api_client_timeouts($client);
 }
 
 /**

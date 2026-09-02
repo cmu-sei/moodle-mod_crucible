@@ -4,6 +4,7 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 
 use mod_crucible\local\bulkdeploy\job_repository;
 use mod_crucible\task\bulkdeploy_run;
+use mod_crucible\local\bulkdeploy\user_status;
 
 function mod_crucible_parse_bulkdeploy_schedule(string $value): ?int {
     $timezone = \core_date::get_user_timezone_object();
@@ -112,7 +113,7 @@ switch ($action) {
 
         $auth = setup_system();
         $cancelled = 0;
-        $jobsToCancel = [];
+        $cancelfailed = 0;
         $jobsToRefresh = [];
         $repo = new job_repository();
 
@@ -123,45 +124,40 @@ switch ($action) {
                  INNER JOIN {crucible_bulkdeploy_job} bdj ON bdj.id = bdu.jobid
                  WHERE bdu.userid = :userid
                  AND bdj.crucibleid = :crucibleid
-                 AND bdu.status IN ('pending', 'launched')
+                 AND bdu.status IN ('pending', 'launched', 'cancelling')
                  ORDER BY bdu.id DESC
                  LIMIT 1",
                 ['userid' => $uid, 'crucibleid' => $crucible->id]
             );
 
             if ($deployrow) {
-                // If event was launched, stop it
-                if (!empty($deployrow->eventid) && $auth) {
+                // If event was launched, stop it before changing the row state.
+                // Do not clear the event ID: it is essential for auditability and
+                // for recovering if Alloy rejects the end request.
+                if (!empty($deployrow->eventid)) {
+                    $stopped = false;
                     try {
-                        stop_event($auth, $deployrow->eventid);
-                    } catch (Exception $e) {
+                        $stopped = $auth && stop_event($auth, $deployrow->eventid);
+                    } catch (\Throwable $e) {
                         debugging("Failed to stop event {$deployrow->eventid}: " . $e->getMessage(), DEBUG_DEVELOPER);
+                    }
+
+                    if (!$stopped) {
+                        $repo->set_user_status(
+                            $deployrow->id,
+                            user_status::CANCELLING,
+                            'Cancellation requested; Moodle will retry ending the Alloy event'
+                        );
+                        $cancelfailed++;
+                        $jobsToRefresh[$deployrow->jobid] = true;
+                        continue;
                     }
                 }
 
-                $repo->set_user_status($deployrow->id, 'cancelled', 'Manually cancelled', '');
+                $repo->set_user_status($deployrow->id, user_status::CANCELLED, 'Manually cancelled');
                 $cancelled++;
                 $jobsToRefresh[$deployrow->jobid] = true;
 
-                // Track jobs that need adhoc task cancellation
-                if (!empty($deployrow->scheduledfor)) {
-                    $jobsToCancel[$deployrow->jobid] = true;
-                }
-            }
-        }
-
-        // Cancel adhoc tasks for scheduled jobs
-        foreach (array_keys($jobsToCancel) as $jobid) {
-            // Find matching tasks
-            $tasks = $DB->get_records('task_adhoc', [
-                'component' => 'mod_crucible',
-                'classname' => '\\mod_crucible\\task\\bulkdeploy_run'
-            ]);
-            foreach ($tasks as $task) {
-                $data = json_decode($task->customdata);
-                if (!empty($data->jobid) && $data->jobid == $jobid) {
-                    $DB->delete_records('task_adhoc', ['id' => $task->id]);
-                }
             }
         }
 
@@ -173,6 +169,9 @@ switch ($action) {
         }
 
         \core\notification::success(get_string('deployments_cancelled', 'crucible', $cancelled));
+        if ($cancelfailed > 0) {
+            \core\notification::warning(get_string('deployments_cancel_failed', 'crucible', $cancelfailed));
+        }
         redirect($returnurl);
         break;
 

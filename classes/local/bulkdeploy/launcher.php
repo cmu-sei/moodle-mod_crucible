@@ -13,11 +13,10 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
  * due to Terraform provisioning complexity.
  */
 class launcher {
-
     public function __construct(
         private job_repository $repo,
         private int $pollintervalsec = 10,   // sleep between poll cycles (default 10s)
-        private int $waitceilingsec = 600    // max wait time per user (default 600s = 10min)
+        private int $waitceilingsec = 600    // max wait time per user, including reconciliation (default 10min)
     ) {}
 
     /**
@@ -33,57 +32,169 @@ class launcher {
     }
 
     /**
-     * Process a single user: launch event, wait for ready, create attempt.
+     * Process a single user: launch an event if needed, then wait for ready.
      */
     private function process_user(array $entry, \stdClass $crucible): void {
         $rowid = $entry['rowid'];
         $user = $entry['user'];
 
-        // Check if externally cancelled before starting
+        // Always use the current status: a resumed task must reconcile launched
+        // rows rather than silently skipping them.
         $statuses = $this->repo->get_user_statuses([$rowid]);
-        if (($statuses[$rowid] ?? null) !== user_status::PENDING) {
-            return; // Externally mutated, skip
+        $status = $statuses[$rowid] ?? null;
+        if ($status !== user_status::PENDING
+            && $status !== user_status::LAUNCHED
+            && $status !== user_status::CANCELLING) {
+            return; // Externally cancelled or already terminal.
         }
 
-        // Get system auth client
         $auth = setup_system();
         if (!$auth) {
             $this->repo->set_user_status($rowid, user_status::FAILED, 'Could not initialize API client');
             return;
         }
 
-        // Get user's Alloy GUID before launching so we do not create an event
-        // that cannot be assigned to the target student.
-        $useralloyguid = get_user_alloy_guid($user->id);
-        if (!$useralloyguid) {
-            $this->repo->set_user_status($rowid, user_status::FAILED, 'User does not have Alloy GUID (not OAuth2 user)', '');
+        if ($status === user_status::CANCELLING) {
+            $this->retry_cancellation($rowid, $entry, $auth);
             return;
         }
 
-        $userdisplayname = \fullname($user) ?: $user->username;
-
-        // Launch the event as the target student. Alloy will make this user
-        // the event owner and provision the Player/Steamfitter memberships.
-        try {
-            $eventid = start_event($auth, $crucible->eventtemplateid, $useralloyguid, $userdisplayname);
-            if (!$eventid) {
-                $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to start event (no eventid returned)', '');
+        $waitforready = $status === user_status::PENDING;
+        if ($waitforready) {
+            // Get the user's Alloy GUID before launching so we do not create an event
+            // that cannot be assigned to the target student.
+            $useralloyguid = get_user_alloy_guid($user->id);
+            if (!$useralloyguid) {
+                $this->repo->set_user_status(
+                    $rowid,
+                    user_status::FAILED,
+                    'User does not have Alloy GUID (not OAuth2 user)',
+                    ''
+                );
                 return;
             }
 
-            debugging("Event $eventid created for user {$user->username}", DEBUG_DEVELOPER);
+            $userdisplayname = \fullname($user) ?: $user->username;
+            try {
+                $eventid = start_event($auth, $crucible->eventtemplateid, $useralloyguid, $userdisplayname);
+                if (!$eventid) {
+                    $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to start event (no eventid returned)', '');
+                    return;
+                }
 
-        } catch (\Exception $e) {
-            $this->repo->set_user_status($rowid, user_status::FAILED, 'Exception starting event: ' . $e->getMessage(), '');
+                debugging("Event $eventid created for user {$user->username}", DEBUG_DEVELOPER);
+            } catch (\Throwable $e) {
+                $this->repo->set_user_status(
+                    $rowid,
+                    user_status::FAILED,
+                    'Exception starting event: ' . $e->getMessage(),
+                    ''
+                );
+                return;
+            }
+
+            // A teacher can cancel while Alloy is creating the event. The
+            // conditional write preserves that cancellation instead of
+            // overwriting it with a launched row.
+            if (!$this->repo->mark_launched_if_pending($rowid, $eventid)) {
+                try {
+                    if (stop_event($auth, $eventid)) {
+                        $this->repo->set_user_status(
+                            $rowid,
+                            user_status::CANCELLED,
+                            'Manually cancelled',
+                            $eventid
+                        );
+                    } else {
+                        $this->repo->set_user_status(
+                            $rowid,
+                            user_status::FAILED,
+                            'Cancellation raced event creation and Alloy could not end the event',
+                            $eventid
+                        );
+                    }
+                } catch (\Throwable $e) {
+                    $this->repo->set_user_status(
+                        $rowid,
+                        user_status::FAILED,
+                        'Cancellation raced event creation and Alloy could not end the event: ' . $e->getMessage(),
+                        $eventid
+                    );
+                }
+                return;
+            }
+
+            $timestarted = time();
+        } else {
+            $eventid = trim((string)($entry['eventid'] ?? ''));
+            if ($eventid === '') {
+                $this->repo->set_user_status(
+                    $rowid,
+                    user_status::FAILED,
+                    'Launched deployment is missing its Alloy event ID'
+                );
+                return;
+            }
+            $timestarted = (int)($entry['timestarted'] ?? 0);
+        }
+
+        $this->wait_for_event($rowid, $user, $crucible, $auth, $eventid, $timestarted, $waitforready);
+    }
+
+    /**
+     * Retries a cancellation that could not be completed by the teacher action.
+     */
+    private function retry_cancellation(int $rowid, array $entry, \core\oauth2\client $auth): void {
+        $eventid = trim((string)($entry['eventid'] ?? ''));
+        if ($eventid === '') {
+            $this->repo->set_user_status(
+                $rowid,
+                user_status::FAILED,
+                'Cancellation could not be retried because the Alloy event ID is missing'
+            );
             return;
         }
 
-        // Mark as launched while Alloy applies the event. Admin enlistment must
-        // wait until Alloy reports the event as active.
-        $this->repo->set_user_status($rowid, user_status::LAUNCHED, '', $eventid);
+        $timestarted = (int)($entry['timestarted'] ?? 0);
+        $start = $timestarted > 0 ? $timestarted : time();
+        if ((time() - $start) >= $this->waitceilingsec) {
+            $this->repo->set_user_status(
+                $rowid,
+                user_status::FAILED,
+                'Timed out retrying cancellation; end the Alloy event manually'
+            );
+            return;
+        }
 
-        // Wait phase: poll until event is ready
-        $start = time();
+        try {
+            if (stop_event($auth, $eventid)) {
+                $this->repo->set_user_status($rowid, user_status::CANCELLED, 'Manually cancelled');
+                return;
+            }
+        } catch (\Throwable $e) {
+            debugging("Error retrying cancellation for event $eventid: " . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+
+        $this->repo->set_user_status(
+            $rowid,
+            user_status::CANCELLING,
+            'Cancellation requested; Moodle will retry ending the Alloy event'
+        );
+    }
+
+    /**
+     * Polls a launched Alloy event until it becomes active or reaches a terminal state.
+     */
+    private function wait_for_event(
+        int $rowid,
+        \stdClass $user,
+        \stdClass $crucible,
+        \core\oauth2\client $auth,
+        string $eventid,
+        int $timestarted,
+        bool $waitforready
+    ): void {
+        $start = $timestarted > 0 ? $timestarted : time();
         while (true) {
             // Check if externally cancelled during wait
             $statuses = $this->repo->get_user_statuses([$rowid]);
@@ -92,49 +203,56 @@ class launcher {
             }
 
             // Poll event status
+            $event = null;
             try {
                 $event = get_event($auth, $eventid);
                 if (!$event) {
-                    // Event not found or error
-                    $this->sleep_seconds($this->pollintervalsec);
-                    if ((time() - $start) >= $this->waitceilingsec) {
-                        $this->repo->set_user_status($rowid, user_status::FAILED, 'Timeout waiting for event (event not found)');
+                    debugging("No event response received for $eventid", DEBUG_DEVELOPER);
+                } else {
+                    // Check if event failed/ended
+                    $status = strtolower($event->status ?? '');
+                    if ($status === 'ended' || $status === 'failed' || $status === 'error') {
+                        $errmsg = $event->errorMessage ?? 'Event ended without becoming active';
+                        $this->repo->set_user_status($rowid, user_status::FAILED, "Event deployment failed: $errmsg");
                         return;
                     }
-                    continue;
-                }
 
-                // Check if event failed/ended
-                $status = strtolower($event->status ?? '');
-                if ($status === 'ended' || $status === 'failed' || $status === 'error') {
-                    $errmsg = $event->errorMessage ?? 'Event ended without becoming active';
-                    $this->repo->set_user_status($rowid, user_status::FAILED, "Event deployment failed: $errmsg");
-                    return;
-                }
+                    // Check if event is ready (has status or isActive flag)
+                    $isready = $status === 'active';
+                    if (!$isready && isset($event->isActive)) {
+                        $isready = (bool)$event->isActive;
+                    }
 
-                // Check if event is ready (has status or isActive flag)
-                $isReady = $status === 'active';
-                if (!$isReady && isset($event->isActive)) {
-                    $isReady = (bool) $event->isActive;
+                    if ($isready) {
+                        // Create the attempt before marking the row ready so a
+                        // task interruption can be retried without losing it.
+                        $this->create_attempt_for_user($user->id, $crucible, $event);
+                        $this->repo->set_user_status($rowid, user_status::READY);
+                        return;
+                    }
                 }
-
-                if ($isReady) {
-                    // Event is ready; create the Moodle attempt that lets the
-                    // student enter their Alloy-owned lab.
-                    $this->repo->set_user_status($rowid, user_status::READY);
-                    $this->create_attempt_for_user($user->id, $crucible, $event);
-                    return;
-                }
-
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 // Continue polling on transient errors
                 debugging("Error polling event $eventid: " . $e->getMessage(), DEBUG_DEVELOPER);
             }
 
-            // Check timeout
+            // The same deadline applies to the initial wait and all later
+            // reconciliation tasks. Without a terminal timeout, a launched
+            // event that Alloy never resolves would queue work indefinitely.
             if ((time() - $start) >= $this->waitceilingsec) {
-                $laststatus = isset($event) ? ($event->status ?? 'unknown') : 'no-response';
-                $this->repo->set_user_status($rowid, user_status::FAILED, "Timeout waiting for event (last status: $laststatus)");
+                $minutes = (int)ceil($this->waitceilingsec / MINSECS);
+                $this->repo->set_user_status(
+                    $rowid,
+                    user_status::FAILED,
+                    "Timed out waiting {$minutes} minute(s) for Alloy event to become active"
+                );
+                return;
+            }
+
+            // A reconciliation task only checks the current event state once.
+            // It will be queued again only while the row remains within its
+            // per-user deadline above.
+            if (!$waitforready) {
                 return;
             }
 

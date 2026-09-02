@@ -57,6 +57,7 @@ $string['steamfitterapiurl'] = 'Steamfitter API URL';
 $string['issuerid'] = 'OAUTH2 Issuer';
 $string['autocomplete'] = 'Event Template Selection Method';
 $string['maxextendinterval'] = 'Maximum event extension interval';
+$string['bulkdeploywaittimeout'] = 'Bulk deployment wait timeout';
 $string['eventtemplate'] = 'Event Template';
 $string['selectname'] = 'Search for an Event Template by name';
 $string['showfailed'] = 'Show Failed';
@@ -71,6 +72,7 @@ $string['configalloyapiclienturl'] = 'Base URL for Alloy API used by browser Jav
 $string['configeventtemplate'] = 'Event Template GUID to be launched.';
 $string['configautocomplete'] = 'Display list of Event Templates in a dropdown or a searchable text box.';
 $string['configmaxextendinterval'] = 'Maximum number of minutes an activity may add when extending an event. Defaults to 60 minutes.';
+$string['configbulkdeploywaittimeout'] = 'Maximum number of minutes to wait for each user event to become active during a sequential bulk deployment. If Alloy does not report the event active by this deadline, Moodle marks that user deployment failed and starts the next selected user. Reconciliation tasks use the same deadline, so a stuck event cannot queue forever. Defaults to 10 minutes. Values outside 1 to 60 minutes are constrained to that range.';
 $string['configshowfailed'] = 'Show failed Events in the history table.';
 $string['contentlicense'] = 'Content License';
 $string['contentlicense_help'] = 'Select the appropriate content license associated with this content or lab from the dropdown menu.';
@@ -216,6 +218,7 @@ $string['no_users_selected'] = 'No users selected';
 $string['deployment_queued'] = 'Deployment queued for {$a} user(s)';
 $string['deployment_scheduled'] = 'Deployment scheduled for {$a} user(s)';
 $string['deployments_cancelled'] = 'Cancelled {$a} deployment(s)';
+$string['deployments_cancel_failed'] = 'Cancellation was requested for {$a} deployment(s); Moodle will retry ending the Alloy event.';
 $string['attempts_ended'] = 'Ended {$a} attempt(s)';
 $string['attempts_extended'] = 'Extended {$a->count} active attempt(s) by {$a->minutes} minute(s)';
 $string['attempts_extend_failed'] = 'Failed to extend {$a} selected active attempt(s)';
@@ -232,6 +235,7 @@ $string['status_legend_none'] = 'None: no deployment or attempt for this user.';
 $string['status_legend_scheduled'] = 'Scheduled: deployment is queued for a future time.';
 $string['status_legend_pending'] = 'Pending: deployment is queued and waiting to launch.';
 $string['status_legend_launched'] = 'Launched: deployment has started and the event is being created.';
+$string['status_legend_cancelling'] = 'Cancelling: Moodle is retrying the request to end the Alloy event.';
 $string['status_legend_failed'] = 'Failed: deployment failed (hover for error).';
 $string['status_legend_cancelled'] = 'Cancelled: deployment was cancelled before completing.';
 $string['status_legend_inprogress'] = 'In Progress: the lab is active and running.';
@@ -249,6 +253,7 @@ $string['status_help'] = 'Status values used in this table:
 * **Scheduled**: deployment is queued for a future time.
 * **Pending**: deployment is queued and waiting to launch.
 * **Launched**: deployment has started and the event is being created.
+* **Cancelling**: Moodle is retrying the request to end the Alloy event.
 * **Ready**: deployment completed, attempt created.
 * **Failed**: deployment failed (click ⓘ for error details).
 * **Cancelled**: deployment was cancelled before completing.

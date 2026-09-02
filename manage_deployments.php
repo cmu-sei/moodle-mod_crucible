@@ -61,7 +61,7 @@ echo $OUTPUT->heading(get_string('manage_deployments_pageheading', 'crucible'));
 // Check for active deployments and compute progress summary
 $has_active_deploys = false;
 foreach ($users as $u) {
-    if (in_array($u->deploystatus, ['pending', 'launched'])) {
+    if (in_array($u->deploystatus, ['pending', 'launched', 'cancelling'])) {
         $has_active_deploys = true;
         break;
     }
@@ -248,16 +248,27 @@ echo html_writer::end_div();
 
 echo html_writer::start_div('', ['id' => 'schedule-modal-content', 'style' => 'display:none;']);
 echo html_writer::tag('label', get_string('scheduledfor', 'crucible') . ':', ['for' => 'scheduledfor-input', 'class' => 'd-block mb-2']);
+$usertimezone = core_date::get_user_timezone_object();
 $defaultschedule = (new DateTimeImmutable('@' . (time() + HOURSECS)))
-    ->setTimezone(core_date::get_user_timezone_object())
+    ->setTimezone($usertimezone)
+    ->format('Y-m-d\TH:i');
+$minimumschedule = (new DateTimeImmutable('@' . (int)(ceil((time() + 1) / MINSECS) * MINSECS)))
+    ->setTimezone($usertimezone)
     ->format('Y-m-d\TH:i');
 echo html_writer::empty_tag('input', [
     'type' => 'datetime-local',
     'id' => 'scheduledfor-input',
     'value' => $defaultschedule,
+    'data-schedule-minimum' => $minimumschedule,
     'class' => 'form-control',
     'style' => 'width: 220px;',
     'required' => 'required'
+]);
+echo html_writer::tag('div', get_string('schedule_past_error', 'crucible'), [
+    'id' => 'schedule-past-error',
+    'class' => 'alert alert-danger mt-2 mb-0',
+    'role' => 'alert',
+    'style' => 'display:none;'
 ]);
 echo html_writer::tag('small', '', [
     'class' => 'form-text text-muted mb-3',

@@ -72,6 +72,15 @@ if ($ADMIN->fulltree) {
         10
     ));
 
+    $settings->add(new admin_setting_configtext(
+        'crucible/bulkdeploywaittimeout',
+        get_string('bulkdeploywaittimeout', 'crucible'),
+        get_string('configbulkdeploywaittimeout', 'crucible'),
+        10,
+        PARAM_INT,
+        10
+    ));
+
     $options = [];
     $issuers = core\oauth2\api::get_all_issuers();
     foreach ($issuers as $issuer) {
