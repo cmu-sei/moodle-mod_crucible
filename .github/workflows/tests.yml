@@ -1,6 +1,6 @@
 name: Tests
 
-# Runs the Moodle plugin test suite on every branch and every pull request.
+# Runs the Moodle plugin test suite on every pull request, and on main after a merge.
 #
 # This file is kept byte-identical across the cmu-sei Moodle plugin repos so it can be diffed and
 # grepped across them. Everything plugin-specific lives in the `matrix.include` block below - change
@@ -9,7 +9,13 @@ name: Tests
 # Companion to main.yml, which handles version bumping and releases and only fires on main.
 
 on:
+  # Limited to main rather than every branch. An unrestricted `push` plus `pull_request` starts two
+  # runs for the same commit on a PR branch, and the concurrency group below cannot collapse them:
+  # github.ref differs between the events (refs/heads/<branch> vs refs/pull/N/merge). Pull requests
+  # already cover branch work, so main is the only push worth a run. A branch with no PR open gets
+  # no automatic run; use workflow_dispatch for that.
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
