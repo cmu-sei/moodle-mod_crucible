@@ -1,0 +1,156 @@
+name: Tests
+
+# Runs the Moodle plugin test suite on every branch and every pull request.
+#
+# This file is kept byte-identical across the cmu-sei Moodle plugin repos so it can be diffed and
+# grepped across them. Everything plugin-specific lives in the `matrix.include` block below - change
+# that and nothing else.
+#
+# Companion to main.yml, which handles version bumping and releases and only fires on main.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# One run per branch or PR; a new push supersedes the one in flight.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.moodle-branch }} PHP${{ matrix.php }} ${{ matrix.database }}
+    runs-on: ubuntu-24.04
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # One leg per Moodle version we deploy, on the PHP that deployment runs. Listed explicitly
+        # rather than as a php x moodle-branch cross-product: the PHP floor moves between Moodle
+        # releases (5.0 requires 8.2.0, 5.2 requires 8.3.0), so a cross-product would generate
+        # PHP 8.2 + MOODLE_502_STABLE, which cannot install.
+        #
+        # MOODLE_500_STABLE on PHP 8.2 used to be a third leg, covering 5.0's PHP floor for
+        # downstream installs older than ours. Dropped: nothing we run is on 8.2, and the only thing
+        # it caught that the 8.3 legs do not is 8.3-only syntax reaching someone else's 5.0 site.
+        # Add it back, or a --test-version to phpcs, if this plugin gains installs we do not operate.
+        include:
+          - moodle-branch: MOODLE_500_STABLE
+            php: '8.3'
+            database: pgsql
+          - moodle-branch: MOODLE_502_STABLE
+            php: '8.3'
+            database: pgsql
+
+    steps:
+      - name: Check out plugin
+        uses: actions/checkout@v4
+        with:
+          path: plugin
+
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          # Moodle's own CI requirement; the installer warns without it.
+          ini-values: max_input_vars=5000
+          coverage: none
+
+      - name: Generate the en_AU locale
+        # Some core date and number tests assume it exists.
+        run: sudo locale-gen en_AU.UTF-8
+
+      - name: Install moodle-plugin-ci
+        # v4 is the current major (4.5.11, Aug 2026); there is no v5.
+        run: |
+          composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
+          echo "$(cd ci/bin; pwd)" >> "$GITHUB_PATH"
+          echo "$(cd ci/vendor/bin; pwd)" >> "$GITHUB_PATH"
+
+      # This plugin declares no $plugin->dependencies, so there is nothing to check out alongside
+      # it. The sibling repos that do carry a block of dependency checkouts here, plus
+      # --extra-plugins on the install below; copy that back if this plugin gains a dependency.
+
+      - name: Install Moodle and the plugin
+        env:
+          DB: ${{ matrix.database }}
+          MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+        run: |
+          moodle-plugin-ci install \
+            --plugin ./plugin \
+            --db-host=127.0.0.1
+
+      # Blocking: a failure here means the plugin is broken, not untidy.
+
+      - name: PHP lint
+        run: moodle-plugin-ci phplint
+
+      - name: Validate plugin structure
+        run: moodle-plugin-ci validate
+
+      - name: Check upgrade savepoints
+        run: moodle-plugin-ci savepoints
+
+      - name: PHPUnit
+        # Errors and failures block. Warnings, notices and risky tests do not: these suites emit
+        # plenty of all three today, and --fail-on-warning would bury a real regression in noise.
+        run: moodle-plugin-ci phpunit
+
+      # Advisory from here down: reported, but not blocking. The style checks are advisory because
+      # these plugins carry a known debt - the DM24-1175 licence header alone exceeds Moodle's
+      # 132-character line limit in every file, so a strict phpcs would be red everywhere on day one
+      # and tell you nothing. Delete a step's continue-on-error line once its plugin is clean.
+
+      - name: Behat
+        id: behat
+        # Advisory for now: no plugin here has tests/behat/ yet, so this is really a check that the
+        # Behat harness still builds. Make it blocking once the plugin has features worth gating on.
+        continue-on-error: true
+        run: moodle-plugin-ci behat --profile chrome
+
+      - name: Upload Behat failure dump
+        # Cannot use failure() here: continue-on-error means the job is still green at this point.
+        if: ${{ steps.behat.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: behat-faildump-${{ matrix.moodle-branch }}-${{ matrix.php }}
+          path: ${{ github.workspace }}/moodledata/behat_dump
+          retention-days: 7
+
+      - name: Moodle code checker
+        continue-on-error: true
+        run: moodle-plugin-ci phpcs
+
+      - name: PHPDoc
+        continue-on-error: true
+        run: moodle-plugin-ci phpdoc
+
+      - name: Mustache templates
+        continue-on-error: true
+        run: moodle-plugin-ci mustache
+
+      - name: Grunt
+        continue-on-error: true
+        run: moodle-plugin-ci grunt
+
+      - name: Fail the job if it was cancelled
+        if: ${{ cancelled() }}
+        run: exit 1
