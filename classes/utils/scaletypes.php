@@ -64,7 +64,7 @@ class scaletypes {
 
         return [
             'firstattempt' => self::CRUCIBLE_FIRSTATTEMPT,
-            'lastattempt'  => self::crucible_LASTATTEMPT,
+            'lastattempt'  => self::CRUCIBLE_LASTATTEMPT,
             'average'      => self::CRUCIBLE_ATTEMPTAVERAGE,
             'highestgrade' => self::CRUCIBLE_HIGHESTATTEMPTGRADE,
         ];
