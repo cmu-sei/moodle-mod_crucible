@@ -104,11 +104,16 @@ function setup_system() {
         // Throw new \Exception($details);
         return false;
     }
-    return crucible_configure_api_client_timeouts($client);
+    return crucible_configure_api_client($client);
 }
 
 /**
- * Applies bounded request times to a Crucible API client.
+ * Applies certificate verification and bounded request times to a Crucible API client.
+ *
+ * \core\oauth2\client inherits from \curl, which sets CURLOPT_SSL_VERIFYPEER to 0
+ * and follows up to ten redirects with the request headers intact. The token this
+ * client carries would otherwise go out over a connection nobody had authenticated,
+ * and a redirect could carry it to a host the response chose.
  *
  * Alloy calls are made during interactive page rendering and in cron. Without
  * limits, a stalled upstream call can hold a Moodle session lock or its sole
@@ -117,12 +122,14 @@ function setup_system() {
  * @param \core\oauth2\client|null $client OAuth2 client to configure.
  * @return \core\oauth2\client|null The same client.
  */
-function crucible_configure_api_client_timeouts($client) {
+function crucible_configure_api_client($client) {
     if (!$client) {
         return $client;
     }
 
     $client->setopt([
+        'CURLOPT_SSL_VERIFYPEER' => 1,
+        'CURLOPT_SSL_VERIFYHOST' => 2,
         'CURLOPT_CONNECTTIMEOUT' => 5,
         'CURLOPT_TIMEOUT' => 15,
     ]);
@@ -222,7 +229,7 @@ function setup() {
         }
     }
 
-    return crucible_configure_api_client_timeouts($client);
+    return crucible_configure_api_client($client);
 }
 
 /**
