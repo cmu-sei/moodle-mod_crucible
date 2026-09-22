@@ -48,6 +48,7 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
  * @copyright  2026 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[\PHPUnit\Framework\Attributes\CoversFunction('crucible_configure_api_client')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('crucible_get_max_extend_interval')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('crucible_get_bulkdeploy_wait_timeout')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('get_active_events')]
@@ -300,5 +301,64 @@ final class locallib_test extends \advanced_testcase {
         $dates = array_map(static fn($row) => $row['launchDate'] ?? '', $history);
 
         $this->assertSame(['', '2026-01-01T00:00:00', '2026-06-01T00:00:00'], $dates);
+    }
+
+    /**
+     * Read the private options of a \curl instance.
+     *
+     * @param \curl $client Client to inspect.
+     * @return array The cURL options in force.
+     */
+    private function curl_options(\curl $client): array {
+        $options = \Closure::bind(
+            static function (\curl $client): array {
+                return (array) $client->options;
+            },
+            null,
+            \curl::class
+        );
+        return $options($client);
+    }
+
+    /**
+     * The API token must not travel over a connection nobody has authenticated.
+     */
+    public function test_the_api_client_verifies_the_peer_certificate(): void {
+        $this->resetAfterTest(true);
+
+        // Core's OAuth client inherits these defaults from \curl: verification off, and up to
+        // ten redirects replaying the request headers. This is what the fix is for.
+        $client = new \curl();
+        $this->assertSame(0, $this->curl_options($client)['CURLOPT_SSL_VERIFYPEER']);
+
+        crucible_configure_api_client($client);
+
+        $options = $this->curl_options($client);
+        $this->assertSame(1, $options['CURLOPT_SSL_VERIFYPEER']);
+        $this->assertSame(2, $options['CURLOPT_SSL_VERIFYHOST']);
+    }
+
+    /**
+     * Alloy calls run during page rendering and in cron, so they are bounded.
+     */
+    public function test_the_api_client_requests_are_time_bounded(): void {
+        $this->resetAfterTest(true);
+        $client = new \curl();
+
+        crucible_configure_api_client($client);
+
+        $options = $this->curl_options($client);
+        $this->assertSame(5, $options['CURLOPT_CONNECTTIMEOUT']);
+        $this->assertSame(15, $options['CURLOPT_TIMEOUT']);
+    }
+
+    /**
+     * A failed client setup returns falsy, and configuring it must not fatal.
+     */
+    public function test_configuring_a_missing_client_is_harmless(): void {
+        $this->resetAfterTest(true);
+
+        $this->assertFalse(crucible_configure_api_client(false));
+        $this->assertNull(crucible_configure_api_client(null));
     }
 }
