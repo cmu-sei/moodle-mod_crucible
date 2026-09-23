@@ -1202,3 +1202,27 @@ function crucible_validate_eventtemplate($eventtemplateid) {
         return false; // Assume exists to avoid blocking restore
     }
 }
+
+/**
+ * Converts a date from the Alloy API to a Unix timestamp.
+ *
+ * Alloy leaves launchDate and expirationDate null until an event has deployed. A
+ * missing date must come back as 0, not as strtotime('Z'), which is the current time
+ * and made the clock report a deploying event as already expired.
+ *
+ * @param string|null $date Date string from the Alloy API.
+ * @return int Unix timestamp, or 0 when the date is missing or cannot be parsed.
+ */
+function crucible_parse_alloy_date($date) {
+    if (empty($date)) {
+        return 0;
+    }
+
+    // TODO remove this check once the steamfitter is updated.
+    if (strpos($date, 'Z') === false) {
+        $date .= 'Z';
+    }
+
+    $timestamp = strtotime($date);
+    return $timestamp === false ? 0 : $timestamp;
+}
