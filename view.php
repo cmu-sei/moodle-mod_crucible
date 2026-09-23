@@ -253,7 +253,7 @@ if ($object->event) {
     $eventid = null;
     $viewid = null;
     $scenarioid = null;
-    $startime = null;
+    $starttime = null;
     $endtime = null;
 }
 

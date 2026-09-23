@@ -107,7 +107,7 @@ if ($object->eventtemplate) {
 $eventid = null;
 $viewid = null;
 $scenarioid = null;
-$startime = null;
+$starttime = null;
 $endtime = null;
 
 // Show grade when grading is enabled for the activity.
