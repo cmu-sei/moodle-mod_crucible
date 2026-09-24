@@ -55,6 +55,7 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('tasksort')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('end_date')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('launchDate')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('crucible_parse_alloy_date')]
 final class locallib_test extends \advanced_testcase {
 
     /**
@@ -360,5 +361,33 @@ final class locallib_test extends \advanced_testcase {
 
         $this->assertFalse(crucible_configure_api_client(false));
         $this->assertNull(crucible_configure_api_client(null));
+    }
+
+    /**
+     * An event that is still deploying has no dates yet. The clock must get 0 for
+     * those, not the current time, or it announces the lab as expired while planning.
+     *
+     * @param string|null $date Date as Alloy returns it.
+     * @param int $expected Timestamp crucible_parse_alloy_date() should return.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('alloy_date_provider')]
+    public function test_crucible_parse_alloy_date(?string $date, int $expected): void {
+        $this->assertSame($expected, crucible_parse_alloy_date($date));
+    }
+
+    /**
+     * Alloy dates, with and without the UTC designator, and the not-yet-deployed cases.
+     *
+     * @return array
+     */
+    public static function alloy_date_provider(): array {
+        return [
+            'not deployed yet' => [null, 0],
+            'empty' => ['', 0],
+            'utc designator' => ['2026-09-23T15:00:00Z', 1790175600],
+            'no designator is read as utc' => ['2026-09-23T15:00:00', 1790175600],
+            'fractional seconds' => ['2026-09-23T15:00:00.123456', 1790175600],
+            'unparseable' => ['not a date', 0],
+        ];
     }
 }

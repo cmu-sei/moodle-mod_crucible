@@ -230,18 +230,8 @@ if ($object->event) {
     $viewid = $object->event->viewId;
     $scenarioid = $object->event->scenarioId;
 
-    // TODO remove this check once the steamfitter is updated.
-    if (isset($object->event->launchDate) && strpos($object->event->launchDate, "Z") !== false) {
-        $starttime = strtotime($object->event->launchDate);
-    } else {
-        $starttime = strtotime($object->event->launchDate . 'Z');
-    }
-
-    if (isset($object->event->expirationDate) && strpos($object->event->expirationDate, "Z") !== false) {
-        $endtime = strtotime($object->event->expirationDate);
-    } else {
-        $endtime = strtotime($object->event->expirationDate . 'Z');
-    }
+    $starttime = crucible_parse_alloy_date($object->event->launchDate ?? null);
+    $endtime = crucible_parse_alloy_date($object->event->expirationDate ?? null);
 } else {
     if ($attempt) {
         // print_error('attemptalreadyexists', 'crucible');
@@ -253,7 +243,7 @@ if ($object->event) {
     $eventid = null;
     $viewid = null;
     $scenarioid = null;
-    $startime = null;
+    $starttime = null;
     $endtime = null;
 }
 

@@ -37,6 +37,14 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 console.log('set event for extend-event button');
             }
 
+            // An event that has not finished deploying has no expiration date yet, so
+            // view.php hands us 0. There is no session to time out, and counting down
+            // from the epoch is what made the timer announce "Your time has expired"
+            // over a lab that was still planning.
+            if (!endtime) {
+                return;
+            }
+
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
@@ -51,6 +59,10 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         },
 
         countdown: function(endtime) {
+
+            if (!endtime) {
+                return;
+            }
 
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
@@ -83,6 +95,12 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         },
 
         countup: function(starttime) {
+
+            // Same reason as above: a launch date is only set once Alloy deploys the
+            // event, and counting up from the epoch reads as decades elapsed.
+            if (!starttime) {
+                return;
+            }
 
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
