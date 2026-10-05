@@ -49,21 +49,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # One leg per Moodle version we deploy, on the PHP that deployment runs. Listed explicitly
-        # rather than as a php x moodle-branch cross-product: the PHP floor moves between Moodle
-        # releases (5.0 requires 8.2.0, 5.2 requires 8.3.0), so a cross-product would generate
-        # PHP 8.2 + MOODLE_502_STABLE, which cannot install.
+        # One leg per Moodle version we run, on the PHP that version of Moodle runs on. Listed
+        # explicitly rather than as a php x moodle-branch cross-product: both the PHP floor and the
+        # PHP a release actually ships on move between Moodle releases (5.0 requires 8.2.0, 5.2 and
+        # 5.3 require 8.3.0), so a cross-product would generate PHP 8.2 + MOODLE_502_STABLE, which
+        # cannot install.
         #
-        # MOODLE_500_STABLE on PHP 8.2 used to be a third leg, covering 5.0's PHP floor for
+        # MOODLE_500_STABLE on PHP 8.2 used to be a leg of its own, covering 5.0's PHP floor for
         # downstream installs older than ours. Dropped: nothing we run is on 8.2, and the only thing
         # it caught that the 8.3 legs do not is 8.3-only syntax reaching someone else's 5.0 site.
         # Add it back, or a --test-version to phpcs, if this plugin gains installs we do not operate.
+        #
+        # The 5.3 leg is on 8.4, not 8.3. 5.3 only *requires* 8.3.0, but the 5.3 container ships
+        # 8.4, so pinning this leg to 8.3 would leave PHP 8.4 - the version we would actually run
+        # 5.3 on - untested everywhere. Nothing deploys 5.3 yet; the leg is here so that migrating
+        # off 5.2 is not the first time these plugins meet either 5.3 or 8.4.
         include:
           - moodle-branch: MOODLE_500_STABLE
             php: '8.3'
             database: pgsql
           - moodle-branch: MOODLE_502_STABLE
             php: '8.3'
+            database: pgsql
+          - moodle-branch: MOODLE_503_STABLE
+            php: '8.4'
             database: pgsql
 
     steps:
