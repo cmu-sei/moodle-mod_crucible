@@ -4,8 +4,8 @@ Feature: Crucible pages that work without an Alloy backend
   As an administrator or teacher
   I need its settings, course listing and deployment management pages to work
 
-  # The activity view page and the add/edit form both call the Alloy API through the
-  # configured OAuth2 issuer, which CI does not have, so they are not covered here.
+  # CI has no OAuth2 issuer, so the activity view page can only be checked for the
+  # message it shows in that case. The add/edit form is not covered here.
 
   Background:
     Given the following "users" exist:
@@ -26,6 +26,7 @@ Feature: Crucible pages that work without an Alloy backend
   Scenario: An administrator can change the Crucible settings
     Given I log in as "admin"
     When I navigate to "Plugins > Activity modules > Crucible" in site administration
+    Then I should see "No OAuth 2 services exist yet."
     And I set the following fields to these values:
       | Event Template Selection Method  | Dropdown |
       | Maximum event extension interval | 90       |
@@ -38,6 +39,14 @@ Feature: Crucible pages that work without an Alloy backend
     Given I log in as "student1"
     When I am on "Course 1" course homepage
     Then I should see "Lab 1"
+
+  Scenario: A student sees the Crucible activity in the course activity index
+    Given I am on the "C1" "mod_crucible > Index" page logged in as "student1"
+    Then I should see "Lab 1" in the "generaltable" "table"
+
+  Scenario: A student opening an activity on a site without an OAuth2 issuer is told why
+    Given I am on the "Lab 1" "crucible activity" page logged in as "student1"
+    Then I should see "Crucible cannot connect to Alloy because no OAuth2 issuer is selected"
 
   @javascript
   Scenario: A teacher selects students and opens the schedule dialogue

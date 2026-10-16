@@ -48,6 +48,7 @@ class behat_mod_crucible extends behat_base {
      *
      * Recognised page names are:
      * | pagetype           | name meaning  | description                                       |
+     * | Index              | Course name   | The course's list of Crucible activities (index.php) |
      * | Manage deployments | Activity name | The bulk deployment page (manage_deployments.php) |
      *
      * @param string $type identifies which type of page this is, e.g. 'Manage deployments'.
@@ -57,6 +58,11 @@ class behat_mod_crucible extends behat_base {
      */
     protected function resolve_page_instance_url(string $type, string $identifier): moodle_url {
         switch (strtolower($type)) {
+            case 'index':
+                return new moodle_url('/mod/crucible/index.php', [
+                    'id' => $this->get_course_id($identifier),
+                ]);
+
             case 'manage deployments':
                 return new moodle_url('/mod/crucible/manage_deployments.php', [
                     'id' => $this->get_cm_by_activity_name('crucible', $identifier)->id,
