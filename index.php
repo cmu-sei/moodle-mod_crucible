@@ -106,7 +106,7 @@ foreach ($crucibles as $crucible) {
         $printsection = '<span class="smallinfo">' . userdate($crucible->timemodified) . "</span>";
     }
 
-    $extra = empty($cm->extra) ? '' : $cm->extra;
+    $extra = empty($cm->onclick) ? '' : 'onclick="' . $cm->onclick . '"';
     $icon = '';
     if (!empty($cm->icon)) {
         // Each crucible has an icon in 2.0.
