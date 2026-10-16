@@ -29,8 +29,10 @@ permissions:
 
 jobs:
   test:
-    name: ${{ matrix.moodle-branch }} PHP${{ matrix.php }} ${{ matrix.database }}
+    name: ${{ matrix.moodle-branch }} PHP${{ matrix.php }} ${{ matrix.database }}${{ matrix.experimental && ' (advisory)' || '' }}
     runs-on: ubuntu-24.04
+    # Only the experimental leg (Moodle main) is allowed to fail; see the matrix below.
+    continue-on-error: ${{ matrix.experimental == true }}
 
     services:
       postgres:
@@ -49,15 +51,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # One leg per Moodle version we deploy, on the PHP that deployment runs. Listed explicitly
-        # rather than as a php x moodle-branch cross-product: the PHP floor moves between Moodle
-        # releases (5.0 requires 8.2.0, 5.2 requires 8.3.0), so a cross-product would generate
-        # PHP 8.2 + MOODLE_502_STABLE, which cannot install.
+        # One leg per Moodle version we run, on the PHP that version of Moodle runs on. Listed
+        # explicitly rather than as a php x moodle-branch cross-product: both the PHP floor and the
+        # PHP a release actually ships on move between Moodle releases (5.0 requires 8.2.0, 5.2 and
+        # 5.3 require 8.3.0), so a cross-product would generate PHP 8.2 + MOODLE_502_STABLE, which
+        # cannot install.
         #
-        # MOODLE_500_STABLE on PHP 8.2 used to be a third leg, covering 5.0's PHP floor for
+        # MOODLE_500_STABLE on PHP 8.2 used to be a leg of its own, covering 5.0's PHP floor for
         # downstream installs older than ours. Dropped: nothing we run is on 8.2, and the only thing
         # it caught that the 8.3 legs do not is 8.3-only syntax reaching someone else's 5.0 site.
         # Add it back, or a --test-version to phpcs, if this plugin gains installs we do not operate.
+        #
+        # The 5.3 leg is on 8.4, not 8.3. 5.3 only *requires* 8.3.0, but the 5.3 container ships
+        # 8.4, so pinning this leg to 8.3 would leave PHP 8.4 - the version we would actually run
+        # 5.3 on - untested everywhere. Nothing deploys 5.3 yet; the leg is here so that migrating
+        # off 5.2 is not the first time these plugins meet either 5.3 or 8.4.
+        #
+        # The main leg is Moodle's development branch (the next release), on the same PHP as 5.3.
+        # It is advisory: main breaks on its own between weeklies, so a red main leg does not block
+        # a merge. It is here to give warning of removals like core/modal_factory (gone in 5.2) a
+        # release ahead, instead of finding them on the first install of the new version.
         include:
           - moodle-branch: MOODLE_500_STABLE
             php: '8.3'
@@ -65,6 +78,13 @@ jobs:
           - moodle-branch: MOODLE_502_STABLE
             php: '8.3'
             database: pgsql
+          - moodle-branch: MOODLE_503_STABLE
+            php: '8.4'
+            database: pgsql
+          - moodle-branch: main
+            php: '8.4'
+            database: pgsql
+            experimental: true
 
     steps:
       - name: Check out plugin
@@ -127,9 +147,11 @@ jobs:
 
       - name: Behat
         id: behat
-        # Advisory for now: no plugin here has tests/behat/ yet, so this is really a check that the
-        # Behat harness still builds. Make it blocking once the plugin has features worth gating on.
-        continue-on-error: true
+        # Blocking once the plugin has a feature file, advisory until then. With no features this
+        # step only checks that the Behat harness still builds, which is not worth blocking on.
+        # PHPUnit cannot see AMD modules, so Behat is the only blocking check that loads this
+        # plugin's JavaScript in a browser.
+        continue-on-error: ${{ hashFiles('plugin/tests/behat/**/*.feature') == '' }}
         run: moodle-plugin-ci behat --profile chrome
 
       - name: Upload Behat failure dump
