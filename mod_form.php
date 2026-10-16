@@ -216,6 +216,11 @@ class mod_crucible_mod_form extends moodleform_mod {
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
+        // The client-side required rule is all that guards this field otherwise.
+        if (empty($data['eventtemplateid'])) {
+            $errors['eventtemplateid'] = get_string('required');
+        }
+
         // Check open and close times are consistent.
         if (
             $data['timeopen'] != 0 && $data['timeclose'] != 0 &&
@@ -272,10 +277,6 @@ class mod_crucible_mod_form extends moodleform_mod {
      * @return void
      */
     public function data_postprocessing($data) {
-        if (!$data->eventtemplateid) {
-            echo "return to settings page<br>";
-            exit;
-        }
         if (!$data->vmapp) {
             $data->vmapp = 0;
         }
