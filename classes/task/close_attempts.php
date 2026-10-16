@@ -68,7 +68,6 @@ class close_attempts extends \core\task\scheduled_task {
 
         foreach ($attempts as $attempt) {
             echo "closing attempt $attempt->id<br>";
-            debugging("scheduled task is closing attempt $attempt->id", DEBUG_DEVELOPER);
             $attempt->close_attempt();
         }
     }

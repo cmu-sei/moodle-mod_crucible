@@ -66,7 +66,7 @@ class mod_crucible_mod_form extends moodleform_mod {
      * timing, grading, and completion.
      */
     public function definition() {
-        global $COURSE, $CFG, $DB, $PAGE;
+        global $COURSE, $CFG, $DB, $OUTPUT, $PAGE;
         $mform = $this->_form;
 
         $config = get_config('crucible');
@@ -81,8 +81,16 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
         // Pull list from alloy.
-        $userauth = setup();
-        $this->eventtemplates = get_eventtemplates($userauth);
+        if (crucible_issuer_configured()) {
+            $userauth = setup();
+            $this->eventtemplates = get_eventtemplates($userauth);
+        } else {
+            $mform->addElement(
+                'html',
+                $OUTPUT->notification(get_string('issuernotconfigured', 'crucible'), 'error', false)
+            );
+            $this->eventtemplates = [];
+        }
         $labnames = [];
         $labs = [];
         foreach ($this->eventtemplates as $eventtemplate) {
@@ -208,6 +216,11 @@ class mod_crucible_mod_form extends moodleform_mod {
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
+        // The client-side required rule is all that guards this field otherwise.
+        if (empty($data['eventtemplateid'])) {
+            $errors['eventtemplateid'] = get_string('required');
+        }
+
         // Check open and close times are consistent.
         if (
             $data['timeopen'] != 0 && $data['timeclose'] != 0 &&
@@ -264,10 +277,6 @@ class mod_crucible_mod_form extends moodleform_mod {
      * @return void
      */
     public function data_postprocessing($data) {
-        if (!$data->eventtemplateid) {
-            echo "return to settings page<br>";
-            exit;
-        }
         if (!$data->vmapp) {
             $data->vmapp = 0;
         }

@@ -102,7 +102,6 @@ if (!empty($code)) {
         throw new moodle_exception('enlisterror', 'crucible');
     }
     // $object->event = get_event($object->userauth, $enlisted->id);
-    debugging("user joined event " . $enlisted->id . " owned by " . $enlisted->username, DEBUG_DEVELOPER);
 }
 
 // Get eventtemplate info.
@@ -122,7 +121,6 @@ if ($object->eventtemplate) {
 // Get current state of eventtemplate.
 $history = $object->list_events();
 $object->events = get_active_events($history);
-debugging("found " . count((array)$object->events) . " active events for this user on this event template", DEBUG_DEVELOPER);
 // TODO if more than one is active... how do we know which one to handle here?
 if ($object->events) {
     ensure_added_to_event_attempts($object->events);
@@ -130,31 +128,22 @@ if ($object->events) {
 
 // Get active attempt for user: true/false.
 $attempt = $object->get_open_attempt($attemptid); // attemptid of 0 checks for a single attempt for this user
-if ($attempt == true) {
-        debugging("get_open_attempt returned attempt id: " . $object->openattempt->id, DEBUG_DEVELOPER);
-} else if ($attempt == false) {
-    debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
-    if ($enlisted) {
-        debugging("enlisted user may not have been added to the attempt", DEBUG_DEVELOPER);
-    }
+if (!$attempt && $enlisted) {
+    debugging("enlisted user may not have been added to the attempt", DEBUG_DEVELOPER);
 }
 
 if (!$attempt && empty($object->event) && !empty($object->events)) {
     $activeevents = array_values((array)$object->events);
     $object->event = end($activeevents);
-    debugging("using active Alloy event without open Moodle attempt: " . $object->event->id, DEBUG_DEVELOPER);
 }
 
 // TODO send instructor to a different page.
 
 // Handle start/stop form action.
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
-    debugging("start request received", DEBUG_DEVELOPER);
-
     if ($attempt) { // && (!$object->event !== null)
         // TODO this should also check that we dont have an attempt.
         if ($object->event && $object->is_ended()) {
-            debugging('closing attempt - not active', DEBUG_DEVELOPER);
             $grader = new \mod_crucible\utils\grade($object);
             $grader->process_attempt($object->openattempt);
             $object->openattempt->close_attempt();
@@ -165,10 +154,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
     if (!$object->event) {
         $eventid = start_event($object->userauth, $object->crucible->eventtemplateid);
         if ($eventid) {
-            debugging("new event created $eventid", DEBUG_DEVELOPER);
             $object->event = get_event($object->userauth, $eventid);
             $attempt = $object->init_attempt();
-            debugging("init_attempt returned $attempt", DEBUG_DEVELOPER);
             if (!$attempt) {
                 debugging("init_attempt failed");
                 throw new moodle_exception(null, '', '', null, 'init_attempt failed');
@@ -180,7 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
         }
     }
 } else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop_confirmed']) && $_POST['stop_confirmed'] === "yes") {
-    debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->status == "Active") {
             if (!$attempt) {
@@ -199,7 +185,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
             $object->event = get_event($stopauth, $object->event->id);
             // Why call this again? just to check that it is ending.
-            debugging("stop_attempt called, get_event returned " . $object->event->status, DEBUG_DEVELOPER);
             crucible_end($cm, $context, $crucible);
         }
     }
@@ -211,14 +196,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
 if ($object->event) {
     if (($object->event->status === "Active") && (!$attempt)) {
-        debugging("active event with no attempt", DEBUG_DEVELOPER);
         // print_error('eventwithoutattempt', 'crucible');
         // TODO give user a popup to confirm they are starting an attempt.
         $attempt = $object->init_attempt();
     }
 }
 if ((!$object->event) && ($attempt)) {
-    debugging("active attempt with no event", DEBUG_DEVELOPER);
     // print_error('attemptalreadyexists', 'crucible');
     $grader = new \mod_crucible\utils\grade($object);
     $grader->process_attempt($object->openattempt);
@@ -235,7 +218,6 @@ if ($object->event) {
 } else {
     if ($attempt) {
         // print_error('attemptalreadyexists', 'crucible');
-        debugging('closing attempt - not active', DEBUG_DEVELOPER);
         $grader = new \mod_crucible\utils\grade($object);
         $grader->process_attempt($object->openattempt);
         $object->openattempt->close_attempt();
@@ -321,7 +303,7 @@ if ($object->openattempt && $object->openattempt->userid == $USER->id && ($allow
     }
     if (is_object($object->event) && isset($object->event->shareCode)) {
         $sharecode = $object->event->shareCode;
-    } else {
+    } else if (is_object($object->event)) {
         debugging('Event is not set or sharecode is missing', DEBUG_DEVELOPER);
     }
 }

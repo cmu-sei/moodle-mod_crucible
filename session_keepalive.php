@@ -54,7 +54,6 @@ if (!confirm_sesskey()) {
     header('HTTP/1.1 200 OK');
     $response = [];
     $response['message'] = "success";
-    debugging("updating session for $USER->id", DEBUG_DEVELOPER);
 }
 
 echo json_encode($response);

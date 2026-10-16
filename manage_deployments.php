@@ -108,7 +108,7 @@ echo html_writer::start_div('mod-crucible-manage-deployments');
 echo html_writer::start_tag('form', ['method' => 'get', 'action' => $PAGE->url, 'class' => 'mb-3']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
 echo html_writer::tag('label', 'Role Filter: ', ['for' => 'rolefilter']);
-echo html_writer::select($roleopts, 'rolefilter[]', $rolefilter, false, ['multiple' => 'multiple', 'size' => count($roleopts), 'style' => 'width: 200px;']);
+echo html_writer::select($roleopts, 'rolefilter[]', $rolefilter, false, ['id' => 'rolefilter', 'multiple' => 'multiple', 'size' => count($roleopts), 'style' => 'width: 200px;']);
 echo ' ';
 echo html_writer::tag('button', 'Filter', ['type' => 'submit', 'class' => 'btn btn-secondary']);
 echo html_writer::end_tag('form');

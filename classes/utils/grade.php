@@ -97,7 +97,6 @@ class grade {
             array_push($grades, $rec->grade);
         }
         // User should only have one grade entry in the crucible grades table for each activity.
-        debugging("user $userid has " . count($grades) . " grades for $crucible->id", DEBUG_DEVELOPER);
         return $grades;
     }
 
@@ -146,7 +145,6 @@ class grade {
 
             if (!is_null($grade)) {
                 $grades[$userid] = $grade;
-                debugging("new grade for $userid in crucible " . $this->crucible->crucible->id . " is $grade", DEBUG_DEVELOPER);
             } else {
                 debugging("discarding NULL grade for $userid in crucible " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
             }
@@ -194,7 +192,6 @@ class grade {
         }
 
         if (is_null($attempt->scenarioid)) {
-            debugging("no scenarioid passed to calculate_attempt_grade", DEBUG_DEVELOPER);
             return $score;
         }
 
@@ -202,8 +199,6 @@ class grade {
         $scenario = get_scenario($system, $attempt->scenarioid);
 
         $score = $scenario->scoreEarned;
-
-        debugging("new score for $attempt->id is $score", DEBUG_DEVELOPER);
 
         $attempt->score = $score;
         $attempt->save();
@@ -236,8 +231,6 @@ class grade {
      * @throws \Exception When there is no valid scaletype throws new exception
      */
     protected function apply_grading_method($grades, $mostrecentgrade, $firstgrade) {
-        debugging("grade method is " . $this->crucible->crucible->grademethod .
-                    " for " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
         switch ($this->crucible->crucible->grademethod) {
             case \mod_crucible\utils\scaletypes::CRUCIBLE_FIRSTATTEMPT:
                 return $firstgrade;
@@ -313,7 +306,6 @@ class grade {
                     $transaction->rollback(new \Exception('Can\'t insert user grades'));
                 }
             }
-            debugging("persisted $grade for $userid in crucible " . $this->crucible->crucible->id, DEBUG_DEVELOPER);
         }
 
         return true;

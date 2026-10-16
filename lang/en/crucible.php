@@ -63,6 +63,9 @@ $string['selectname'] = 'Search for an Event Template by name';
 $string['showfailed'] = 'Show Failed';
 
 $string['configissuerid'] = 'OAuth2 issuer for authentication with Alloy API. The issuer must be configured in Site administration > Server > OAuth 2 services.';
+$string['configissuerid_none'] = 'No OAuth 2 services exist yet. <a href="{$a}">Create one in OAuth 2 services</a>, then return here to select it.';
+$string['noissuers'] = 'No OAuth 2 services available';
+$string['issuernotconfigured'] = 'Crucible cannot connect to Alloy because no OAuth2 issuer is selected in the Crucible plugin settings. Ask a site administrator to configure it.';
 $string['configvmapp'] = 'This determines whether the VM app is embedded or whether a link to player is displayed.';
 $string['configvmappurl'] = 'Base URL for VM app instance without trailing /.';
 $string['configplayerappurl'] = 'Base URL for Player instance without trailing /.';
