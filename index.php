@@ -117,7 +117,7 @@ foreach ($crucibles as $crucible) {
     $table->data[] = [
         $printsection,
         "<a $class $extra href=\"view.php?id=$cm->id\">" . $icon . format_string($crucible->name) . "</a>",
-        format_module_intro('conole', $crucible, $cm->id)];
+        format_module_intro('crucible', $crucible, $cm->id)];
 }
 
 echo html_writer::table($table);
