@@ -81,8 +81,6 @@ class launcher {
                     $this->repo->set_user_status($rowid, user_status::FAILED, 'Failed to start event (no eventid returned)', '');
                     return;
                 }
-
-                debugging("Event $eventid created for user {$user->username}", DEBUG_DEVELOPER);
             } catch (\Throwable $e) {
                 $this->repo->set_user_status(
                     $rowid,

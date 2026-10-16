@@ -189,8 +189,10 @@ class crucible {
         $r = json_decode($response, true);
 
         if (!$r) {
-            // This can mean the user made 0 attempts at this event.
-            debugging("could not decode json $url", DEBUG_DEVELOPER);
+            // An empty array means the user made 0 attempts at this event.
+            if ($r !== []) {
+                debugging("could not decode json $url", DEBUG_DEVELOPER);
+            }
             return;
         }
 
@@ -238,10 +240,11 @@ class crucible {
         );
 
         if (count($attempts) !== 1) {
-            debugging("could not find exactly one open attempt", DEBUG_DEVELOPER);
+            if (count($attempts) > 1) {
+                debugging("could not find exactly one open attempt", DEBUG_DEVELOPER);
+            }
             return false;
         }
-        debugging("open attempt found", DEBUG_DEVELOPER);
 
         // Get the first (and only) value in the array.
         $this->openattempt = reset($attempts);
@@ -289,7 +292,6 @@ class crucible {
             if (strpos($this->event->expirationDate, "Z")) {
                 $this->openattempt->endtime = strtotime($this->event->expirationDate);
             } else if (is_null($this->event->expirationDate)) {
-                debugging("event " . $this->event->id . " does not have expirationDate set", DEBUG_DEVELOPER);
                 $this->openattempt->endtime = time() + 28800;
             } else {
                 $this->openattempt->endtime = strtotime($this->event->expirationDate . 'Z');
@@ -339,7 +341,6 @@ class crucible {
         }
 
         if ((!$review) || (!$this->is_instructor())) {
-            debugging("getall_attempts for user", DEBUG_DEVELOPER);
             $where[] = '({crucible_attempts}.userid = ? OR {crucible_attempt_users}.userid = ?)';
             $sqlparams[] = $user;
             $sqlparams[] = $user;
@@ -430,10 +431,8 @@ class crucible {
 
         $attempt = $this->get_open_attempt(0);
         if ($attempt === true) {
-            debugging("init_attempt found " . $this->openattempt->id, DEBUG_DEVELOPER);
             return true;
         }
-        debugging("init_attempt could not find attempt", DEBUG_DEVELOPER);
 
         // Create a new attempt.
         $attempt = new \mod_crucible\crucible_attempt();
@@ -454,7 +453,6 @@ class crucible {
         }
         // TODO remove check for Z once API is updated.
         if (is_null($this->event->expirationDate)) {
-            debugging("event " . $this->event->id . " does not have expirationDate set");
             $attempt->endtime = time() + 28800;
         } else if (strpos($this->event->expirationDate, "Z")) {
             $attempt->endtime = strtotime($this->event->expirationDate);
@@ -465,9 +463,6 @@ class crucible {
         $attempt->setstate('inprogress');
 
         // TODO get list of tasks from steamfitter.
-        if ($this->event->scenarioId) {
-            debugging("event has a scenarioid", DEBUG_DEVELOPER);
-        }
         $attempt->tasks = "";
 
         $tasks = $DB->get_records('crucible_tasks', ['crucibleid' => $this->crucible->id]);

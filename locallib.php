@@ -224,7 +224,6 @@ function setup() {
     if ($client) {
         if (!$client->is_logged_in()) {
             // TODO this doesnt actually work.
-            debugging('not logged in', DEBUG_DEVELOPER);
             redirect($client->get_login_url());
         }
     }
@@ -313,7 +312,6 @@ function filter_tasks($tasks, $visible = 0, $gradable = 0) {
         if ($rec === false) {
             // Do not display tasks we do not have in the db.
             // This will only show the tasks saved in the scenariotemplate.
-            debugging('could not find task in db ' . $task->id, DEBUG_DEVELOPER);
             continue;
         }
 
@@ -364,7 +362,10 @@ function get_eventtemplates($client) {
     $r = json_decode($response);
 
     if (!$r) {
-        debugging("could not find item by id", DEBUG_DEVELOPER);
+        // An empty array means there are no event templates.
+        if ($r !== []) {
+            debugging("could not find item by id", DEBUG_DEVELOPER);
+        }
         return;
     }
     return $r;
@@ -580,8 +581,7 @@ function get_scenariotemplatetasks($client, $id) {
     }
 
     if ($id == null) {
-        debugging('error with id in get_scenariotemplatetasks', DEBUG_DEVELOPER);
-        ;
+        // The event template has no scenario template.
         return;
     }
 
@@ -597,7 +597,10 @@ function get_scenariotemplatetasks($client, $id) {
     // echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
-        debugging("could not decode json", DEBUG_DEVELOPER);
+        // An empty array means the scenario has no tasks.
+        if ($r !== []) {
+            debugging("could not decode json", DEBUG_DEVELOPER);
+        }
         return;
     }
 
@@ -625,8 +628,7 @@ function get_scenario($client, $id) {
     }
 
     if ($id == null) {
-        debugging('error with id in get_scenario', DEBUG_DEVELOPER);
-        ;
+        // The event has no scenario.
         return;
     }
 
@@ -670,8 +672,7 @@ function get_scenariotasks($client, $id) {
     }
 
     if ($id == null) {
-        debugging('error with id in get_scenariotasks', DEBUG_DEVELOPER);
-        ;
+        // The event has no scenario.
         return;
     }
 
@@ -687,7 +688,10 @@ function get_scenariotasks($client, $id) {
     // echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
-        debugging("could not decode json", DEBUG_DEVELOPER);
+        // An empty array means the scenario has no tasks.
+        if ($r !== []) {
+            debugging("could not decode json", DEBUG_DEVELOPER);
+        }
         return;
     }
 
@@ -1040,7 +1044,6 @@ function create_and_exec_task($systemauth, $data) {
         return;
     }
 
-    debugging("successful task execution", DEBUG_DEVELOPER);
     return $r;
 }
 
@@ -1151,7 +1154,6 @@ function ensure_added_to_event_attempts($events) {
                 $attemptuser->userid = $USER->id;
 
                 $DB->insert_record('crucible_attempt_users', $attemptuser);
-                debugging("added " . $USER->username . " to attempt " . $attempt->id . " for event " . $attempt->eventid, DEBUG_DEVELOPER);
             }
         }
     }
