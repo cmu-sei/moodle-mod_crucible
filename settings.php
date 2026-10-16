@@ -86,10 +86,20 @@ if ($ADMIN->fulltree) {
     foreach ($issuers as $issuer) {
         $options[$issuer->get('id')] = s($issuer->get('name'));
     }
+    $issuerdescription = get_string('configissuerid', 'crucible');
+    if (empty($options)) {
+        // A select with no choices renders nothing, so give it one that says why.
+        $options[0] = get_string('noissuers', 'crucible');
+        $issuerdescription .= ' ' . get_string(
+            'configissuerid_none',
+            'crucible',
+            (new moodle_url('/admin/tool/oauth2/issuers.php'))->out()
+        );
+    }
     $settings->add(new admin_setting_configselect(
         'crucible/issuerid',
         get_string('issuerid', 'crucible'),
-        get_string('configissuerid', 'crucible'),
+        $issuerdescription,
         0,
         $options
     ));
