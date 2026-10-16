@@ -56,6 +56,8 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('end_date')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('launchDate')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('crucible_parse_alloy_date')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('crucible_issuer_configured')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('setup')]
 final class locallib_test extends \advanced_testcase {
 
     /**
@@ -351,6 +353,33 @@ final class locallib_test extends \advanced_testcase {
         $options = $this->curl_options($client);
         $this->assertSame(5, $options['CURLOPT_CONNECTTIMEOUT']);
         $this->assertSame(15, $options['CURLOPT_TIMEOUT']);
+    }
+
+    /**
+     * Pages check this before calling Alloy, so an unset or zero issuer must read as missing.
+     */
+    public function test_crucible_issuer_configured(): void {
+        $this->resetAfterTest(true);
+
+        unset_config('issuerid', 'crucible');
+        $this->assertFalse(crucible_issuer_configured());
+
+        set_config('issuerid', 0, 'crucible');
+        $this->assertFalse(crucible_issuer_configured());
+
+        set_config('issuerid', 5, 'crucible');
+        $this->assertTrue(crucible_issuer_configured());
+    }
+
+    /**
+     * With no issuer the user client is simply absent, as setup_system() already does,
+     * rather than an exception the activity pages cannot catch.
+     */
+    public function test_setup_without_an_issuer_returns_null(): void {
+        $this->resetAfterTest(true);
+        unset_config('issuerid', 'crucible');
+
+        $this->assertNull(setup());
     }
 
     /**

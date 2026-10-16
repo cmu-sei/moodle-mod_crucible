@@ -66,7 +66,7 @@ class mod_crucible_mod_form extends moodleform_mod {
      * timing, grading, and completion.
      */
     public function definition() {
-        global $COURSE, $CFG, $DB, $PAGE;
+        global $COURSE, $CFG, $DB, $OUTPUT, $PAGE;
         $mform = $this->_form;
 
         $config = get_config('crucible');
@@ -81,8 +81,16 @@ class mod_crucible_mod_form extends moodleform_mod {
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
         // Pull list from alloy.
-        $userauth = setup();
-        $this->eventtemplates = get_eventtemplates($userauth);
+        if (crucible_issuer_configured()) {
+            $userauth = setup();
+            $this->eventtemplates = get_eventtemplates($userauth);
+        } else {
+            $mform->addElement(
+                'html',
+                $OUTPUT->notification(get_string('issuernotconfigured', 'crucible'), 'error', false)
+            );
+            $this->eventtemplates = [];
+        }
         $labnames = [];
         $labs = [];
         foreach ($this->eventtemplates as $eventtemplate) {

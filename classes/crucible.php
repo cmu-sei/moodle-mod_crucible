@@ -115,6 +115,13 @@ class crucible {
 
         $this->is_instructor();
 
+        if (!crucible_issuer_configured()) {
+            notice(
+                get_string('issuernotconfigured', 'crucible'),
+                new \moodle_url('/course/view.php', ['id' => $course->id])
+            );
+        }
+
         $this->systemauth = setup_system();
         $this->userauth = setup(); // Fails when called by runtask.
 

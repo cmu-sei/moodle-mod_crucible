@@ -201,6 +201,18 @@ function enlist_user_in_event_as_admin($client, $eventid, $useralloyguid, $userd
 }
 
 /**
+ * Whether an OAuth2 issuer has been selected in the plugin settings.
+ *
+ * Every Alloy call needs one, so pages check this before doing any work and
+ * explain the problem instead of failing on the first API call.
+ *
+ * @return bool True when the issuerid setting is set.
+ */
+function crucible_issuer_configured() {
+    return !empty(get_config('crucible', 'issuerid'));
+}
+
+/**
  * Initializes and returns an OAuth2 client authenticated as the current user.
  *
  * Redirects to the OAuth2 login page if the user is not already authenticated.
@@ -211,7 +223,7 @@ function setup() {
     global $PAGE;
     $issuerid = get_config('crucible', 'issuerid');
     if (!$issuerid) {
-        throw new \moodle_exception('no issuer set for plugin');
+        return null;
     }
     $issuer = \core\oauth2\api::get_issuer($issuerid);
 
