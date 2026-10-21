@@ -45,36 +45,26 @@ DM20-0196
  */
 function crucible_supports($feature) {
     switch ($feature) {
-        case FEATURE_MOD_ARCHETYPE: {
+        case FEATURE_MOD_ARCHETYPE:
             return MOD_ARCHETYPE_OTHER;
-        }
-        case FEATURE_GROUPS: {
+        case FEATURE_GROUPS:
             return false;
-        }
-        case FEATURE_GROUPINGS: {
+        case FEATURE_GROUPINGS:
             return false;
-        }
-        case FEATURE_MOD_INTRO: {
+        case FEATURE_MOD_INTRO:
             return true;
-        }
-        case FEATURE_COMPLETION_TRACKS_VIEWS: {
+        case FEATURE_COMPLETION_TRACKS_VIEWS:
             return true;
-        }
-        case FEATURE_GRADE_HAS_GRADE: {
+        case FEATURE_GRADE_HAS_GRADE:
             return true;
-        }
-        case FEATURE_GRADE_OUTCOMES: {
+        case FEATURE_GRADE_OUTCOMES:
             return false;
-        }
-        case FEATURE_BACKUP_MOODLE2: {
+        case FEATURE_BACKUP_MOODLE2:
             return true;
-        }
-        case FEATURE_SHOW_DESCRIPTION: {
+        case FEATURE_SHOW_DESCRIPTION:
             return true;
-        }
-        default: {
+        default:
             return null;
-        }
     }
 }
 
@@ -162,8 +152,6 @@ function crucible_update_instance(stdClass $crucible, $mform) {
     if ($result && is_string($result)) {
         return $result;
     }
-    // Get the current value, so we can see what changed.
-    // $oldcrucible = $DB->get_record('crucible', array('id' => $crucible->instance));
 
     // Update the database.
     $crucible->id = $crucible->instance;
@@ -224,6 +212,11 @@ function crucible_delete_instance($id) {
         $event->delete();
     }
 
+    // Delete attempts, grades and bulk-deploy state, ending any Alloy event still running.
+    crucible_delete_all_attempts($crucible);
+
+    $DB->delete_records('crucible_tasks', ['crucibleid' => $crucible->id]);
+
     // Delete grade from database.
     crucible_grade_item_delete($crucible);
 
@@ -232,6 +225,160 @@ function crucible_delete_instance($id) {
     $DB->delete_records('crucible', ['id' => $crucible->id]);
 
     return true;
+}
+
+/**
+ * Delete all attempts and bulk-deploy state belonging to a crucible activity.
+ *
+ * Removes crucible_attempts with their task results and invited-user memberships,
+ * crucible_grades, and the activity's crucible_bulkdeploy_user / crucible_bulkdeploy_job rows.
+ * Before the rows go, the Alloy events of unfinished attempts and of live bulk deployments are
+ * ended best-effort through the system OAuth client; a failed or unconfigured API call is logged
+ * via debugging() and does not abort the wipe.
+ *
+ * @param stdClass $crucible The crucible activity record.
+ * @param object|null $client Alloy API client to use; null resolves the system client.
+ */
+function crucible_delete_all_attempts($crucible, $client = null) {
+    global $DB;
+
+    $attempts = $DB->get_records('crucible_attempts', ['crucibleid' => $crucible->id], '', 'id');
+    $eventids = crucible_live_event_ids($crucible->id);
+    $jobids = $DB->get_fieldset_select(
+        'crucible_bulkdeploy_job',
+        'id',
+        'crucibleid = :crucibleid',
+        ['crucibleid' => $crucible->id]
+    );
+    if ($jobids) {
+        [$jobsql, $jobparams] = $DB->get_in_or_equal($jobids, SQL_PARAMS_NAMED, 'job');
+    }
+
+    // If the API is unavailable the rows are still deleted. Any running event on the Alloy side
+    // is orphaned and must expire on its own; that leak is accepted in exchange for a wipe that
+    // works when Alloy is unreachable.
+    crucible_end_alloy_events($eventids, $client);
+
+    crucible_delete_attempts(array_keys($attempts));
+    $DB->delete_records('crucible_grades', ['crucibleid' => $crucible->id]);
+
+    if ($jobids) {
+        $DB->delete_records_select('crucible_bulkdeploy_user', "jobid $jobsql", $jobparams);
+        $DB->delete_records_select('crucible_bulkdeploy_job', "id $jobsql", $jobparams);
+    }
+}
+
+/**
+ * Find the Alloy events still running for a crucible activity, optionally limited to some users.
+ *
+ * Covers unfinished attempts and bulk deployments that are launched, ready or cancelling. With
+ * $userids, only attempts those users own and their own bulk-deploy rows count: an invited user
+ * does not own the event of the attempt they joined.
+ *
+ * @param int $crucibleid The crucible activity id.
+ * @param array|null $userids Limit to these users; null means every user.
+ * @return array Alloy event GUIDs, possibly with empty values and duplicates.
+ */
+function crucible_live_event_ids($crucibleid, ?array $userids = null): array {
+    global $DB;
+
+    if ($userids === []) {
+        return [];
+    }
+    $usersql = '';
+    $userparams = [];
+    if ($userids !== null) {
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'liveusr');
+        $usersql = "AND userid $usersql";
+    }
+
+    [$donesql, $doneparams] = $DB->get_in_or_equal(['finished', 'abandoned'], SQL_PARAMS_NAMED, 'done', false);
+    $eventids = $DB->get_fieldset_select(
+        'crucible_attempts',
+        'eventid',
+        "crucibleid = :crucibleid AND state $donesql $usersql",
+        array_merge(['crucibleid' => $crucibleid], $doneparams, $userparams)
+    );
+
+    [$statussql, $statusparams] = $DB->get_in_or_equal(
+        [
+            \mod_crucible\local\bulkdeploy\user_status::LAUNCHED,
+            \mod_crucible\local\bulkdeploy\user_status::READY,
+            \mod_crucible\local\bulkdeploy\user_status::CANCELLING,
+        ],
+        SQL_PARAMS_NAMED,
+        'st'
+    );
+    $deployed = $DB->get_fieldset_select(
+        'crucible_bulkdeploy_user',
+        'eventid',
+        "jobid IN (SELECT id FROM {crucible_bulkdeploy_job} WHERE crucibleid = :crucibleid) AND status $statussql $usersql",
+        array_merge(['crucibleid' => $crucibleid], $statusparams, $userparams)
+    );
+
+    return array_merge($eventids, $deployed);
+}
+
+/**
+ * Delete crucible attempts along with their task results and invited-user memberships.
+ *
+ * Only Moodle rows are removed; ending the Alloy events is the caller's choice.
+ *
+ * @param array $attemptids The crucible_attempts ids to delete.
+ */
+function crucible_delete_attempts(array $attemptids) {
+    global $DB;
+
+    if (empty($attemptids)) {
+        return;
+    }
+
+    [$insql, $params] = $DB->get_in_or_equal($attemptids, SQL_PARAMS_NAMED, 'att');
+    $DB->delete_records_select('crucible_task_results', "attemptid $insql", $params);
+    $DB->delete_records_select('crucible_attempt_users', "attemptid $insql", $params);
+    $DB->delete_records_select('crucible_attempts', "id $insql", $params);
+}
+
+/**
+ * End Alloy events best-effort, for callers that are about to forget them.
+ *
+ * Runs from cron as well as from the web, so it uses the system OAuth client rather than the
+ * current user's token. Nothing here throws: an unconfigured client or a failed call is logged
+ * via debugging() and the caller carries on.
+ *
+ * @param array $eventids Alloy event GUIDs; empty and duplicate values are ignored.
+ * @param object|null $client Alloy API client to use; null resolves the system client.
+ */
+function crucible_end_alloy_events(array $eventids, $client = null) {
+    global $CFG;
+
+    $eventids = array_unique(array_filter(array_map(fn($id) => trim((string)$id), $eventids), 'strlen'));
+    if (empty($eventids)) {
+        return;
+    }
+
+    require_once($CFG->dirroot . '/mod/crucible/locallib.php');
+
+    if ($client === null) {
+        try {
+            $client = setup_system();
+        } catch (\Throwable $e) {
+            $client = null;
+            debugging('crucible_end_alloy_events: system client failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+    }
+    if (!$client) {
+        debugging('crucible_end_alloy_events: no Alloy client, ' . count($eventids) . ' event(s) left running', DEBUG_DEVELOPER);
+        return;
+    }
+
+    foreach ($eventids as $eventid) {
+        try {
+            stop_event($client, $eventid);
+        } catch (\Throwable $e) {
+            debugging("crucible_end_alloy_events: stop_event failed for event $eventid: " . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+    }
 }
 
 /**
@@ -348,13 +495,11 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
 
     $grades = [];
 
-      // Case 1: All users.
+    // Case 1: All users.
     if ($userid === 0) {
         $grades = crucible_get_user_grades($crucible, 0);
-    }
-
-    // Case 2: Array of user IDs.
-    else if (is_array($userid)) {
+    } else if (is_array($userid)) {
+        // Case 2: Array of user IDs.
         foreach ($userid as $uid) {
             $usergrades = crucible_get_user_grades($crucible, $uid);
             if (!empty($usergrades[$uid])) {
@@ -366,10 +511,8 @@ function crucible_update_grades($crucible, $userid = 0, $nullifnone = true) {
                 $grades[$uid] = $grade;
             }
         }
-    }
-
-    // Case 3: Single user ID.
-    else {
+    } else {
+        // Case 3: Single user ID.
         $usergrades = crucible_get_user_grades($crucible, $userid);
         if (!empty($usergrades[$userid])) {
             $grades[$userid] = $usergrades[$userid];
@@ -517,11 +660,16 @@ function crucible_extend_settings_navigation($settingsnav, $context) {
         );
         $context->add_node($node, $beforekey);
 
-        // Add Manage Deployments link
+        // Add Manage Deployments link.
         $url = new moodle_url('/mod/crucible/manage_deployments.php', ['id' => $PAGE->cm->id]);
-        $node = navigation_node::create(get_string('manage_deployments_pageheading', 'mod_crucible'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_crucible_manage_deployments', new pix_icon('i/scheduled', 'deployments'));
+        $node = navigation_node::create(
+            get_string('manage_deployments_pageheading', 'mod_crucible'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_crucible_manage_deployments',
+            new pix_icon('i/scheduled', 'deployments')
+        );
         $context->add_node($node, $beforekey);
     }
 
