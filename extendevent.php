@@ -73,7 +73,10 @@ if (!$event) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error with get_event";
 } else {
-    $attempt = $DB->get_record('crucible_attempts', ['eventid' => $id], 'crucibleid', IGNORE_MULTIPLE);
+    // The crucible_attempts.eventid column is TEXT, so it cannot be compared through a conditions array.
+    $eventselect = $DB->sql_compare_text('eventid') . ' = ' . $DB->sql_compare_text(':eventid');
+    $eventparams = ['eventid' => $id];
+    $attempt = $DB->get_record_select('crucible_attempts', $eventselect, $eventparams, 'crucibleid', IGNORE_MULTIPLE);
     if (!$attempt) {
         header('HTTP/1.1 500 Error');
         $response['message'] = "Could not find Moodle activity for event.";
@@ -108,7 +111,7 @@ if (!$event) {
         $response['event'] = $event;
         $response['data'] = $data;
     } else {
-        $attemptrecord = $DB->get_record('crucible_attempts', ['eventid' => $id], '*', IGNORE_MULTIPLE);
+        $attemptrecord = $DB->get_record_select('crucible_attempts', $eventselect, $eventparams, '*', IGNORE_MULTIPLE);
         if ($attemptrecord) {
             $attemptrecord->endtime = $timestamp->getTimestamp();
             $attemptrecord->timemodified = time();
