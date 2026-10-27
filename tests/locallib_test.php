@@ -58,6 +58,7 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('crucible_parse_alloy_date')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('crucible_issuer_configured')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('setup')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('crucible_get_attempt_by_eventid')]
 final class locallib_test extends \advanced_testcase {
 
     /**
@@ -418,5 +419,90 @@ final class locallib_test extends \advanced_testcase {
             'fractional seconds' => ['2026-09-23T15:00:00.123456', 1790175600],
             'unparseable' => ['not a date', 0],
         ];
+    }
+
+    /**
+     * The event lookup finds an attempt through the TEXT eventid column.
+     */
+    public function test_get_attempt_by_eventid(): void {
+        $this->resetAfterTest(true);
+
+        $crucible = $this->create_crucible();
+        $eventid = 'a1b2c3d4-0000-4000-8000-000000000001';
+        $attemptid = $this->create_attempt($crucible, $eventid);
+        $this->create_attempt($crucible, 'a1b2c3d4-0000-4000-8000-000000000002');
+
+        $found = crucible_get_attempt_by_eventid($eventid);
+
+        $this->assertEquals($attemptid, $found->id);
+        $this->assertEquals($eventid, $found->eventid);
+    }
+
+    /**
+     * The event lookup returns only the fields asked for.
+     */
+    public function test_get_attempt_by_eventid_returns_requested_fields(): void {
+        $this->resetAfterTest(true);
+
+        $crucible = $this->create_crucible();
+        $this->create_attempt($crucible, 'event-id');
+
+        $found = crucible_get_attempt_by_eventid('event-id', 'crucibleid');
+
+        $this->assertEquals(['crucibleid' => $crucible->id], (array)$found);
+    }
+
+    /**
+     * The event lookup returns false when no attempt has the event.
+     */
+    public function test_get_attempt_by_eventid_returns_false_when_missing(): void {
+        $this->resetAfterTest(true);
+
+        $this->assertFalse(crucible_get_attempt_by_eventid('missing-event'));
+    }
+
+    /**
+     * The event lookup tolerates more than one attempt on the same event.
+     */
+    public function test_get_attempt_by_eventid_tolerates_duplicates(): void {
+        $this->resetAfterTest(true);
+
+        $crucible = $this->create_crucible();
+        $this->create_attempt($crucible, 'event-id');
+        $this->create_attempt($crucible, 'event-id');
+
+        $this->assertNotFalse(crucible_get_attempt_by_eventid('event-id'));
+    }
+
+    /**
+     * Creates a Crucible activity in a new course.
+     *
+     * @return \stdClass The activity instance.
+     */
+    private function create_crucible(): \stdClass {
+        $course = $this->getDataGenerator()->create_course();
+        return $this->getDataGenerator()->create_module('crucible', ['course' => $course->id]);
+    }
+
+    /**
+     * Creates an attempt on an activity for an Alloy event.
+     *
+     * @param \stdClass $crucible The activity instance.
+     * @param string $eventid Alloy event ID.
+     * @return int The attempt ID.
+     */
+    private function create_attempt(\stdClass $crucible, string $eventid): int {
+        global $DB;
+
+        $user = $this->getDataGenerator()->create_user();
+        $now = time();
+        return $DB->insert_record('crucible_attempts', (object)[
+            'crucibleid' => $crucible->id,
+            'userid' => $user->id,
+            'eventid' => $eventid,
+            'endtime' => $now + 3600,
+            'timestart' => $now,
+            'timemodified' => $now,
+        ]);
     }
 }

@@ -1240,3 +1240,25 @@ function crucible_parse_alloy_date($date) {
     $timestamp = strtotime($date);
     return $timestamp === false ? 0 : $timestamp;
 }
+
+/**
+ * Finds the attempt for an Alloy event.
+ *
+ * crucible_attempts.eventid is a TEXT column, so it cannot go in a conditions array:
+ * Moodle throws textconditionsnotallowed on every database.
+ *
+ * @param string $eventid Alloy event ID.
+ * @param string $fields Fields to return.
+ * @return stdClass|false The attempt, or false when none matches.
+ */
+function crucible_get_attempt_by_eventid($eventid, $fields = '*') {
+    global $DB;
+
+    return $DB->get_record_select(
+        'crucible_attempts',
+        $DB->sql_compare_text('eventid') . ' = ' . $DB->sql_compare_text(':eventid'),
+        ['eventid' => $eventid],
+        $fields,
+        IGNORE_MULTIPLE
+    );
+}

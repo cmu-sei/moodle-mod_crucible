@@ -73,7 +73,7 @@ if (!$event) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error with get_event";
 } else {
-    $attempt = $DB->get_record('crucible_attempts', ['eventid' => $id], 'crucibleid', IGNORE_MULTIPLE);
+    $attempt = crucible_get_attempt_by_eventid($id, 'crucibleid');
     if (!$attempt) {
         header('HTTP/1.1 500 Error');
         $response['message'] = "Could not find Moodle activity for event.";
@@ -108,7 +108,7 @@ if (!$event) {
         $response['event'] = $event;
         $response['data'] = $data;
     } else {
-        $attemptrecord = $DB->get_record('crucible_attempts', ['eventid' => $id], '*', IGNORE_MULTIPLE);
+        $attemptrecord = crucible_get_attempt_by_eventid($id);
         if ($attemptrecord) {
             $attemptrecord->endtime = $timestamp->getTimestamp();
             $attemptrecord->timemodified = time();
