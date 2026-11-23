@@ -25,7 +25,7 @@ The **Crucible Plugin for Moodle** is an activity plugin that integrates Crucibl
 
 ## Requirements
 
-1. Moodle 4.x or above
+1. Moodle 5.0 or above
 2. Crucible application stack deployed and operational
 3. An OAuth2 identity provider configured for both Moodle and Crucible (we recommend [Keycloak](www.keycloak.org))
 
