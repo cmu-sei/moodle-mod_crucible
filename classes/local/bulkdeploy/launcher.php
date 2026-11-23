@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 namespace mod_crucible\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
@@ -11,16 +26,32 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
  *
  * Unlike TopoMojo, Crucible deployments are ALWAYS sequential (batchsize=1)
  * due to Terraform provisioning complexity.
+ * @package    mod_crucible
+ * @copyright  2020 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class launcher {
+    /**
+     * Constructor.
+     *
+     * @param job_repository $repo Repository for job and user rows.
+     * @param int $pollintervalsec Seconds to sleep between poll cycles (default 10s).
+     * @param int $waitceilingsec Maximum seconds to wait per user, including reconciliation (default 10min).
+     */
     public function __construct(
+        /** @var job_repository Repository for job and user rows. */
         private job_repository $repo,
-        private int $pollintervalsec = 10,   // sleep between poll cycles (default 10s)
-        private int $waitceilingsec = 600    // max wait time per user, including reconciliation (default 10min)
-    ) {}
+        /** @var int Seconds to sleep between poll cycles. */
+        private int $pollintervalsec = 10,
+        /** @var int Maximum seconds to wait per user. */
+        private int $waitceilingsec = 600
+    ) {
+    }
 
     /**
-     * @param int $jobid
+     * Processes each user in a batch in turn.
+     *
+     * @param int $jobid Bulk-deploy job ID.
      * @param array $batch each entry: ['rowid' => int, 'user' => stdClass]
      * @param \stdClass $crucible activity record
      */
@@ -42,9 +73,11 @@ class launcher {
         // rows rather than silently skipping them.
         $statuses = $this->repo->get_user_statuses([$rowid]);
         $status = $statuses[$rowid] ?? null;
-        if ($status !== user_status::PENDING
+        if (
+            $status !== user_status::PENDING
             && $status !== user_status::LAUNCHED
-            && $status !== user_status::CANCELLING) {
+            && $status !== user_status::CANCELLING
+        ) {
             return; // Externally cancelled or already terminal.
         }
 
@@ -259,6 +292,11 @@ class launcher {
         }
     }
 
+    /**
+     * Sleeps for the given number of seconds (overridable so tests can skip the wait).
+     *
+     * @param int $seconds Seconds to sleep.
+     */
     protected function sleep_seconds(int $seconds): void {
         sleep($seconds);
     }
@@ -276,7 +314,7 @@ class launcher {
         $existing = $DB->get_record('crucible_attempts', [
             'crucibleid' => $crucible->id,
             'userid' => $userid,
-            'state' => 'inprogress'
+            'state' => 'inprogress',
         ]);
 
         if ($existing) {

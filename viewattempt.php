@@ -68,10 +68,8 @@ $context = context_module::instance($cm->id);
 require_capability('mod/crucible:view', $context);
 
 // TODO log event attempt views.
-if ($_SERVER['REQUEST_METHOD'] == "GET") {
-    // Completion and trigger events.
-    // crucible_view($crucible, $course, $cm, $context);
-}
+// Completion and trigger events (GET requests).
+// crucible_view($crucible, $course, $cm, $context);
 
 // Print the page header.
 $url = new moodle_url('/mod/crucible/viewattempt.php', ['a' => $a]);

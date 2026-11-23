@@ -539,7 +539,8 @@ function crucible_grade_item_update($crucible, $grades = null) {
     global $CFG, $OUTPUT;
     require_once($CFG->libdir . '/gradelib.php');
 
-    if (property_exists($crucible, 'cmidnumber')) { // May not be always present.
+    if (property_exists($crucible, 'cmidnumber')) {
+        // May not be always present.
         $params = ['itemname' => $crucible->name, 'idnumber' => $crucible->cmidnumber];
     } else {
         $params = ['itemname' => $crucible->name];

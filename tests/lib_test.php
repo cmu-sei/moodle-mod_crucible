@@ -48,7 +48,6 @@ require_once($CFG->dirroot . '/mod/crucible/lib.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('crucible_supports')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('crucible_get_extra_capabilities')]
 final class lib_test extends \basic_testcase {
-
     /**
      * The features the module claims are the ones Moodle acts on: intro, completion
      * view tracking, grades and backup all change how core treats the activity.

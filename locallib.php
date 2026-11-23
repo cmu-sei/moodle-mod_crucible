@@ -821,9 +821,9 @@ function get_taskresults($client, $id) {
  * @return int Comparison result: -1, 0, or 1.
  */
 function end_date($a, $b) {
-    $aDate = isset($a['endDate']) ? (string)$a['endDate'] : '';
-    $bDate = isset($b['endDate']) ? (string)$b['endDate'] : '';
-    return strnatcmp($aDate, $bDate);
+    $adate = isset($a['endDate']) ? (string)$a['endDate'] : '';
+    $bdate = isset($b['endDate']) ? (string)$b['endDate'] : '';
+    return strnatcmp($adate, $bdate);
 }
 
 /**
@@ -833,10 +833,10 @@ function end_date($a, $b) {
  * @param array $b Second item to compare (must contain 'launchDate' key).
  * @return int Comparison result: -1, 0, or 1.
  */
-function launchDate($a, $b) {
-    $aDate = isset($a['launchDate']) ? (string)$a['launchDate'] : '';
-    $bDate = isset($b['launchDate']) ? (string)$b['launchDate'] : '';
-    return strnatcmp($aDate, $bDate);
+function launch_date($a, $b) {
+    $adate = isset($a['launchDate']) ? (string)$a['launchDate'] : '';
+    $bdate = isset($b['launchDate']) ? (string)$b['launchDate'] : '';
+    return strnatcmp($adate, $bdate);
 }
 
 /**

@@ -53,8 +53,9 @@ class mod_crucible_renderer extends plugin_renderer_base {
      *
      * @param object $crucible Crucible activity instance.
      * @param string $duration Formatted duration string to display.
+     * @param object|null $contentlicense License record with fullname and source, or null for none.
      */
-    public function display_detail($crucible, $duration, $content_license = null) {
+    public function display_detail($crucible, $duration, $contentlicense = null) {
         $data = new stdClass();
         $data->name = $crucible->name;
         $data->intro = strip_tags($crucible->intro);
@@ -73,9 +74,9 @@ class mod_crucible_renderer extends plugin_renderer_base {
             'seconds' => $seconds,
         ];
 
-        if ($content_license) {
-            $data->license_fullname = $content_license->fullname;
-            $data->license_source = $content_license->source;
+        if ($contentlicense) {
+            $data->license_fullname = $contentlicense->fullname;
+            $data->license_source = $contentlicense->source;
         }
 
         echo $this->render_from_template('mod_crucible/detail', $data);
@@ -94,8 +95,17 @@ class mod_crucible_renderer extends plugin_renderer_base {
      * @param moodle_url|null $bulkdeployurl URL for the manage deployments page.
      * @param bool $extend Whether the current user can extend the active event.
      */
-    public function display_form($url, $eventtemplate, $id = 0, $selectedattempt = 0, $attempts = [], $code = '',
-        $isinstructor = false, $bulkdeployurl = null, $extend = false) {
+    public function display_form(
+        $url,
+        $eventtemplate,
+        $id = 0,
+        $selectedattempt = 0,
+        $attempts = [],
+        $code = '',
+        $isinstructor = false,
+        $bulkdeployurl = null,
+        $extend = false
+    ) {
         $data = new stdClass();
         $data->url = $url;
         $data->eventtemplateid = $eventtemplate;

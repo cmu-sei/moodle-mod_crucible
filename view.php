@@ -141,7 +141,8 @@ if (!$attempt && empty($object->event) && !empty($object->events)) {
 
 // Handle start/stop form action.
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
-    if ($attempt) { // && (!$object->event !== null)
+    if ($attempt) {
+        // && (!$object->event !== null)
         // TODO this should also check that we dont have an attempt.
         if ($object->event && $object->is_ended()) {
             $grader = new \mod_crucible\utils\grade($object);
@@ -254,11 +255,11 @@ if ((int)$object->crucible->grade > 0) {
 $renderer = $PAGE->get_renderer('mod_crucible');
 echo $renderer->header();
 
-$license_info = null;
+$licenseinfo = null;
 
 if (!empty($crucible->showcontentlicense)) {
-    $license_id = $crucible->contentlicense;
-    $license_info = license_manager::get_license_by_shortname($license_id);
+    $licenseid = $crucible->contentlicense;
+    $licenseinfo = license_manager::get_license_by_shortname($licenseid);
 }
 
 $extend = false;
@@ -269,7 +270,7 @@ if ($object->event && $object->systemauth && !empty($crucible->extendevent)) {
 echo html_writer::start_div('crucible-activity-section crucible-activity-section--details');
 echo html_writer::tag('div', 'Lab Details', ['class' => 'crucible-activity-section__header']);
 echo html_writer::start_div('crucible-activity-section__body');
-$renderer->display_detail($crucible, $object->eventtemplate->durationHours, $license_info);
+$renderer->display_detail($crucible, $object->eventtemplate->durationHours, $licenseinfo);
 if ($object->event) {
     // TODO add mod setting to pick format.
     if ($crucible->clock == 1) {
@@ -314,8 +315,17 @@ echo html_writer::start_div('crucible-activity-section__body');
 
 // TODO if user is in two attempts, ask which attempt they want to be in, and redirect them to a url with that attempt
 $bulkdeployurl = $isinstructor ? new moodle_url('/mod/crucible/manage_deployments.php', ['id' => $cm->id]) : null;
-$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode,
-    $isinstructor, $bulkdeployurl, $extend);
+$renderer->display_form(
+    $url,
+    $object->crucible->eventtemplateid,
+    $id,
+    $attemptid,
+    $formattempts,
+    $sharecode,
+    $isinstructor,
+    $bulkdeployurl,
+    $extend
+);
 echo html_writer::end_div();
 echo html_writer::end_div();
 
@@ -323,8 +333,10 @@ $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]])
 
 // TODO have a completely different view page for active labs.
 if ($object->event && $object->event->status === 'Active') {
-    echo html_writer::start_div('crucible-activity-section crucible-activity-section--workspace',
-        ['id' => 'crucible-workspace-section']);
+    echo html_writer::start_div(
+        'crucible-activity-section crucible-activity-section--workspace',
+        ['id' => 'crucible-workspace-section']
+    );
     echo html_writer::tag('div', 'Lab Workspace', ['class' => 'crucible-activity-section__header']);
     echo html_writer::start_div('crucible-activity-section__body');
     if ($vmapp == 1) {

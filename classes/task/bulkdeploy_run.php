@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 namespace mod_crucible\task;
 
 use mod_crucible\local\bulkdeploy\job_repository;
@@ -11,13 +26,23 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Ad-hoc task that drives a bulk-deploy job to completion in sequential batches.
  * For Crucible, batchsize is always 1 (sequential processing).
+ * @package    mod_crucible
+ * @copyright  2020 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class bulkdeploy_run extends \core\task\adhoc_task {
-
+    /**
+     * Returns the component this task belongs to.
+     *
+     * @return string The component name.
+     */
     public function get_component(): string {
         return 'mod_crucible';
     }
 
+    /**
+     * Runs the bulk-deploy job named in the task's custom data.
+     */
     public function execute() {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/mod/crucible/locallib.php');
@@ -52,7 +77,7 @@ class bulkdeploy_run extends \core\task\adhoc_task {
             $launcher = new launcher($repo, $pollintervalsec, $waitceilingsec);
 
             $rows = $repo->get_active_user_rows($jobid);
-            $blockingrows = array_filter($rows, function($row) {
+            $blockingrows = array_filter($rows, function ($row) {
                 return $row->status === user_status::LAUNCHED
                     || $row->status === user_status::CANCELLING;
             });
@@ -129,6 +154,17 @@ class bulkdeploy_run extends \core\task\adhoc_task {
         }
     }
 
+    /**
+     * Runs one batch unless the job was cancelled first.
+     *
+     * @param job_repository $repo Repository for job and user rows.
+     * @param launcher $launcher Launcher that processes the batch.
+     * @param int $jobid Bulk-deploy job ID.
+     * @param int $batchno Batch number, for log output.
+     * @param array $batch Batch entries, each ['rowid' => int, 'user' => stdClass].
+     * @param \stdClass $crucible Crucible activity record.
+     * @return bool False if the job was cancelled before the batch started, otherwise true.
+     */
     private function run_one_batch(
         job_repository $repo,
         launcher $launcher,
@@ -170,8 +206,10 @@ class bulkdeploy_run extends \core\task\adhoc_task {
      */
     private function has_blocking_rows(job_repository $repo, int $jobid): bool {
         foreach ($repo->get_active_user_rows($jobid) as $row) {
-            if ($row->status === user_status::LAUNCHED
-                || $row->status === user_status::CANCELLING) {
+            if (
+                $row->status === user_status::LAUNCHED
+                || $row->status === user_status::CANCELLING
+            ) {
                 return true;
             }
         }

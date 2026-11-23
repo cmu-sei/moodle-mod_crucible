@@ -1,13 +1,30 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 namespace mod_crucible\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
  * Data access for manage deployments page.
+ * @package    mod_crucible
+ * @copyright  2020 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class management_repository {
-
     /**
      * Get all enrolled users with their current deployment/attempt state.
      *
@@ -28,7 +45,7 @@ class management_repository {
 
         if ($rolefilter && !in_array(0, $rolefilter)) {
             // Filter by role assignments (skip if "All roles" is selected)
-            $enrolled = array_filter($enrolled, function($u) use ($rolefilter, $coursecontext) {
+            $enrolled = array_filter($enrolled, function ($u) use ($rolefilter, $coursecontext) {
                 $userroles = get_user_roles($coursecontext, $u->id);
                 foreach ($userroles as $role) {
                     if (in_array($role->roleid, $rolefilter)) {
@@ -232,17 +249,25 @@ class management_repository {
                 . 'data-bs-html="false" tabindex="0" data-bs-trigger="focus" aria-label="Help">'
                 . '<i class="icon fa fa-circle-question text-info fa-fw" title="Error details" role="img" '
                 . 'aria-label="Error details"></i></a>';
-        } else if (in_array($statuslabel, ['In Progress', 'Finished'], true)
-            && (!empty($row->attempttimestart) || !empty($row->attemptendtime))) {
+        } else if (
+            in_array($statuslabel, ['In Progress', 'Finished'], true)
+            && (!empty($row->attempttimestart) || !empty($row->attemptendtime))
+        ) {
             $datefmt = get_string('strftimedatetime', 'langconfig');
             $parts = [];
             if (!empty($row->attempttimestart)) {
-                $parts[] = '<div style="white-space: nowrap">' . s(get_string('status_started_at', 'crucible',
-                    userdate($row->attempttimestart, $datefmt))) . '</div>';
+                $parts[] = '<div style="white-space: nowrap">' . s(get_string(
+                    'status_started_at',
+                    'crucible',
+                    userdate($row->attempttimestart, $datefmt)
+                )) . '</div>';
             }
             if (!empty($row->attemptendtime)) {
-                $parts[] = '<div style="white-space: nowrap">' . s(get_string('status_ended_at', 'crucible',
-                    userdate($row->attemptendtime, $datefmt))) . '</div>';
+                $parts[] = '<div style="white-space: nowrap">' . s(get_string(
+                    'status_ended_at',
+                    'crucible',
+                    userdate($row->attemptendtime, $datefmt)
+                )) . '</div>';
             }
             $content = implode('', $parts);
             $tooltiphtml = s($statuslabel) . ' '
@@ -267,8 +292,11 @@ class management_repository {
         $actionhtml = '─';
         if (!empty($attemptid) && in_array($attemptstate, ['inprogress', 'finished', 'abandoned', 'overdue'], true)) {
             $url = new \moodle_url('/mod/crucible/view.php', ['id' => $row->cmid]);
-            $actionhtml = \html_writer::link($url, get_string('viewattempt', 'crucible'),
-                ['class' => 'btn btn-sm btn-outline-primary', 'target' => '_blank']);
+            $actionhtml = \html_writer::link(
+                $url,
+                get_string('viewattempt', 'crucible'),
+                ['class' => 'btn btn-sm btn-outline-primary', 'target' => '_blank']
+            );
         }
 
         return [
