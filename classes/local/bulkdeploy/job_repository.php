@@ -147,7 +147,7 @@ class job_repository {
      *
      * @param int $jobid Job ID.
      * @param string $status New job status.
-     * @param string|null $errormessage Error message to record, if any (truncated to 255 characters).
+     * @param string|null $errormessage Error message to record, if any (truncated to 255 bytes).
      */
     public function set_job_status(int $jobid, string $status, ?string $errormessage = null): void {
         global $DB;
@@ -188,7 +188,7 @@ class job_repository {
      *
      * @param int $rowid User row ID.
      * @param string $status New row status.
-     * @param string|null $errormessage Error message to record, if any (truncated to 255 characters).
+     * @param string|null $errormessage Error message to record, if any (truncated to 255 bytes).
      * @param string|null $eventid Alloy event ID to record, if any.
      */
     public function set_user_status(int $rowid, string $status, ?string $errormessage = null, ?string $eventid = null): void {
@@ -300,7 +300,7 @@ class job_repository {
     }
 
     /**
-     * Truncates a string to at most 255 characters, ending in '...' when cut.
+     * Truncates a string to at most 255 bytes, ending in '...' when cut.
      *
      * @param string $s String to truncate.
      * @return string The original string or its truncated form.

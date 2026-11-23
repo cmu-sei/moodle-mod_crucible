@@ -107,7 +107,12 @@ class crucible_tasks_form extends \moodleform
             $mform->addHelpButton("{$taskprefix}_multiple", 'multiple', 'crucible');
 
             // Points field
-            $mform->addElement('text', "{$taskprefix}_points", '<strong>' . get_string('points', 'crucible') . '</strong>', ['size' => '5']);
+            $mform->addElement(
+                'text',
+                "{$taskprefix}_points",
+                '<strong>' . get_string('points', 'crucible') . '</strong>',
+                ['size' => '5']
+            );
             $mform->setType("{$taskprefix}_points", PARAM_INT);
             $mform->addHelpButton("{$taskprefix}_points", 'points', 'crucible');
             $mform->disabledIf("{$taskprefix}_points", "{$taskprefix}_gradable");

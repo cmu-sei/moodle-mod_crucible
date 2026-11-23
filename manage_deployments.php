@@ -137,7 +137,12 @@ echo html_writer::start_div('mod-crucible-manage-deployments');
 echo html_writer::start_tag('form', ['method' => 'get', 'action' => $PAGE->url, 'class' => 'mb-3']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
 echo html_writer::tag('label', 'Role Filter: ', ['for' => 'rolefilter']);
-echo html_writer::select($roleopts, 'rolefilter[]', $rolefilter, false, ['id' => 'rolefilter', 'multiple' => 'multiple', 'size' => count($roleopts), 'style' => 'width: 200px;']);
+echo html_writer::select($roleopts, 'rolefilter[]', $rolefilter, false, [
+    'id' => 'rolefilter',
+    'multiple' => 'multiple',
+    'size' => count($roleopts),
+    'style' => 'width: 200px;',
+]);
 echo ' ';
 echo html_writer::tag('button', 'Filter', ['type' => 'submit', 'class' => 'btn btn-secondary']);
 echo html_writer::end_tag('form');
@@ -291,7 +296,10 @@ echo html_writer::tag('p', get_string('deploy_confirm_message', 'crucible'));
 echo html_writer::end_div();
 
 echo html_writer::start_div('', ['id' => 'schedule-modal-content', 'style' => 'display:none;']);
-echo html_writer::tag('label', get_string('scheduledfor', 'crucible') . ':', ['for' => 'scheduledfor-input', 'class' => 'd-block mb-2']);
+echo html_writer::tag('label', get_string('scheduledfor', 'crucible') . ':', [
+    'for' => 'scheduledfor-input',
+    'class' => 'd-block mb-2',
+]);
 $usertimezone = core_date::get_user_timezone_object();
 $defaultschedule = (new DateTimeImmutable('@' . (time() + HOURSECS)))
     ->setTimezone($usertimezone)
@@ -323,7 +331,10 @@ echo html_writer::end_div();
 
 echo html_writer::start_div('', ['id' => 'extend-modal-content', 'style' => 'display:none;']);
 echo html_writer::tag('p', get_string('extend_confirm_message', 'crucible'));
-echo html_writer::tag('label', get_string('extendinterval', 'crucible') . ':', ['for' => 'extend-interval-input', 'class' => 'd-block mb-2']);
+echo html_writer::tag('label', get_string('extendinterval', 'crucible') . ':', [
+    'for' => 'extend-interval-input',
+    'class' => 'd-block mb-2',
+]);
 echo html_writer::empty_tag('input', [
     'type' => 'number',
     'id' => 'extend-interval-input',
@@ -334,7 +345,11 @@ echo html_writer::empty_tag('input', [
     'style' => 'width: 100px;',
     'required' => 'required',
 ]);
-echo html_writer::tag('small', get_string('extendintervalmax', 'crucible', crucible_get_max_extend_interval()), ['class' => 'form-text text-muted']);
+echo html_writer::tag(
+    'small',
+    get_string('extendintervalmax', 'crucible', crucible_get_max_extend_interval()),
+    ['class' => 'form-text text-muted']
+);
 echo html_writer::end_div();
 
 echo html_writer::end_div();
