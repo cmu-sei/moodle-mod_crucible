@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * Manage deployments page: lists enrolled users and their deployment state, with forms for the deployment actions.
+ *
+ * @package    mod_crucible
+ * @copyright  2020 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 
@@ -74,22 +82,22 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('manage_deployments_pageheading', 'crucible'));
 
 // Check for active deployments and compute progress summary
-$has_active_deploys = false;
+$hasactivedeploys = false;
 foreach ($users as $u) {
     if (in_array($u->deploystatus, ['pending', 'launched', 'cancelling'])) {
-        $has_active_deploys = true;
+        $hasactivedeploys = true;
         break;
     }
 }
 
-$summary_ready = 0;
-$summary_total = 0;
-if ($has_active_deploys) {
+$summaryready = 0;
+$summarytotal = 0;
+if ($hasactivedeploys) {
     $activejobs = $manrepo->get_active_jobs($crucible->id);
     foreach ($activejobs as $job) {
         $progress = $manrepo->get_job_progress($job->id);
-        $summary_ready += (int) $progress->ready;
-        $summary_total += (int) $job->totalusers;
+        $summaryready += (int) $progress->ready;
+        $summarytotal += (int) $job->totalusers;
     }
 }
 
@@ -101,16 +109,16 @@ $linkhtml = html_writer::link(
     get_string('manage_deploy_running_link', 'crucible'),
     ['target' => '_blank']
 );
-$progresshtml = html_writer::span((string) $summary_ready, 'deploy-summary-ready')
+$progresshtml = html_writer::span((string) $summaryready, 'deploy-summary-ready')
     . '/'
-    . html_writer::span((string) $summary_total, 'deploy-summary-total');
+    . html_writer::span((string) $summarytotal, 'deploy-summary-total');
 $summaryhtml = get_string(
     'manage_deploy_running_summary',
     'crucible',
     (object) ['progress' => $progresshtml, 'link' => $linkhtml]
 );
 
-$notifstyle = $has_active_deploys ? '' : 'display:none;';
+$notifstyle = $hasactivedeploys ? '' : 'display:none;';
 echo html_writer::start_div('alert alert-info', [
     'id' => 'deploy-notification',
     'role' => 'alert',
@@ -238,14 +246,24 @@ foreach ($users as $u) {
 echo '</tbody></table>';
 
 // Hidden forms for modals (no batchsize input for Crucible - always 1)
-echo html_writer::start_tag('form', ['id' => 'deploy-form', 'method' => 'post', 'action' => new moodle_url('/mod/crucible/manage_deployments_action.php'), 'style' => 'display:none;']);
+echo html_writer::start_tag('form', [
+    'id' => 'deploy-form',
+    'method' => 'post',
+    'action' => new moodle_url('/mod/crucible/manage_deployments_action.php'),
+    'style' => 'display:none;',
+]);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'deploy_selected']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'userids', 'id' => 'deploy-userids']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
 echo html_writer::end_tag('form');
 
-echo html_writer::start_tag('form', ['id' => 'schedule-form', 'method' => 'post', 'action' => new moodle_url('/mod/crucible/manage_deployments_action.php'), 'style' => 'display:none;']);
+echo html_writer::start_tag('form', [
+    'id' => 'schedule-form',
+    'method' => 'post',
+    'action' => new moodle_url('/mod/crucible/manage_deployments_action.php'),
+    'style' => 'display:none;',
+]);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'schedule_selected']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'userids', 'id' => 'schedule-userids']);
@@ -254,7 +272,12 @@ echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'scheduledfo
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'scheduledforlocal', 'id' => 'schedule-datetime']);
 echo html_writer::end_tag('form');
 
-echo html_writer::start_tag('form', ['id' => 'extend-form', 'method' => 'post', 'action' => new moodle_url('/mod/crucible/manage_deployments_action.php'), 'style' => 'display:none;']);
+echo html_writer::start_tag('form', [
+    'id' => 'extend-form',
+    'method' => 'post',
+    'action' => new moodle_url('/mod/crucible/manage_deployments_action.php'),
+    'style' => 'display:none;',
+]);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'extend_selected']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'userids', 'id' => 'extend-userids']);

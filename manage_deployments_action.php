@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * Handles the actions posted from the manage deployments page.
+ *
+ * @package    mod_crucible
+ * @copyright  2020 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 
@@ -21,6 +29,12 @@ use mod_crucible\local\bulkdeploy\job_repository;
 use mod_crucible\task\bulkdeploy_run;
 use mod_crucible\local\bulkdeploy\user_status;
 
+/**
+ * Parses a datetime-local form value in the user's timezone.
+ *
+ * @param string $value Value in Y-m-d\TH:i or Y-m-d\TH:i:s format.
+ * @return int|null The Unix timestamp, or null if the value does not match either format.
+ */
 function mod_crucible_parse_bulkdeploy_schedule(string $value): ?int {
     $timezone = \core_date::get_user_timezone_object();
     foreach (['!Y-m-d\TH:i', '!Y-m-d\TH:i:s'] as $format) {
@@ -129,7 +143,7 @@ switch ($action) {
         $auth = setup_system();
         $cancelled = 0;
         $cancelfailed = 0;
-        $jobsToRefresh = [];
+        $jobstorefresh = [];
         $repo = new job_repository();
 
         foreach ($userids as $uid) {
@@ -164,18 +178,18 @@ switch ($action) {
                             'Cancellation requested; Moodle will retry ending the Alloy event'
                         );
                         $cancelfailed++;
-                        $jobsToRefresh[$deployrow->jobid] = true;
+                        $jobstorefresh[$deployrow->jobid] = true;
                         continue;
                     }
                 }
 
                 $repo->set_user_status($deployrow->id, user_status::CANCELLED, 'Manually cancelled');
                 $cancelled++;
-                $jobsToRefresh[$deployrow->jobid] = true;
+                $jobstorefresh[$deployrow->jobid] = true;
             }
         }
 
-        foreach (array_keys($jobsToRefresh) as $jobid) {
+        foreach (array_keys($jobstorefresh) as $jobid) {
             if (!$repo->get_active_user_rows($jobid)) {
                 $repo->set_job_status($jobid, \mod_crucible\local\bulkdeploy\job_status::CANCELLED);
                 $repo->set_job_cancelled_by($jobid, (int) $USER->id);

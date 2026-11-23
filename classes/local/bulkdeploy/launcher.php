@@ -26,18 +26,32 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
  *
  * Unlike TopoMojo, Crucible deployments are ALWAYS sequential (batchsize=1)
  * due to Terraform provisioning complexity.
- * @package mod_crucible
+ * @package    mod_crucible
+ * @copyright  2020 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class launcher {
+    /**
+     * Constructor.
+     *
+     * @param job_repository $repo Repository for job and user rows.
+     * @param int $pollintervalsec Seconds to sleep between poll cycles (default 10s).
+     * @param int $waitceilingsec Maximum seconds to wait per user, including reconciliation (default 10min).
+     */
     public function __construct(
+        /** @var job_repository Repository for job and user rows. */
         private job_repository $repo,
-        private int $pollintervalsec = 10, // sleep between poll cycles (default 10s)
-        private int $waitceilingsec = 600    // max wait time per user, including reconciliation (default 10min)
+        /** @var int Seconds to sleep between poll cycles. */
+        private int $pollintervalsec = 10,
+        /** @var int Maximum seconds to wait per user. */
+        private int $waitceilingsec = 600
     ) {
     }
 
     /**
-     * @param int $jobid
+     * Processes each user in a batch in turn.
+     *
+     * @param int $jobid Bulk-deploy job ID.
      * @param array $batch each entry: ['rowid' => int, 'user' => stdClass]
      * @param \stdClass $crucible activity record
      */
@@ -278,6 +292,11 @@ class launcher {
         }
     }
 
+    /**
+     * Sleeps for the given number of seconds (overridable so tests can skip the wait).
+     *
+     * @param int $seconds Seconds to sleep.
+     */
     protected function sleep_seconds(int $seconds): void {
         sleep($seconds);
     }

@@ -84,7 +84,8 @@ class crucible_attempt {
         // If empty create new attempt.
         if (empty($dbattempt)) {
             $this->attempt = new \stdClass();
-        } else { // Else load it up in this class instance.
+        } else {
+            // Else load it up in this class instance.
             $this->attempt = $dbattempt;
         }
     }
@@ -166,7 +167,8 @@ class crucible_attempt {
 
         $this->attempt->timemodified = time();
 
-        if (isset($this->attempt->id)) { // Update the record.
+        if (isset($this->attempt->id)) {
+            // Update the record.
             try {
                 $DB->update_record('crucible_attempts', $this->attempt);
             } catch (\Exception $e) {

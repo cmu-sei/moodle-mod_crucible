@@ -26,13 +26,23 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Ad-hoc task that drives a bulk-deploy job to completion in sequential batches.
  * For Crucible, batchsize is always 1 (sequential processing).
- * @package mod_crucible
+ * @package    mod_crucible
+ * @copyright  2020 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class bulkdeploy_run extends \core\task\adhoc_task {
+    /**
+     * Returns the component this task belongs to.
+     *
+     * @return string The component name.
+     */
     public function get_component(): string {
         return 'mod_crucible';
     }
 
+    /**
+     * Runs the bulk-deploy job named in the task's custom data.
+     */
     public function execute() {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/mod/crucible/locallib.php');
@@ -144,6 +154,17 @@ class bulkdeploy_run extends \core\task\adhoc_task {
         }
     }
 
+    /**
+     * Runs one batch unless the job was cancelled first.
+     *
+     * @param job_repository $repo Repository for job and user rows.
+     * @param launcher $launcher Launcher that processes the batch.
+     * @param int $jobid Bulk-deploy job ID.
+     * @param int $batchno Batch number, for log output.
+     * @param array $batch Batch entries, each ['rowid' => int, 'user' => stdClass].
+     * @param \stdClass $crucible Crucible activity record.
+     * @return bool False if the job was cancelled before the batch started, otherwise true.
+     */
     private function run_one_batch(
         job_repository $repo,
         launcher $launcher,
