@@ -57,10 +57,11 @@ jobs:
         # 5.3 require 8.3.0), so a cross-product would generate PHP 8.2 + MOODLE_502_STABLE, which
         # cannot install.
         #
-        # MOODLE_500_STABLE on PHP 8.2 used to be a leg of its own, covering 5.0's PHP floor for
-        # downstream installs older than ours. Dropped: nothing we run is on 8.2, and the only thing
-        # it caught that the 8.3 legs do not is 8.3-only syntax reaching someone else's 5.0 site.
-        # Add it back, or a --test-version to phpcs, if this plugin gains installs we do not operate.
+        # There is no MOODLE_500_STABLE leg. It ran on PHP 8.2 and later PHP 8.3 to cover 5.0 and its PHP
+        # floor for installs older than ours, and was dropped once every production Moodle moved to 5.2.4:
+        # nothing we run is on 5.0 or PHP 8.2. $plugin->requires still says 5.0.0 on purpose, so CI no longer
+        # checks that floor: raise it when a change needs newer core, and review changes with that in mind.
+        # Add a 5.0 leg back, or a --test-version to phpcs, if this plugin gains installs we do not operate.
         #
         # The 5.3 leg is on 8.4, not 8.3. 5.3 only *requires* 8.3.0, but the 5.3 container ships
         # 8.4, so pinning this leg to 8.3 would leave PHP 8.4 - the version we would actually run
@@ -72,9 +73,6 @@ jobs:
         # a merge. It is here to give warning of removals like core/modal_factory (gone in 5.2) a
         # release ahead, instead of finding them on the first install of the new version.
         include:
-          - moodle-branch: MOODLE_500_STABLE
-            php: '8.3'
-            database: pgsql
           - moodle-branch: MOODLE_502_STABLE
             php: '8.3'
             database: pgsql
