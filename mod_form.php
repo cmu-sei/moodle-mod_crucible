@@ -120,13 +120,13 @@ class mod_crucible_mod_form extends moodleform_mod {
         $licenses = license_manager::get_licenses();
         if ($licenses) {
             foreach ($licenses as $license) {
-                $license_options[$license->shortname] = $license->fullname;
+                $licenseoptions[$license->shortname] = $license->fullname;
             }
         } else {
             debugging('No licenses found.', DEBUG_DEVELOPER);
         }
 
-        $mform->addElement('select', 'contentlicense', get_string('contentlicense', 'crucible'), $license_options);
+        $mform->addElement('select', 'contentlicense', get_string('contentlicense', 'crucible'), $licenseoptions);
         $mform->setType('contentlicense', PARAM_TEXT);
         $mform->addHelpButton('contentlicense', 'contentlicense', 'crucible');
 

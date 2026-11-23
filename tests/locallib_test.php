@@ -54,7 +54,7 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('get_active_events')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('tasksort')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('end_date')]
-#[\PHPUnit\Framework\Attributes\CoversFunction('launchDate')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('launch_date')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('crucible_parse_alloy_date')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('crucible_issuer_configured')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('setup')]
@@ -273,9 +273,9 @@ final class locallib_test extends \advanced_testcase {
         $earlier = ['launchDate' => '2026-01-01T00:00:00'];
         $later = ['launchDate' => '2026-06-01T00:00:00'];
 
-        $this->assertLessThan(0, launchDate($earlier, $later));
-        $this->assertGreaterThan(0, launchDate($later, $earlier));
-        $this->assertSame(0, launchDate($earlier, ['launchDate' => '2026-01-01T00:00:00']));
+        $this->assertLessThan(0, launch_date($earlier, $later));
+        $this->assertGreaterThan(0, launch_date($later, $earlier));
+        $this->assertSame(0, launch_date($earlier, ['launchDate' => '2026-01-01T00:00:00']));
     }
 
     /**
@@ -284,9 +284,9 @@ final class locallib_test extends \advanced_testcase {
     public function test_launchdate_tolerates_a_missing_key(): void {
         $dated = ['launchDate' => '2026-01-01T00:00:00'];
 
-        $this->assertGreaterThan(0, launchDate($dated, []));
-        $this->assertLessThan(0, launchDate([], $dated));
-        $this->assertSame(0, launchDate([], []));
+        $this->assertGreaterThan(0, launch_date($dated, []));
+        $this->assertLessThan(0, launch_date([], $dated));
+        $this->assertSame(0, launch_date([], []));
     }
 
     /**
@@ -299,7 +299,7 @@ final class locallib_test extends \advanced_testcase {
             ['launchDate' => '2026-01-01T00:00:00'],
         ];
 
-        usort($history, 'launchDate');
+        usort($history, 'launch_date');
 
         $dates = array_map(static fn($row) => $row['launchDate'] ?? '', $history);
 

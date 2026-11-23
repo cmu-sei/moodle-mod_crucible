@@ -203,7 +203,7 @@ class crucible {
             return;
         }
 
-        usort($r, 'launchDate');
+        usort($r, 'launch_date');
         return $r;
     }
 
