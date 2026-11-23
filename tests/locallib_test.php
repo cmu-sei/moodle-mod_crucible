@@ -60,7 +60,6 @@ require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('setup')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('crucible_get_attempt_by_eventid')]
 final class locallib_test extends \advanced_testcase {
-
     /**
      * A site that has never visited the settings page must still get a usable limit,
      * and a junk value must not turn into a zero-minute maximum that blocks extending.

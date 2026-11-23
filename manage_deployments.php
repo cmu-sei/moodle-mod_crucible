@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/crucible/locallib.php');
 
@@ -42,7 +57,7 @@ foreach ($users as $u) {
 }
 
 // Sort users
-usort($users, function($a, $b) use ($sort, $dir) {
+usort($users, function ($a, $b) use ($sort, $dir) {
     $val1 = $a->$sort ?? '';
     $val2 = $b->$sort ?? '';
     if ($sort === 'scheduledfor' || $sort === 'attemptendtime') {
@@ -81,13 +96,19 @@ if ($has_active_deploys) {
 $adhocurl = new moodle_url('/admin/tool/task/adhoctasks.php', [
     'classname' => '\\mod_crucible\\task\\bulkdeploy_run',
 ]);
-$linkhtml = html_writer::link($adhocurl, get_string('manage_deploy_running_link', 'crucible'),
-    ['target' => '_blank']);
+$linkhtml = html_writer::link(
+    $adhocurl,
+    get_string('manage_deploy_running_link', 'crucible'),
+    ['target' => '_blank']
+);
 $progresshtml = html_writer::span((string) $summary_ready, 'deploy-summary-ready')
     . '/'
     . html_writer::span((string) $summary_total, 'deploy-summary-total');
-$summaryhtml = get_string('manage_deploy_running_summary', 'crucible',
-    (object) ['progress' => $progresshtml, 'link' => $linkhtml]);
+$summaryhtml = get_string(
+    'manage_deploy_running_summary',
+    'crucible',
+    (object) ['progress' => $progresshtml, 'link' => $linkhtml]
+);
 
 $notifstyle = $has_active_deploys ? '' : 'display:none;';
 echo html_writer::start_div('alert alert-info', [
@@ -118,14 +139,14 @@ echo html_writer::tag('button', get_string('select_all', 'crucible'), [
     'id' => 'select-all-btn',
     'class' => 'btn btn-sm btn-secondary',
     'type' => 'button',
-    'title' => get_string('select_all_help', 'crucible')
+    'title' => get_string('select_all_help', 'crucible'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('deselect_all', 'crucible'), [
     'id' => 'deselect-all-btn',
     'class' => 'btn btn-sm btn-secondary',
     'type' => 'button',
-    'title' => get_string('deselect_all_help', 'crucible')
+    'title' => get_string('deselect_all_help', 'crucible'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('deploy_selected_now', 'crucible'), [
@@ -133,7 +154,7 @@ echo html_writer::tag('button', get_string('deploy_selected_now', 'crucible'), [
     'class' => 'btn btn-success',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('deploy_selected_help', 'crucible')
+    'title' => get_string('deploy_selected_help', 'crucible'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('schedule_selected', 'crucible'), [
@@ -141,7 +162,7 @@ echo html_writer::tag('button', get_string('schedule_selected', 'crucible'), [
     'class' => 'btn btn-primary',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('schedule_selected_help', 'crucible')
+    'title' => get_string('schedule_selected_help', 'crucible'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('cancel_selected', 'crucible'), [
@@ -149,7 +170,7 @@ echo html_writer::tag('button', get_string('cancel_selected', 'crucible'), [
     'class' => 'btn btn-warning',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('cancel_selected_help', 'crucible')
+    'title' => get_string('cancel_selected_help', 'crucible'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('end_selected', 'crucible'), [
@@ -157,7 +178,7 @@ echo html_writer::tag('button', get_string('end_selected', 'crucible'), [
     'class' => 'btn btn-danger',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('end_selected_help', 'crucible')
+    'title' => get_string('end_selected_help', 'crucible'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('extend_selected', 'crucible'), [
@@ -165,13 +186,13 @@ echo html_writer::tag('button', get_string('extend_selected', 'crucible'), [
     'class' => 'btn btn-info',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('extend_selected_help', 'crucible')
+    'title' => get_string('extend_selected_help', 'crucible'),
 ]);
 echo html_writer::end_div();
 
 // Build sort links for column headers
 $sorticon = $dir === 'ASC' ? '▲' : '▼';
-$sortlink = function($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilter) {
+$sortlink = function ($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilter) {
     $newdir = ($sort === $col && $dir === 'ASC') ? 'DESC' : 'ASC';
     $url = new moodle_url($PAGE->url, ['sort' => $col, 'dir' => $newdir, 'rolefilter' => $rolefilter]);
     $icon = ($sort === $col) ? ' ' . $sorticon : '';
@@ -262,13 +283,13 @@ echo html_writer::empty_tag('input', [
     'data-schedule-minimum' => $minimumschedule,
     'class' => 'form-control',
     'style' => 'width: 220px;',
-    'required' => 'required'
+    'required' => 'required',
 ]);
 echo html_writer::tag('div', get_string('schedule_past_error', 'crucible'), [
     'id' => 'schedule-past-error',
     'class' => 'alert alert-danger mt-2 mb-0',
     'role' => 'alert',
-    'style' => 'display:none;'
+    'style' => 'display:none;',
 ]);
 echo html_writer::tag('small', '', [
     'class' => 'form-text text-muted mb-3',
@@ -288,7 +309,7 @@ echo html_writer::empty_tag('input', [
     'max' => crucible_get_max_extend_interval(),
     'class' => 'form-control',
     'style' => 'width: 100px;',
-    'required' => 'required'
+    'required' => 'required',
 ]);
 echo html_writer::tag('small', get_string('extendintervalmax', 'crucible', crucible_get_max_extend_interval()), ['class' => 'form-text text-muted']);
 echo html_writer::end_div();

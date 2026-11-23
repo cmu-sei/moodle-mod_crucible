@@ -94,8 +94,17 @@ class mod_crucible_renderer extends plugin_renderer_base {
      * @param moodle_url|null $bulkdeployurl URL for the manage deployments page.
      * @param bool $extend Whether the current user can extend the active event.
      */
-    public function display_form($url, $eventtemplate, $id = 0, $selectedattempt = 0, $attempts = [], $code = '',
-        $isinstructor = false, $bulkdeployurl = null, $extend = false) {
+    public function display_form(
+        $url,
+        $eventtemplate,
+        $id = 0,
+        $selectedattempt = 0,
+        $attempts = [],
+        $code = '',
+        $isinstructor = false,
+        $bulkdeployurl = null,
+        $extend = false
+    ) {
         $data = new stdClass();
         $data->url = $url;
         $data->eventtemplateid = $eventtemplate;

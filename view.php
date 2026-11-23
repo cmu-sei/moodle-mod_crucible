@@ -314,8 +314,17 @@ echo html_writer::start_div('crucible-activity-section__body');
 
 // TODO if user is in two attempts, ask which attempt they want to be in, and redirect them to a url with that attempt
 $bulkdeployurl = $isinstructor ? new moodle_url('/mod/crucible/manage_deployments.php', ['id' => $cm->id]) : null;
-$renderer->display_form($url, $object->crucible->eventtemplateid, $id, $attemptid, $formattempts, $sharecode,
-    $isinstructor, $bulkdeployurl, $extend);
+$renderer->display_form(
+    $url,
+    $object->crucible->eventtemplateid,
+    $id,
+    $attemptid,
+    $formattempts,
+    $sharecode,
+    $isinstructor,
+    $bulkdeployurl,
+    $extend
+);
 echo html_writer::end_div();
 echo html_writer::end_div();
 
@@ -323,8 +332,10 @@ $PAGE->requires->js_call_amd('mod_crucible/invite', 'init', [['id' => $cm->id]])
 
 // TODO have a completely different view page for active labs.
 if ($object->event && $object->event->status === 'Active') {
-    echo html_writer::start_div('crucible-activity-section crucible-activity-section--workspace',
-        ['id' => 'crucible-workspace-section']);
+    echo html_writer::start_div(
+        'crucible-activity-section crucible-activity-section--workspace',
+        ['id' => 'crucible-workspace-section']
+    );
     echo html_writer::tag('div', 'Lab Workspace', ['class' => 'crucible-activity-section__header']);
     echo html_writer::start_div('crucible-activity-section__body');
     if ($vmapp == 1) {

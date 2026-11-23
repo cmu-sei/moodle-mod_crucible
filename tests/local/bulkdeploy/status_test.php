@@ -49,7 +49,6 @@ defined('MOODLE_INTERNAL') || die();
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_crucible\local\bulkdeploy\job_status::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_crucible\local\bulkdeploy\user_status::class)]
 final class status_test extends \basic_testcase {
-
     /**
      * Pins the whole job vocabulary, including which values are terminal, so a new
      * status cannot be introduced without this expectation being updated on purpose.

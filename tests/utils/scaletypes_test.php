@@ -44,7 +44,6 @@ defined('MOODLE_INTERNAL') || die();
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_crucible\utils\scaletypes::class)]
 final class scaletypes_test extends \basic_testcase {
-
     /**
      * The names are what settings and forms store, so they are part of the plugin's
      * saved data: renaming a key or repointing it at a different constant silently
