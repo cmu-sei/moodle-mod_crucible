@@ -138,10 +138,9 @@ jobs:
         # plenty of all three today, and --fail-on-warning would bury a real regression in noise.
         run: moodle-plugin-ci phpunit
 
-      # Advisory from here down: reported, but not blocking. The style checks are advisory because
-      # these plugins carry a known debt - the DM24-1175 licence header alone exceeds Moodle's
-      # 132-character line limit in every file, so a strict phpcs would be red everywhere on day one
-      # and tell you nothing. Delete a step's continue-on-error line once its plugin is clean.
+      # Behat and the Moodle code checker block (Behat only once the plugin has a feature file). PHPDoc,
+      # Mustache and Grunt below are advisory: reported, but not blocking. Delete a step's
+      # continue-on-error line once its plugin is clean.
 
       - name: Behat
         id: behat
@@ -162,7 +161,6 @@ jobs:
           retention-days: 7
 
       - name: Moodle code checker
-        continue-on-error: true
         run: moodle-plugin-ci phpcs
 
       - name: PHPDoc
