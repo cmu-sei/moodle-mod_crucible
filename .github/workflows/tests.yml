@@ -62,6 +62,10 @@ jobs:
         # it caught that the 8.3 legs do not is 8.3-only syntax reaching someone else's 5.0 site.
         # Add it back, or a --test-version to phpcs, if this plugin gains installs we do not operate.
         #
+        # The 5.0 leg on PHP 8.3 was dropped once every production Moodle moved to 5.2.4: it exercised nothing
+        # we run. $plugin->requires still says 5.0.0 on purpose; raise it when a change needs newer core, not
+        # because a leg went away.
+        #
         # The 5.3 leg is on 8.4, not 8.3. 5.3 only *requires* 8.3.0, but the 5.3 container ships
         # 8.4, so pinning this leg to 8.3 would leave PHP 8.4 - the version we would actually run
         # 5.3 on - untested everywhere. Nothing deploys 5.3 yet; the leg is here so that migrating
@@ -72,9 +76,6 @@ jobs:
         # a merge. It is here to give warning of removals like core/modal_factory (gone in 5.2) a
         # release ahead, instead of finding them on the first install of the new version.
         include:
-          - moodle-branch: MOODLE_500_STABLE
-            php: '8.3'
-            database: pgsql
           - moodle-branch: MOODLE_502_STABLE
             php: '8.3'
             database: pgsql
