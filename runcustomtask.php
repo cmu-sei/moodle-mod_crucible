@@ -53,8 +53,14 @@ global $USER;
 $username = fullname($USER);
 $vmguid = null;
 
-// TODO get the vm mask from an activity setting.
-$vmmask = "mccorc.kali.student";
+// The VM name prefix and guest password come from the plugin settings; there is no per-activity setting yet.
+$vmmask = get_config('crucible', 'customtaskvmmask');
+$guestpassword = get_config('crucible', 'customtaskpassword');
+if ((string)$vmmask === '' || (string)$guestpassword === '') {
+    header('HTTP/1.1 501 Not Implemented');
+    echo json_encode(['message' => 'The custom task VM and password are not configured']);
+    die();
+}
 
 // Require the session key - want to make sure that this isn't called
 // maliciously to keep a session alive longer than intended.
@@ -68,11 +74,17 @@ $response['user'] = $username;
 $system = setup_system();
 // TODO we need to pass the view id here.
 $result = get_allvms($system, $id);
-foreach ($result as $vm) {
-    if (preg_match("/$vmmask-$username/", $vm->name)) {
+foreach ($result ?: [] as $vm) {
+    if (preg_match('/' . preg_quote("$vmmask-$username", '/') . '/', $vm->name)) {
         $response['vm'] = $vm->id;
         $vmguid = $vm->id;
     }
+}
+
+if ($vmguid === null) {
+    header('HTTP/1.1 404 Not Found');
+    echo json_encode(['message' => 'No lab VM was found for this user']);
+    die();
 }
 
 $request = new stdClass();
@@ -88,7 +100,7 @@ $request->apiUrl = "stackstorm";
 $inputstring = new stdClass();
 $inputstring->Moid = "{moid}";
 $inputstring->Username = "root";
-$inputstring->Password = "tartans@1";
+$inputstring->Password = $guestpassword;
 $inputstring->CommandText = "/bin/bash";
 $inputstring->CommandArgs = '-c "hostname"';
 $request->inputString = json_encode($inputstring);
