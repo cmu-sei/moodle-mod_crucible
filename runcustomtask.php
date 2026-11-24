@@ -74,11 +74,17 @@ $response['user'] = $username;
 $system = setup_system();
 // TODO we need to pass the view id here.
 $result = get_allvms($system, $id);
-foreach ($result as $vm) {
+foreach ($result ?: [] as $vm) {
     if (preg_match('/' . preg_quote("$vmmask-$username", '/') . '/', $vm->name)) {
         $response['vm'] = $vm->id;
         $vmguid = $vm->id;
     }
+}
+
+if ($vmguid === null) {
+    header('HTTP/1.1 404 Not Found');
+    echo json_encode(['message' => 'No lab VM was found for this user']);
+    die();
 }
 
 $request = new stdClass();
