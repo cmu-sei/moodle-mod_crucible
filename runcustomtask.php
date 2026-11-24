@@ -56,7 +56,7 @@ $vmguid = null;
 // The VM name prefix and guest password come from the plugin settings; there is no per-activity setting yet.
 $vmmask = get_config('crucible', 'customtaskvmmask');
 $guestpassword = get_config('crucible', 'customtaskpassword');
-if (empty($vmmask) || empty($guestpassword)) {
+if ((string)$vmmask === '' || (string)$guestpassword === '') {
     header('HTTP/1.1 501 Not Implemented');
     echo json_encode(['message' => 'The custom task VM and password are not configured']);
     die();
@@ -75,7 +75,7 @@ $system = setup_system();
 // TODO we need to pass the view id here.
 $result = get_allvms($system, $id);
 foreach ($result as $vm) {
-    if (preg_match("/$vmmask-$username/", $vm->name)) {
+    if (preg_match('/' . preg_quote("$vmmask-$username", '/') . '/', $vm->name)) {
         $response['vm'] = $vm->id;
         $vmguid = $vm->id;
     }
