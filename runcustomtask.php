@@ -53,8 +53,14 @@ global $USER;
 $username = fullname($USER);
 $vmguid = null;
 
-// TODO get the vm mask from an activity setting.
-$vmmask = "mccorc.kali.student";
+// The VM name prefix and guest password come from the plugin settings; there is no per-activity setting yet.
+$vmmask = get_config('crucible', 'customtaskvmmask');
+$guestpassword = get_config('crucible', 'customtaskpassword');
+if (empty($vmmask) || empty($guestpassword)) {
+    header('HTTP/1.1 501 Not Implemented');
+    echo json_encode(['message' => 'The custom task VM and password are not configured']);
+    die();
+}
 
 // Require the session key - want to make sure that this isn't called
 // maliciously to keep a session alive longer than intended.
@@ -88,7 +94,7 @@ $request->apiUrl = "stackstorm";
 $inputstring = new stdClass();
 $inputstring->Moid = "{moid}";
 $inputstring->Username = "root";
-$inputstring->Password = "tartans@1";
+$inputstring->Password = $guestpassword;
 $inputstring->CommandText = "/bin/bash";
 $inputstring->CommandArgs = '-c "hostname"';
 $request->inputString = json_encode($inputstring);

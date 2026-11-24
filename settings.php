@@ -148,4 +148,20 @@ if ($ADMIN->fulltree) {
         PARAM_URL,
         60
     ));
+
+    $settings->add(new admin_setting_configtext(
+        'crucible/customtaskvmmask',
+        get_string('customtaskvmmask', 'crucible'),
+        get_string('customtaskvmmask_desc', 'crucible'),
+        '',
+        PARAM_RAW_TRIMMED,
+        60
+    ));
+
+    $settings->add(new admin_setting_configpasswordunmask(
+        'crucible/customtaskpassword',
+        get_string('customtaskpassword', 'crucible'),
+        get_string('customtaskpassword_desc', 'crucible'),
+        ''
+    ));
 }

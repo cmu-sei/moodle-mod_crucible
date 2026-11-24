@@ -41,6 +41,10 @@ DM20-0196
 // This line protects the file from being accessed by a URL directly.
 defined('MOODLE_INTERNAL') || die();
 
+$string['customtaskpassword'] = 'Custom task guest password';
+$string['customtaskpassword_desc'] = 'Password of the guest account the Run Task button logs in with on the lab VM. Leave empty to disable the button.';
+$string['customtaskvmmask'] = 'Custom task VM name prefix';
+$string['customtaskvmmask_desc'] = 'Name prefix of the lab VM the Run Task button runs on. The user\'s name is appended. Leave empty to disable the button.';
 $string['modulename'] = 'Crucible';
 $string['modulename_help'] = 'Displays Crucible labs and VM consoles';
 $string['modulename_link'] = 'mod/crucible/view';
